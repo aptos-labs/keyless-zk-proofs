@@ -163,7 +163,7 @@ pub async fn prove_handler(
         ),
     };
 
-    info!("use_new_tw_keys={}", using_new_tw_keys);
+    info!("ON_CHAIN_TW_PK={:?}, tw_keypair_new={:?}, use_new_tw_keys={}", *ON_CHAIN_TW_PK.read().unwrap(),  state.tw_keypair_new, using_new_tw_keys);
 
     let training_wheels_signature = EphemeralSignature::ed25519(
         training_wheels::sign(actual_tw_sk, proof, public_inputs_hash)
