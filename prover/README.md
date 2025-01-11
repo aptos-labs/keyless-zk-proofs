@@ -7,7 +7,7 @@ This repository contains the code for the Aptos Keyless Prover Service.
 To run unit tests, run 
 
 ```bash
-source ./scripts/dev_setup.sh
+source ./dev_setup.sh
 ```
 
 then `cargo test`. 
@@ -18,7 +18,7 @@ NOTE: all the commands below assume the working directory is the repo root.
 
 First, initialize the environment.
 ```bash
-source ./scripts/dev_setup.sh
+source ./dev_setup.sh
 ```
 
 The prover now works with a default training wheel key pair (already prepared at `private_key_for_testing.txt`)
