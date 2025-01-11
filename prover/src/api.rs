@@ -1,5 +1,7 @@
 // Copyright © Aptos Foundation
 
+use aptos_crypto_derive::BCSCryptoHash;
+use aptos_crypto_derive::CryptoHasher;
 use aptos_keyless_common::PoseidonHash;
 use aptos_types::{
     keyless::{Groth16Proof, Pepper},
@@ -12,7 +14,7 @@ use serde::{Deserialize, Serialize};
 
 pub type EphemeralPublicKeyBlinder = Vec<u8>;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, BCSCryptoHash, CryptoHasher)]
 pub struct RequestInput {
     pub jwt_b64: String,
     pub epk: EphemeralPublicKey,

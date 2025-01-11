@@ -1,7 +1,9 @@
 // Copyright © Aptos Foundation
 
+use crate::groth16_vk::{OnChainGroth16VerificationKey, SnarkJsGroth16VerificationKey};
 use aptos_keyless_common::input_processing::config::CircuitConfig;
 use serde::{Deserialize, Serialize};
+use std::fs;
 
 pub const CONFIG_FILE_PATH: &str = "config.yml";
 pub const LOCAL_TESTING_CONFIG_FILE_PATH: &str = "config_local_testing.yml";
@@ -108,11 +110,17 @@ impl ProverServiceConfig {
     }
 
     pub fn load_circuit_config(&self, use_new_setup: bool) -> CircuitConfig {
-        println!("load_circuit_config, use_new_setup={use_new_setup}");
         let path = self.circuit_config_path(use_new_setup);
-        println!("load_circuit_config, path={path}");
         let circuit_config_yaml = std::fs::read_to_string(path).unwrap();
         serde_yaml::from_str(&circuit_config_yaml).unwrap()
+    }
+
+    pub fn load_vk(&self, from_new_setup: bool) -> OnChainGroth16VerificationKey {
+        let path = self.verification_key_path(from_new_setup);
+        let vk_json = fs::read_to_string(path).unwrap();
+        let local_vk: SnarkJsGroth16VerificationKey =
+            serde_json::from_str(vk_json.as_str()).unwrap();
+        local_vk.try_as_onchain_repr().unwrap()
     }
 }
 

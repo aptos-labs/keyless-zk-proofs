@@ -23,6 +23,7 @@ use axum_extra::extract::WithRejection;
 
 use crate::groth16_vk::ON_CHAIN_GROTH16_VK;
 use crate::prover_key::ON_CHAIN_TW_PK;
+use aptos_crypto::hash::CryptoHash;
 use serde::Deserialize;
 use std::{fs, sync::Arc, time::Instant};
 use tracing::{info, info_span, warn};
@@ -32,7 +33,7 @@ pub async fn prove_handler(
     WithRejection(Json(body), _): WithRejection<Json<RequestInput>, error::ApiError>,
 ) -> Result<Json<ProverServiceResponse>, ErrorWithCode> {
     let start_time: Instant = Instant::now();
-    let span = info_span!("Handling /prove");
+    let span = info_span!("prove_handler", req_hash = CryptoHash::hash(&body).to_hex());
     let _enter = span.enter();
 
     // TODO: add validation somewhere and nice error for override_aud_value must match aud in jwt (?)
@@ -64,15 +65,19 @@ pub async fn prove_handler(
     let input = preprocess::decode_and_add_jwk(body, jwk_override.as_ref())
         .with_status(StatusCode::BAD_REQUEST)?;
 
+    let on_chain_groth16_vk = {
+        // Minimizing the lock acquisition time.
+        ON_CHAIN_GROTH16_VK.read().unwrap().as_ref().cloned()
+    };
+    let local_new_groth16_vk = state.new_setup.as_ref().map(|c| &c.groth16_vk);
     #[allow(clippy::match_like_matches_macro)]
-    let use_new_setup = match (
-        ON_CHAIN_GROTH16_VK.read().unwrap().as_ref(),
-        state.new_groth16_vk.as_ref(),
-    ) {
+    let use_new_setup = match (on_chain_groth16_vk.as_ref(), local_new_groth16_vk) {
         (Some(on_chain), Some(local)) if on_chain == local => true,
         _ => false,
     };
-    info!("use_new_setup={use_new_setup}");
+
+    info!("Setup selected, on_chain_groth16_vk={:?}, local_new_groth16_vk={:?}, local_default_groth16_vk={:?}, use_new_setup={}", on_chain_groth16_vk, local_new_groth16_vk, state.default_setup.groth16_vk, use_new_setup);
+
     let circuit_config = state.circuit_config(use_new_setup);
 
     training_wheels::check_nonce_consistency(&input, circuit_config)
@@ -99,15 +104,15 @@ pub async fn prove_handler(
 
     // Prove!
     let prover_unlocked = if use_new_setup {
-        state.full_prover_new.as_ref().unwrap().lock().await
+        state.new_setup.as_ref().unwrap().full_prover.lock().await
     } else {
-        state.full_prover_default.lock().await
+        state.default_setup.full_prover.lock().await
     };
 
     let g16vk = prepared_vk(&state.config.verification_key_path(use_new_setup));
     let max_retries = 3;
     let mut retries = 0;
-    let (proof, proof_json, internal_metrics) = loop {
+    let (proof, _proof_json, internal_metrics) = loop {
         let (proof_json, internal_metrics) = prover_unlocked
             .prove(witness_file.path_str()?)
             .map_err(error::handle_prover_lib_error)?;
@@ -143,33 +148,42 @@ pub async fn prove_handler(
         }
     };
 
-    let span = info_span!(
-        "Proof generation finished, building response",
-        rapidsnark_response_json = proof_json
-    );
-    let _enter = span.enter();
-
-    let (using_new_tw_keys, actual_tw_sk, actual_tw_pk) = match (
-        ON_CHAIN_TW_PK.read().unwrap().as_ref(),
-        state.tw_keypair_new.as_ref(),
-    ) {
-        (Some(on_chain), Some(local))
-            if on_chain.data.training_wheels_pubkey
-                == local.on_chain_repr.data.training_wheels_pubkey =>
-        {
-            (true, &local.signing_key, &local.verification_key)
-        }
-        _ => (
-            false,
-            &state.tw_keypair_default.signing_key,
-            &state.tw_keypair_default.verification_key,
-        ),
+    let onchain_twpk = {
+        // Minimize lock acquisition time.
+        ON_CHAIN_TW_PK
+            .read()
+            .unwrap()
+            .as_ref()
+            .map(|c| &c.data.training_wheels_pubkey)
+            .cloned()
     };
 
+    let local_new_twpk = state
+        .new_setup
+        .as_ref()
+        .map(|s| &s.tw_keys.on_chain_repr.data.training_wheels_pubkey);
+    let (using_new_tw_keys, actual_tw_sk, actual_tw_pk) =
+        match (onchain_twpk.as_ref(), local_new_twpk) {
+            (Some(on_chain), Some(local)) if on_chain == local => {
+                let new_tw_keys = &state.new_setup.as_ref().unwrap().tw_keys;
+                (
+                    true,
+                    &new_tw_keys.signing_key,
+                    &new_tw_keys.verification_key,
+                )
+            }
+            _ => (
+                false,
+                &state.default_setup.tw_keys.signing_key,
+                &state.default_setup.tw_keys.verification_key,
+            ),
+        };
+
     info!(
-        "ON_CHAIN_TW_PK={:?}, tw_keypair_new={:?}, use_new_tw_keys={}",
-        *ON_CHAIN_TW_PK.read().unwrap(),
-        state.tw_keypair_new,
+        "TW keys selected, onchain_twpk={:?}, local_new_twpk={:?}, local_default_twpk={:?}, use_new_twpk={}",
+        onchain_twpk,
+        local_new_twpk,
+        state.default_setup.tw_keys.on_chain_repr.data.training_wheels_pubkey,
         using_new_tw_keys
     );
 

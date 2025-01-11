@@ -47,7 +47,7 @@ export ONCHAIN_TW_VK_URL=http://localhost:4444/keyless_config.json
 export PRIVATE_KEY_0=$(cat ./private_key_for_testing.txt) 
 export PRIVATE_KEY_1=$(cat ./private_key_for_testing_another.txt)
 export CONFIG_FILE="config_local_testing_new_setup_specified.yml" 
-cargo run
+cargo run | grep 'selected,'
 ```
 
 Login to [send-it](https://send-it.aptoslabs.com/home/), find a real prover request payload as below.
@@ -65,23 +65,36 @@ export LD_LIBRARY_PATH=$(pwd)/prover/rust-rapidsnark/rapidsnark/package/lib:$LD_
 cd prover
 ./scripts/make_request.sh http://localhost:8083 prover_request_payload.json
 ```
-You should also see logs `use_new_setup=false` and `use_new_tw_keys=false` in terminal 1,
-indicating the rotation has not happened yet.
+In terminal 1, you should also see 2 log lines like:
+```
+{"timestamp":"...","level":"INFO","message":"Setup selected, ..., use_new_setup=false", ... }
+{"timestamp":"...","level":"INFO","message":"TW keys selected, ..., use_new_twpk=false", ... }
+```
+, indicating the rotation has not happened yet.
 
 
-If you rotate the training wheel keys and retry the request as follows,
+If you rotate the training wheel keys and retry the request as follows.
 (still in terminal 2, run:)
 ```bash
 LOCAL_TW_VK_IN=private_key_for_testing_another.txt ONCHAIN_KEYLESS_CONFIG_OUT=keyless_config.json cargo test tw_vk_rewriter
+sleep 11
 ./scripts/make_request.sh http://localhost:8083 prover_request_payload.json
 ```
-you should see logs become `use_new_setup=false` and `use_new_tw_keys=true` in terminal 1.
+The 2 new log lines should be in the following pattern, where `use_new_twpk` becomes `true`.
+```
+{"timestamp":"...","level":"INFO","message":"Setup selected, ..., use_new_setup=false", ... }
+{"timestamp":"...","level":"INFO","message":"TW keys selected, ..., use_new_twpk=true", ... }
+```
 
-If you rotate the Groth16 VK and retry the request as follows,
+If you rotate the Groth16 VK and retry the request as follows.
 (still in terminal 2, run:)
 ```bash
-# go back to terminal 1 and ctrl+c to kill the currently running prover, then run:
 LOCAL_VK_IN=~/.local/share/aptos-prover-service/new/verification_key.json ONCHAIN_VK_OUT=groth16_vk.json cargo test groth16_vk_rewriter
+sleep 11
 ./scripts/make_request.sh http://localhost:8083 prover_request_payload.json
 ```
-you should see the logs become `use_new_setup=true` and `use_new_tw_keys=true` in terminal 1.
+The 2 new log lines should be in the following pattern, where `use_new_setup` becomes `true`.
+```
+{"timestamp":"...","level":"INFO","message":"Setup selected, ..., use_new_setup=true", ... }
+{"timestamp":"...","level":"INFO","message":"TW keys selected, ..., use_new_twpk=true", ... }
+```

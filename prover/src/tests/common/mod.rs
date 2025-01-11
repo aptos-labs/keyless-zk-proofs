@@ -35,8 +35,9 @@ use tokio::sync::Mutex;
 
 pub mod types;
 
-use crate::groth16_vk::{SnarkJsGroth16VerificationKey, ON_CHAIN_GROTH16_VK};
+use crate::groth16_vk::ON_CHAIN_GROTH16_VK;
 use crate::prover_key::{OnChainKeylessConfiguration, TrainingWheelsKeyPair, ON_CHAIN_TW_PK};
+use crate::state::SetupSpecificState;
 
 const TEST_JWK_EXPONENT_STR: &str = "65537";
 
@@ -110,21 +111,13 @@ pub fn get_config() -> ProverServiceConfig {
 pub async fn convert_prove_and_verify(
     testcase: &ProofTestCase<impl Serialize + WithNonce + Clone>,
 ) -> Result<(), anyhow::Error> {
-    let full_prover = init_test_full_prover(false);
-    let full_prover_2 = init_test_full_prover(true);
-    let circuit_config = get_test_circuit_config();
-    let circuit_config_new = get_test_circuit_config();
     let jwk_keypair = gen_test_jwk_keypair();
     let (tw_sk_default, _) = gen_test_training_wheels_keypair();
     let (tw_sk_new, tw_pk_new) = gen_test_training_wheels_keypair();
-    let tw_keypair_default = TrainingWheelsKeyPair::from_sk(tw_sk_default);
-    let tw_keypair_new = Some(TrainingWheelsKeyPair::from_sk(tw_sk_new));
     let prover_server_config = get_config();
 
     let new_vk = if prover_server_config.new_setup_dir.is_some() {
-        let vk_json = fs::read_to_string(prover_server_config.verification_key_path(true)).unwrap();
-        let local_vk: SnarkJsGroth16VerificationKey = serde_json::from_str(&vk_json).unwrap();
-        Some(local_vk.try_as_onchain_repr().unwrap())
+        Some(prover_server_config.load_vk(true))
     } else {
         None
     };
@@ -141,14 +134,19 @@ pub async fn convert_prove_and_verify(
     DECODING_KEY_CACHE.insert(String::from("test.oidc.provider"), dm);
 
     let state = ProverServiceState {
-        full_prover_default: Mutex::new(full_prover),
-        full_prover_new: Some(Mutex::new(full_prover_2)),
-        new_groth16_vk: new_vk,
-        tw_keypair_default,
-        tw_keypair_new,
         config: prover_server_config.clone(),
-        circuit_config: circuit_config.clone(),
-        circuit_config_new: Some(circuit_config_new.clone()),
+        default_setup: SetupSpecificState {
+            config: get_test_circuit_config(),
+            groth16_vk: prover_server_config.load_vk(false),
+            tw_keys: TrainingWheelsKeyPair::from_sk(tw_sk_default),
+            full_prover: Mutex::new(init_test_full_prover(false)),
+        },
+        new_setup: Some(SetupSpecificState {
+            config: get_test_circuit_config(),
+            groth16_vk: new_vk.unwrap(),
+            tw_keys: TrainingWheelsKeyPair::from_sk(tw_sk_new),
+            full_prover: Mutex::new(init_test_full_prover(true)),
+        }),
     };
 
     let prover_request_input = testcase.convert_to_prover_request(&jwk_keypair);

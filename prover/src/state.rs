@@ -1,5 +1,3 @@
-use std::fs;
-
 use aptos_crypto::ed25519::Ed25519PrivateKey;
 use aptos_keyless_common::input_processing::config::CircuitConfig;
 use figment::{
@@ -10,10 +8,11 @@ use rust_rapidsnark::FullProver;
 use serde::{Deserialize, Serialize};
 
 use crate::config::{self, ProverServiceConfig};
-use crate::groth16_vk::{OnChainGroth16VerificationKey, SnarkJsGroth16VerificationKey};
+use crate::groth16_vk::OnChainGroth16VerificationKey;
 use crate::prover_key::TrainingWheelsKeyPair;
 use std::env;
 use tokio::sync::Mutex;
+use tracing::info;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ProverServiceSecrets {
@@ -23,16 +22,17 @@ pub struct ProverServiceSecrets {
     pub private_key_1: Option<Ed25519PrivateKey>,
 }
 
+pub struct SetupSpecificState {
+    pub config: CircuitConfig,
+    pub groth16_vk: OnChainGroth16VerificationKey,
+    pub tw_keys: TrainingWheelsKeyPair,
+    pub full_prover: Mutex<FullProver>,
+}
+
 pub struct ProverServiceState {
-    pub full_prover_default: Mutex<FullProver>,
-    pub full_prover_new: Option<Mutex<FullProver>>,
-    pub new_groth16_vk: Option<OnChainGroth16VerificationKey>,
-    pub tw_keypair_default: TrainingWheelsKeyPair,
-    pub tw_keypair_new: Option<TrainingWheelsKeyPair>,
     pub config: ProverServiceConfig,
-    pub circuit_config: CircuitConfig,
-    pub circuit_config_new: Option<CircuitConfig>,
-    // Ensures that only one circuit is being proven at a time
+    pub default_setup: SetupSpecificState,
+    pub new_setup: Option<SetupSpecificState>,
 }
 
 impl ProverServiceState {
@@ -47,7 +47,7 @@ impl ProverServiceState {
             .extract()
             .expect("Couldn't load config");
 
-        println!("config.resources_dir={}", config.resources_dir);
+        info!("Prover config loaded: {:?}", config);
 
         let ProverServiceSecrets {
             private_key_0: private_key,
@@ -57,47 +57,37 @@ impl ProverServiceState {
             .extract()
             .expect("Couldn't load private key from environment variable PRIVATE_KEY");
 
-        let tw_keypair_default = TrainingWheelsKeyPair::from_sk(private_key);
-        let tw_keypair_new = private_key_new.map(TrainingWheelsKeyPair::from_sk);
+        let default_circuit = SetupSpecificState {
+            config: config.load_circuit_config(false),
+            groth16_vk: config.load_vk(false),
+            tw_keys: TrainingWheelsKeyPair::from_sk(private_key),
+            full_prover: Mutex::new(FullProver::new(&config.zkey_path(false)).unwrap()),
+        };
 
-        let circuit_config = config.load_circuit_config(false);
-
-        println!("using resources dir {}", config.resources_dir);
-
-        // init state
-        let full_prover_default = FullProver::new(&config.zkey_path(false))
-            .expect("failed to initialize rapidsnark prover with old zkey");
-
-        let (full_prover_new, new_vk, circuit_config_new) = if config.new_setup_dir.is_some() {
-            let full_prover = FullProver::new(&config.zkey_path(true))
-                .expect("failed to initialize rapidsnark prover with new zkey");
-            let vk_json = fs::read_to_string(config.verification_key_path(true).as_str()).unwrap();
-            let local_vk: SnarkJsGroth16VerificationKey =
-                serde_json::from_str(vk_json.as_str()).unwrap();
-            let onchain_vk = local_vk.try_as_onchain_repr().unwrap();
-            let circuit_config = config.load_circuit_config(true);
-            (Some(full_prover), Some(onchain_vk), Some(circuit_config))
+        let new_circuit = if config.new_setup_dir.is_some() {
+            let state = SetupSpecificState {
+                config: config.load_circuit_config(true),
+                groth16_vk: config.load_vk(true),
+                tw_keys: TrainingWheelsKeyPair::from_sk(private_key_new.unwrap()),
+                full_prover: Mutex::new(FullProver::new(&config.zkey_path(true)).unwrap()),
+            };
+            Some(state)
         } else {
-            (None, None, None)
+            None
         };
 
         ProverServiceState {
-            full_prover_default: Mutex::new(full_prover_default),
-            full_prover_new: full_prover_new.map(Mutex::new),
-            new_groth16_vk: new_vk,
-            tw_keypair_default,
-            tw_keypair_new,
             config,
-            circuit_config,
-            circuit_config_new,
+            default_setup: default_circuit,
+            new_setup: new_circuit,
         }
     }
 
     pub fn circuit_config(&self, use_new_setup: bool) -> &CircuitConfig {
         if use_new_setup {
-            self.circuit_config_new.as_ref().unwrap()
+            &self.new_setup.as_ref().unwrap().config
         } else {
-            &self.circuit_config
+            &self.default_setup.config
         }
     }
 }
