@@ -1,6 +1,10 @@
 // Copyright © Aptos Foundation
 
-use axum::{http::header, routing::{get, post}, Router, Json};
+use axum::{
+    http::header,
+    routing::{get, post},
+    Json, Router,
+};
 use http::{Method, StatusCode};
 use log::info;
 use prometheus::{Encoder, TextEncoder};
@@ -12,6 +16,7 @@ use axum_prometheus::{
     utils::SECONDS_DURATION_BUCKETS,
     PrometheusMetricLayerBuilder, AXUM_HTTP_REQUESTS_DURATION_SECONDS,
 };
+use prover_service::config::CONFIG;
 use prover_service::groth16_vk::ON_CHAIN_GROTH16_VK;
 use prover_service::prover_key::ON_CHAIN_KEYLESS_CONFIG;
 use prover_service::watcher::start_external_resource_refresh_loop;
@@ -19,7 +24,6 @@ use std::{fs, net::SocketAddr, sync::Arc, time::Duration};
 use tower::ServiceBuilder;
 use tower_http::cors::{Any, CorsLayer};
 use tracing::warn;
-use prover_service::config::CONFIG;
 
 #[tokio::main]
 async fn main() {
@@ -97,10 +101,7 @@ async fn main() {
 
     // init axum and serve public routes
     let app = Router::new()
-        .route(
-            "/meta",
-                get((StatusCode::OK, Json(CONFIG.clone()))),
-        )
+        .route("/meta", get((StatusCode::OK, Json(CONFIG.clone()))))
         .route(
             "/v0/prove",
             post(handlers::prove_handler).fallback(handlers::fallback_handler),

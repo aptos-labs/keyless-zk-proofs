@@ -1,18 +1,13 @@
 use aptos_crypto::ed25519::Ed25519PrivateKey;
 use aptos_keyless_common::input_processing::config::CircuitConfig;
-use figment::{
-    Figment,
-    providers::{Env, Format, Yaml},
-};
+use figment::{providers::Env, Figment};
 use rust_rapidsnark::FullProver;
 use serde::{Deserialize, Serialize};
 
-use crate::config::{self, CONFIG, ProverServiceConfig};
+use crate::config::{ProverServiceConfig, CONFIG};
 use crate::groth16_vk::OnChainGroth16VerificationKey;
 use crate::prover_key::TrainingWheelsKeyPair;
-use std::env;
 use tokio::sync::Mutex;
-use tracing::info;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ProverServiceSecrets {

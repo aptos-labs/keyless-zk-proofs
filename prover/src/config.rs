@@ -2,11 +2,11 @@
 
 use crate::groth16_vk::{OnChainGroth16VerificationKey, SnarkJsGroth16VerificationKey};
 use aptos_keyless_common::input_processing::config::CircuitConfig;
+use figment::providers::{Env, Format, Yaml};
+use figment::Figment;
+use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use std::fs;
-use figment::Figment;
-use figment::providers::{Env, Format, Yaml};
-use once_cell::sync::Lazy;
 
 pub const CONFIG_FILE_PATH: &str = "config.yml";
 pub const LOCAL_TESTING_CONFIG_FILE_PATH: &str = "config_local_testing.yml";
@@ -41,9 +41,9 @@ pub struct ProverServiceConfig {
     pub use_insecure_jwk_for_test: bool,
 }
 
-pub static CONFIG: Lazy<ProverServiceConfig> = Lazy::new(||{
-    let config_file_path = std::env::var(CONFIG_FILE_PATH_ENVVAR)
-        .unwrap_or(String::from(CONFIG_FILE_PATH));
+pub static CONFIG: Lazy<ProverServiceConfig> = Lazy::new(|| {
+    let config_file_path =
+        std::env::var(CONFIG_FILE_PATH_ENVVAR).unwrap_or(String::from(CONFIG_FILE_PATH));
     Figment::new()
         .merge(Yaml::file(config_file_path))
         .merge(Env::raw())
