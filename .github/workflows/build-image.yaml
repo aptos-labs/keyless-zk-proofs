@@ -54,3 +54,5 @@ jobs:
           tags: |
             us-docker.pkg.dev/aptos-registry/docker/prover-service:latest
             us-docker.pkg.dev/aptos-registry/docker/prover-service:${{ github.sha }}
+          build-args: |
+            GIT_COMMIT=${{ github.sha }}

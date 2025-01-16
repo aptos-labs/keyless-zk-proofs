@@ -22,9 +22,8 @@ RUN apt-get update \
 COPY --link --from=build_prover_service ./prover-service-bin ./prover-service-bin
 COPY --link --from=build_prover_service ./prover/rust-rapidsnark/rapidsnark/package ./rapidsnark-package
 
-
-ARG TRUSTLESS_REPO_GIT_SHA=ae684b376059c791ded97d89c3ca114edc1cb44c
-ARG GROTH16_KEYS_REPO_GIT_SHA=6625c811aed782067875cf7998c143f8db17324e
+ARG GIT_COMMIT
+ENV GIT_COMMIT=$GIT_COMMIT
 
 COPY scripts scripts
 ENV RESOURCES_DIR=/resources

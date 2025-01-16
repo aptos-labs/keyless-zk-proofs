@@ -1,13 +1,13 @@
 use aptos_crypto::ed25519::Ed25519PrivateKey;
 use aptos_keyless_common::input_processing::config::CircuitConfig;
 use figment::{
-    providers::{Env, Format, Yaml},
     Figment,
+    providers::{Env, Format, Yaml},
 };
 use rust_rapidsnark::FullProver;
 use serde::{Deserialize, Serialize};
 
-use crate::config::{self, ProverServiceConfig};
+use crate::config::{self, CONFIG, ProverServiceConfig};
 use crate::groth16_vk::OnChainGroth16VerificationKey;
 use crate::prover_key::TrainingWheelsKeyPair;
 use std::env;
@@ -37,18 +37,6 @@ pub struct ProverServiceState {
 
 impl ProverServiceState {
     pub fn init() -> Self {
-        let config_file_path = env::var(config::CONFIG_FILE_PATH_ENVVAR)
-            .unwrap_or(String::from(config::CONFIG_FILE_PATH));
-
-        // read config and secret key
-        let config: ProverServiceConfig = Figment::new()
-            .merge(Yaml::file(config_file_path))
-            .merge(Env::raw())
-            .extract()
-            .expect("Couldn't load config");
-
-        info!("Prover config loaded: {:?}", config);
-
         let ProverServiceSecrets {
             private_key_0: private_key,
             private_key_1: private_key_new,
@@ -58,18 +46,18 @@ impl ProverServiceState {
             .expect("Couldn't load private key from environment variable PRIVATE_KEY");
 
         let default_circuit = SetupSpecificState {
-            config: config.load_circuit_config(false),
-            groth16_vk: config.load_vk(false),
+            config: CONFIG.load_circuit_params(false),
+            groth16_vk: CONFIG.load_vk(false),
             tw_keys: TrainingWheelsKeyPair::from_sk(private_key),
-            full_prover: Mutex::new(FullProver::new(&config.zkey_path(false)).unwrap()),
+            full_prover: Mutex::new(FullProver::new(&CONFIG.zkey_path(false)).unwrap()),
         };
 
-        let new_circuit = if config.new_setup_dir.is_some() {
+        let new_circuit = if CONFIG.new_setup_dir.is_some() {
             let state = SetupSpecificState {
-                config: config.load_circuit_config(true),
-                groth16_vk: config.load_vk(true),
+                config: CONFIG.load_circuit_params(true),
+                groth16_vk: CONFIG.load_vk(true),
                 tw_keys: TrainingWheelsKeyPair::from_sk(private_key_new.unwrap()),
-                full_prover: Mutex::new(FullProver::new(&config.zkey_path(true)).unwrap()),
+                full_prover: Mutex::new(FullProver::new(&CONFIG.zkey_path(true)).unwrap()),
             };
             Some(state)
         } else {
@@ -77,7 +65,7 @@ impl ProverServiceState {
         };
 
         ProverServiceState {
-            config,
+            config: CONFIG.clone(),
             default_setup: default_circuit,
             new_setup: new_circuit,
         }

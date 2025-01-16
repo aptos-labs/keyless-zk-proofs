@@ -4,6 +4,9 @@ use crate::groth16_vk::{OnChainGroth16VerificationKey, SnarkJsGroth16Verificatio
 use aptos_keyless_common::input_processing::config::CircuitConfig;
 use serde::{Deserialize, Serialize};
 use std::fs;
+use figment::Figment;
+use figment::providers::{Env, Format, Yaml};
+use once_cell::sync::Lazy;
 
 pub const CONFIG_FILE_PATH: &str = "config.yml";
 pub const LOCAL_TESTING_CONFIG_FILE_PATH: &str = "config_local_testing.yml";
@@ -12,6 +15,7 @@ pub const CONFIG_FILE_PATH_ENVVAR: &str = "CONFIG_FILE";
 #[derive(Debug, Serialize, Deserialize, Clone)]
 //#[serde(deny_unknown_fields)]
 pub struct ProverServiceConfig {
+    pub git_commit: Option<String>,
     pub default_setup_dir: String,
     pub new_setup_dir: Option<String>,
     /// Directory with prover/verification key and witness gen binary
@@ -36,6 +40,16 @@ pub struct ProverServiceConfig {
     #[serde(default)]
     pub use_insecure_jwk_for_test: bool,
 }
+
+pub static CONFIG: Lazy<ProverServiceConfig> = Lazy::new(||{
+    let config_file_path = std::env::var(CONFIG_FILE_PATH_ENVVAR)
+        .unwrap_or(String::from(CONFIG_FILE_PATH));
+    Figment::new()
+        .merge(Yaml::file(config_file_path))
+        .merge(Env::raw())
+        .extract()
+        .unwrap()
+});
 
 impl ProverServiceConfig {
     pub fn setup_dir(&self, use_new_setup: bool) -> &String {
@@ -109,7 +123,7 @@ impl ProverServiceConfig {
         .into_owned()
     }
 
-    pub fn load_circuit_config(&self, use_new_setup: bool) -> CircuitConfig {
+    pub fn load_circuit_params(&self, use_new_setup: bool) -> CircuitConfig {
         let path = self.circuit_config_path(use_new_setup);
         let circuit_config_yaml = std::fs::read_to_string(path).unwrap();
         serde_yaml::from_str(&circuit_config_yaml).unwrap()
