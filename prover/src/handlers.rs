@@ -21,8 +21,8 @@ use ark_ff::PrimeField;
 use axum::{extract::State, http::StatusCode, Json};
 use axum_extra::extract::WithRejection;
 
-use crate::groth16_vk::ON_CHAIN_GROTH16_VK;
-use crate::prover_key::ON_CHAIN_TW_PK;
+use crate::groth16_vk::{OnChainGroth16VerificationKey, ON_CHAIN_GROTH16_VK};
+use crate::prover_key::{OnChainKeylessConfiguration, ON_CHAIN_KEYLESS_CONFIG};
 use aptos_crypto::hash::CryptoHash;
 use serde::Deserialize;
 use std::{fs, sync::Arc, time::Instant};
@@ -150,7 +150,7 @@ pub async fn prove_handler(
 
     let onchain_twpk = {
         // Minimize lock acquisition time.
-        ON_CHAIN_TW_PK
+        ON_CHAIN_KEYLESS_CONFIG
             .read()
             .unwrap()
             .as_ref()
@@ -219,6 +219,25 @@ pub async fn healthcheck_handler() -> (StatusCode, &'static str) {
 /// On all unrecognized routes, return 404.
 pub async fn fallback_handler() -> (StatusCode, &'static str) {
     (StatusCode::NOT_FOUND, "Invalid route")
+}
+
+pub async fn cached_groth16_vk_handler() -> (StatusCode, Json<Option<OnChainGroth16VerificationKey>>)
+{
+    let cached = { ON_CHAIN_GROTH16_VK.read().unwrap().as_ref().cloned() };
+    if let Some(val) = cached {
+        (StatusCode::OK, Json(Some(val)))
+    } else {
+        (StatusCode::NOT_FOUND, Json(None))
+    }
+}
+
+pub async fn cached_keyless_config() -> (StatusCode, Json<Option<OnChainKeylessConfiguration>>) {
+    let cached = { ON_CHAIN_KEYLESS_CONFIG.read().unwrap().as_ref().cloned() };
+    if let Some(val) = cached {
+        (StatusCode::OK, Json(Some(val)))
+    } else {
+        (StatusCode::NOT_FOUND, Json(None))
+    }
 }
 
 #[derive(Deserialize)]

@@ -36,7 +36,9 @@ use tokio::sync::Mutex;
 pub mod types;
 
 use crate::groth16_vk::ON_CHAIN_GROTH16_VK;
-use crate::prover_key::{OnChainKeylessConfiguration, TrainingWheelsKeyPair, ON_CHAIN_TW_PK};
+use crate::prover_key::{
+    OnChainKeylessConfiguration, TrainingWheelsKeyPair, ON_CHAIN_KEYLESS_CONFIG,
+};
 use crate::state::SetupSpecificState;
 
 const TEST_JWK_EXPONENT_STR: &str = "65537";
@@ -127,9 +129,9 @@ pub async fn convert_prove_and_verify(
 
     // Fill external resource caches.
     ON_CHAIN_GROTH16_VK.write().unwrap().clone_from(&new_vk);
-    *ON_CHAIN_TW_PK.write().unwrap() = Some(OnChainKeylessConfiguration::from_tw_pk(Some(
-        tw_pk_new.clone(),
-    )));
+    *ON_CHAIN_KEYLESS_CONFIG.write().unwrap() = Some(OnChainKeylessConfiguration::from_tw_pk(
+        Some(tw_pk_new.clone()),
+    ));
 
     DECODING_KEY_CACHE.insert(String::from("test.oidc.provider"), dm);
 

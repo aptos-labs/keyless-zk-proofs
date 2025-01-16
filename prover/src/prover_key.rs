@@ -93,7 +93,7 @@ impl TrainingWheelsKeyPair {
     }
 }
 
-pub static ON_CHAIN_TW_PK: Lazy<Arc<RwLock<Option<OnChainKeylessConfiguration>>>> =
+pub static ON_CHAIN_KEYLESS_CONFIG: Lazy<Arc<RwLock<Option<OnChainKeylessConfiguration>>>> =
     Lazy::new(|| Arc::new(RwLock::new(None)));
 
 /// This is not a UT, but a tool to convert a .vkey to its on-chain representation and save in a file.

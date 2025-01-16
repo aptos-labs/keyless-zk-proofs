@@ -17,7 +17,7 @@ use axum_prometheus::{
     PrometheusMetricLayerBuilder, AXUM_HTTP_REQUESTS_DURATION_SECONDS,
 };
 use prover_service::groth16_vk::ON_CHAIN_GROTH16_VK;
-use prover_service::prover_key::ON_CHAIN_TW_PK;
+use prover_service::prover_key::ON_CHAIN_KEYLESS_CONFIG;
 use prover_service::watcher::start_external_resource_refresh_loop;
 use std::{fs, net::SocketAddr, sync::Arc, time::Duration};
 use tower::ServiceBuilder;
@@ -69,7 +69,7 @@ async fn main() {
             start_external_resource_refresh_loop(
                 url.as_str(),
                 Duration::from_secs(10),
-                ON_CHAIN_TW_PK.clone(),
+                ON_CHAIN_KEYLESS_CONFIG.clone(),
             );
         }
         Err(_e) => {
@@ -104,6 +104,14 @@ async fn main() {
         .route(
             "/v0/prove",
             post(handlers::prove_handler).fallback(handlers::fallback_handler),
+        )
+        .route(
+            "cached/groth16-vk",
+            get(handlers::cached_groth16_vk_handler),
+        )
+        .route(
+            "cached/keyless-config",
+            get(handlers::cached_keyless_config),
         )
         .route("/healthcheck", get(handlers::healthcheck_handler))
         .fallback(handlers::fallback_handler)
