@@ -1,0 +1,27 @@
+name: Run Ceremony
+
+on:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  run-ceremony-macos:
+    name: Run Ceremony
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+      # Install node
+      - run: |
+
+          curl "https://nodejs.org/dist/v18.9.1/node-v18.9.1.pkg" > "$HOME/Downloads/node-latest.pkg" && sudo installer -store -pkg "$HOME/Downloads/node-latest.pkg" -target "/"
+
+          node --version 
+          npx --version
+
+          npx @aptos-labs/zk-ceremony@latest auth
+          npx @aptos-labs/zk-ceremony@latest contribute
