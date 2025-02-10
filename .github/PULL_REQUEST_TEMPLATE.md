@@ -35,7 +35,7 @@
 
 # Type of Change
 
-Select one or more for each category, as applicable
+Select one or more for each category, as applicable.
 
 ## Circuit change
 
