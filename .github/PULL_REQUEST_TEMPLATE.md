@@ -37,6 +37,8 @@
 
 Select one or more for each category, as applicable.
 
+Or, introduce your own, if needed.
+
 ## Circuit change
 
 - [ ] Circuit correctness fix
