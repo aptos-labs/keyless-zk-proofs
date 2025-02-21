@@ -13,3 +13,8 @@ You should pull it via:
 git submodule init
 git submodule update
 ```
+
+## TODOs
+
+ - [] Why is the description of `keyless-common/` set to "Aptos Keyless circuit tests" in its `Cargo.toml`
+ - [] The `Cargo.toml` description of `circuit/` also seem inappropriate

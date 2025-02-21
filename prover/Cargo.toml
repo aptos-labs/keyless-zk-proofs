@@ -12,6 +12,7 @@ overflow-checks = true
 anyhow = { workspace = true }
 aptos-crypto = { workspace = true }
 aptos-crypto-derive = { workspace = true }
+aptos-keyless-common = { workspace = true }
 aptos-types = { workspace = true }
 ark-bls12-381 = { workspace = true }
 ark-bn254 = { workspace = true }
@@ -20,7 +21,6 @@ ark-ff = { workspace = true }
 ark-groth16 = { workspace = true }
 ark-serialize = { workspace = true }
 ark-std = { workspace = true }
-aptos-keyless-common = { workspace = true }
 axum = { workspace = true }
 axum-extra = { workspace = true }
 axum-prometheus = { workspace = true }
