@@ -1,3 +1,4 @@
+// TODO(Alin): This file should be removed from and reconciled with `prover/groth16_vk.rs`
 use anyhow::{anyhow, Result};
 use ark_bn254::{Fq, Fq2, G1Projective, G2Projective};
 use ark_ff::PrimeField;

@@ -131,7 +131,7 @@ pub struct VKeyData {
     pub gamma_g2: String,
 }
 
-// TODO(Alin): This needs to be implemented more naturally via a TryFrom...
+// TODO(Alin): This needs to be implemented more naturally via a TryFrom... Zhoujun would rather not because IDEs like CLion can get tripped up when doing a search for usages of `try_from`
 impl SnarkJsGroth16VerificationKey {
     pub fn try_as_onchain_repr(&self) -> Result<OnChainGroth16VerificationKey> {
         let SnarkJsGroth16VerificationKey {
