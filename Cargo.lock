@@ -282,9 +282,29 @@ dependencies = [
  "ark-bn254",
  "ark-ff",
  "base64 0.13.1",
+ "hex",
+ "num-bigint 0.4.4",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tracing",
+]
+
+[[package]]
+name = "aptos-keyless-vk-diff"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "aptos-types",
+ "ark-bn254",
+ "ark-ff",
+ "ark-serialize",
+ "base64 0.13.1",
  "clap 3.2.25",
  "hex",
  "num-bigint 0.4.4",
+ "num-traits",
+ "once_cell",
  "serde",
  "serde_json",
  "strum 0.24.1",

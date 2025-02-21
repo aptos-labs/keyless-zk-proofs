@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 
-members = ["circuit", "keyless-common", "prover"]
+members = ["circuit", "keyless-common", "prover", "vk-diff"]
 
 [workspace.package]
 authors = ["Aptos Labs <opensource@aptoslabs.com>"]
