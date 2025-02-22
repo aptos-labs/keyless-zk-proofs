@@ -39,19 +39,6 @@ template CalculateTotal(n) {
     sum <== sums[n - 1];
 }
 
-// Checks `input_not_ascii` is the digit representation of ascii digit string `input_ascii`
-// Assumes both inputs contain only digits
-template DigitStringAsciiEquivalenceCheck(maxInputLen) {
-    signal input input_ascii[maxInputLen];
-    signal input input_not_ascii[maxInputLen];
-    signal input len;
-
-    signal selector_bits[maxInputLen] <== RightArraySelector(maxInputLen)(len-1);
-    for (var i = 0; i < maxInputLen; i++) {
-        ((input_ascii[i]-48)-input_not_ascii[i])*(1-selector_bits[i]) === 0;
-    }
-}
-
 // Given input `in`, enforces that `in[0] === in[1]` if `bool` is 1
 template AssertEqualIfTrue() {
     signal input in[2];
@@ -111,7 +98,9 @@ template EmailVerifiedCheck(maxEVNameLen, maxEVValueLen, maxUIDNameLen) {
     }
 }
 
-
+// Given an array of ascii characters representing a JSON object, output a binary array demarquing 
+//  input = { asdfsdf "asdf" }
+// output = 000000000001111000
 template StringBodies(len) {
   signal input in[len];
   signal output out[len];
@@ -139,19 +128,22 @@ template StringBodies(len) {
   for (var i = 1; i < len; i++) {
     var is_quote = IsEqual()([in[i], 34]); 
     var prev_is_odd_backslash = adjacent_backslash_parity[i-1];
-    quotes[i] <== is_quote * (1 - prev_is_odd_backslash);
-    quote_parity_1[i] <== quotes[i] * (1 - quote_parity[i-1]);
-    quote_parity_2[i] <== (1 - quotes[i]) * quote_parity[i-1];
-    quote_parity[i] <== quote_parity_1[i] + quote_parity_2[i];
+    quotes[i] <== is_quote * (1 - prev_is_odd_backslash); // 1 iff there is a non-escaped quote at this position
+    quote_parity_1[i] <== quotes[i] * (1 - quote_parity[i-1]); // 1 iff quotes[i] == 1 and quote_parity[i-1] == 0, else 0
+    quote_parity_2[i] <== (1 - quotes[i]) * quote_parity[i-1]; // 1 iff quotes[i] == 0 and quote_party[i-1] == 1, else 0
+    quote_parity[i] <== quote_parity_1[i] + quote_parity_2[i]; // Or of previous two, i.e., XOR(quotes[i], quote_parity[i-1])
   }
-
+  //  input = { asdfsdf "asdf" }
+  // output = 000000000011111000
+  // i.e., still has offset-by-one error
 
   out[0] <== 0;
 
   for (var i = 1; i < len; i++) {
-    out[i] <== AND()(quote_parity[i-1], quote_parity[i]);
+    out[i] <== AND()(quote_parity[i-1], quote_parity[i]); // remove offset error
   }
 }
+
 
 
 // Given a base64-encoded array `in`, max length `maxN`, and actual unpadded length `n`, returns
