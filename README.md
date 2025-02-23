@@ -19,7 +19,15 @@ git submodule update
 
 ## TODOs
 
+### Prover service
+
  - [ ] Why is the description of `keyless-common/` set to "Aptos Keyless circuit tests" in its `Cargo.toml`?
  - [ ] The `Cargo.toml` description of `circuit/` also seem inappropriate
  - [ ] Redundant `OnChainGroth16VerificationKey` struct
  - [ ] Move some shared `prover` and `vk-diff` code to `keyless-common`
+
+### Circuit
+
+ - [ ] Remove public inputs hash and do commit-and-prove
+ - [ ] Pedersen-based keyless addresses and avoid Poseidon hashing, except for Fiat-Shamir maybe
+
