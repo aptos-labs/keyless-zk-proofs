@@ -8,3 +8,5 @@ onchain_vk_2.json
 prover_request_payload.json
 __pycache__
 rust-rapidsnark/rapidsnark/.cache
+*.o
+*.a

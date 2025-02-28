@@ -45,10 +45,6 @@ fn main() {
         .expect("cannot canonicalize libdir path");
     println!("cargo:rustc-link-search={}", rapidsnark_libdir_path.to_str().unwrap());
 
-    let homebrew_libdir_path = PathBuf::from("/opt/homebrew/lib")
-        .canonicalize()
-        .expect("cannot canonicalize libdir path");
-    println!("cargo:rustc-link-search={}", homebrew_libdir_path.to_str().unwrap());
 
     let onetbb_libdir_path = PathBuf::from("rapidsnark/build/subprojects/oneTBB")
         .canonicalize()
@@ -78,6 +74,11 @@ fn main() {
 
 #[cfg(not(target_os = "linux"))]
 fn os_specific_printlns() {
+    let homebrew_libdir_path = PathBuf::from("/opt/homebrew/lib")
+        .canonicalize()
+        .expect("cannot canonicalize libdir path");
+    println!("cargo:rustc-link-search={}", homebrew_libdir_path.to_str().unwrap());
+
     println!("cargo:rustc-link-lib=c++"); // This is needed on macos
 }
 

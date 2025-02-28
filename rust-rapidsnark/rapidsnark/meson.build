@@ -25,7 +25,9 @@ add_project_arguments('-DARCH_ARM', language : 'cpp')
 # Required on macos because somehow the homebrew version of gmp has a library
 # binary that supports 64-bit limbs, but gmp.h only allows this if you set this 
 # flag
-add_project_arguments('-D_LONG_LONG_LIMB', language : 'cpp')
+if build_machine.system() == 'darwin'
+  add_project_arguments('-D_LONG_LONG_LIMB', language : 'cpp')
+endif
 
 gmp_dep = dependency('gmp')
 
