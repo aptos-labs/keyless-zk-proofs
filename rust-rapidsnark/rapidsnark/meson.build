@@ -80,7 +80,8 @@ src_files_asm = [
 # PLATFORM-SPECIFIC LOGIC
 #########################
 
-# This flag ensures that the limb type and 
+# This flag ensures that the limb type in `gmp.h` and in rapidsnark match
+# on darwin machines
 if build_machine.system() == 'darwin'
   add_project_arguments('-D_LONG_LONG_LIMB', language : 'cpp')
 endif
