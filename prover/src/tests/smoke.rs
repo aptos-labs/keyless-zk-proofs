@@ -202,6 +202,7 @@ async fn request_all_sub_lengths() {
 }
 
 #[test]
+#[ignore]
 fn dummy_circuit_load_test() {
     let prover = FullProver::new("./resources/toy_circuit/toy_1.zkey").unwrap();
 

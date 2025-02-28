@@ -1,5 +1,6 @@
 #include "splitparstr.hpp"
 #include "assert.h"
+#include "src/fq.hpp"
 #include <sstream>
 #include "f2field.hpp"
 
@@ -206,3 +207,5 @@ bool F2Field<BaseField>::eq(Element& a, Element& b)
 {
     return F.eq(a.a, b.a) && F.eq(a.b, b.b);
 }
+
+template class F2Field<RawFq>;
