@@ -1,3 +1,5 @@
+# PROJECT DEF
+#############
 
 project(
 'rapidsnark', 
@@ -9,36 +11,34 @@ default_options: [
   ]
 )
 
-
-cmake = import('cmake')
-
-
-# for ffiasm
-add_languages('nasm')
-
-# b/c ffiasm uses these flags
-# TODO: make this generic over linux and osx
-
-
-# Required on macos because somehow the homebrew version of gmp has a library
-# binary that supports 64-bit limbs, but gmp.h only allows this if you set this 
-# flag
-if build_machine.system() == 'darwin'
-  add_project_arguments('-D_LONG_LONG_LIMB', language : 'cpp')
+# If we are on x86-64, need nasm 
+if build_machine.cpu_family() == 'x86_64'
+  add_languages('nasm')
 endif
+
+
+
+
+
+
+
+# DEPENDENCIES
+##############
 
 gmp_dep = dependency('gmp')
 
 
-
-
 # oneTBB subproject/dependency
+cmake = import('cmake')
 opt_var = cmake.subproject_options()
 opt_var.add_cmake_defines({'TBB_TEST': false})
 tbb_dep = cmake.subproject('oneTBB').dependency('tbb')
 
 deps = [gmp_dep, tbb_dep]
 
+
+# SOURCE FILES
+##############
 
 # I'm using `includes` for header-only libs
 incdirs = include_directories('./includes')
@@ -77,6 +77,14 @@ src_files_asm = [
   'asm/fr.asm',
   ]
 
+# PLATFORM-SPECIFIC LOGIC
+#########################
+
+# This flag ensures that the limb type and 
+if build_machine.system() == 'darwin'
+  add_project_arguments('-D_LONG_LONG_LIMB', language : 'cpp')
+endif
+
 if build_machine.cpu_family() == 'x86_64'
   # fr.hpp and fq.hpp need these flags to choose the 
   # right fn signatures
@@ -93,6 +101,11 @@ else
   src_files = src_files_common \
     + src_files_no_asm
 endif
+
+
+
+# FINAL LIBRARY DEF
+###################
 
 src = []
 foreach file : src_files
