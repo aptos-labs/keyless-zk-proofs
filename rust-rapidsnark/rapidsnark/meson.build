@@ -14,12 +14,10 @@ cmake = import('cmake')
 
 
 # for ffiasm
-#add_languages('nasm')
+add_languages('nasm')
 
 # b/c ffiasm uses these flags
 # TODO: make this generic over linux and osx
-# add_project_arguments('-DUSE_ASM', language : 'cpp')
-add_project_arguments('-DARCH_ARM', language : 'cpp')
 
 
 # Required on macos because somehow the homebrew version of gmp has a library
@@ -45,19 +43,14 @@ deps = [gmp_dep, tbb_dep]
 # I'm using `includes` for header-only libs
 incdirs = include_directories('./includes')
 
-src_files = [ 
+src_files_common = [ 
   'alt_bn128.cpp',
-  #'alt_bn128_test.cpp',
   'binfile_utils.cpp',
   'curve.cpp',
   'f2field.cpp',
   'fft.cpp',
   'fq.cpp',
-  'fq_generic.cpp',
-  'fq_raw_generic.cpp',
   'fr.cpp',
-  'fr_generic.cpp',
-  'fr_raw_generic.cpp',
   'fullprover.cpp',
   'groth16.cpp',
   'logger.cpp',
@@ -69,7 +62,37 @@ src_files = [
   'splitparstr.cpp',
   #'splitparstr_test.cpp',
   #'test_prover.cpp',
+  #'alt_bn128_test.cpp',
   ]
+
+src_files_no_asm = [
+  'fq_generic.cpp',
+  'fq_raw_generic.cpp',
+  'fr_generic.cpp',
+  'fr_raw_generic.cpp'
+  ]
+
+src_files_asm = [
+  'asm/fq.asm',
+  'asm/fr.asm',
+  ]
+
+if build_machine.cpu_family() == 'x86_64'
+  # fr.hpp and fq.hpp need these flags to choose the 
+  # right fn signatures
+  add_project_arguments('-DARCH_X86_64', language : 'cpp')
+  add_project_arguments('-DUSE_ASM', language : 'cpp')
+
+  src_files = src_files_common \
+    + src_files_asm
+else
+  # fr.hpp and fq.hpp need these flags to choose the 
+  # right fn signatures
+  add_project_arguments('-DARCH_ARM', language : 'cpp')
+
+  src_files = src_files_common \
+    + src_files_no_asm
+endif
 
 src = []
 foreach file : src_files
