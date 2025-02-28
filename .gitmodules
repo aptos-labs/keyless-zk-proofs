@@ -1,3 +1,0 @@
-[submodule "prover/rust-rapidsnark"]
-	path = rust-rapidsnark
-	url = git@github.com:aptos-labs/rust-rapidsnark.git
