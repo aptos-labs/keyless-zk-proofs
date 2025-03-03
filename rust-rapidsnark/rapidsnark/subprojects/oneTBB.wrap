@@ -1,0 +1,5 @@
+[wrap-file]
+directory = oneTBB-2022.0.0
+source_url = https://github.com/uxlfoundation/oneTBB/archive/refs/tags/v2022.0.0.tar.gz
+source_filename = v2022.0.0.tar.gz
+source_hash = e8e89c9c345415b17b30a2db3095ba9d47647611662073f7fbf54ad48b7f3c2a
