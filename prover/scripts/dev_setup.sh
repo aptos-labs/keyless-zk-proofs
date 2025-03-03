@@ -3,6 +3,27 @@
 set -e
 set -x
 
+
+function add_to_profile_file {
+  eval "$1"
+  FOUND=$(grep -c "$1" <"${HOME}/$2" || true) # grep error return would kill the script.
+  if [ "$FOUND" == "0" ]; then
+    echo "$1" >>"${HOME}/$2"
+  fi
+}
+
+function add_to_profile {
+  if [ "$SHELL" == "/bin/zsh" ]; then
+    add_to_profile_file "$1" ".zprofile"
+  elif [ "$SHELL" == "/bin/bash" ]; then
+    add_to_profile_file "$1" ".profile"
+  else
+    echo "Couldn't detect the type of shell you are using. Please add the equivalent of this line to your shell:"
+    echo $1
+  fi
+}
+
+
 PACKAGE_MANAGER=
 if [[ "$(uname)" == "Linux" ]]; then
   if command -v yum &>/dev/null; then
@@ -63,7 +84,6 @@ fi
 
 install_rustup 
 
-git submodule update --init --recursive
-
 SCRIPT_DIR="$(pwd)"
-export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$SCRIPT_DIR/rust-rapidsnark/rapidsnark/package/lib
+add_to_profile "export DYLD_LIBRARY_PATH=\$DYLD_LIBRARY_PATH:$SCRIPT_DIR/rust-rapidsnark/rapidsnark/build/oneTBB-2022.0.0"
+add_to_profile "export LD_LIBRARY_PATH=\$DYLD_LIBRARY_PATH:$SCRIPT_DIR/rust-rapidsnark/rapidsnark/build/oneTBB-2022.0.0"
