@@ -46,7 +46,7 @@ fn main() {
     println!("cargo:rustc-link-search={}", rapidsnark_libdir_path.to_str().unwrap());
 
 
-    let onetbb_libdir_path = PathBuf::from("rapidsnark/build/subprojects/oneTBB")
+    let onetbb_libdir_path = PathBuf::from("rapidsnark/build/subprojects/oneTBB-2022.0.0")
         .canonicalize()
         .expect("cannot canonicalize libdir path");
     println!("cargo:rustc-link-search={}", onetbb_libdir_path.to_str().unwrap());

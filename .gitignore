@@ -10,3 +10,9 @@ __pycache__
 rust-rapidsnark/rapidsnark/.cache
 *.o
 *.a
+rust-rapidsnark/rapidsnark/subprojects/oneTBB-2022.0.0
+rust-rapidsnark/rapidsnark/subprojects/json-3.2.0
+rust-rapidsnark/rapidsnark/subprojects/scope_guard-0.9.1
+rust-rapidsnark/rapidsnark/subprojects/packagecache
+.DS_Store
+

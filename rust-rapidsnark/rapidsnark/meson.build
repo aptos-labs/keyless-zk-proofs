@@ -25,23 +25,36 @@ endif
 # DEPENDENCIES
 ##############
 
+cmake = import('cmake')
+
+# gmp, assumed to be installed in system. See 
+# https://mesonbuild.com/Dependencies.html#dependency-detection-method 
+# for how meson searches for dependencies
 gmp_dep = dependency('gmp')
 
-
-# oneTBB subproject/dependency
-cmake = import('cmake')
+# oneTBB subproject/dependency, included as a subproject; see ./subprojects/oneTBB.wrap
 opt_var = cmake.subproject_options()
 opt_var.add_cmake_defines({'TBB_TEST': false})
 tbb_dep = cmake.subproject('oneTBB').dependency('tbb')
 
-deps = [gmp_dep, tbb_dep]
+
+# nlohmann/json dependency, included as a subproject; see ./subprojects/json.wrap
+json_dep = subproject('json').get_variable('nlohmann_json_dep')
+
+# scope_guard dependency, included as a subproject; see ./subprojects/scope_guard.wrap
+scope_guard_dep = cmake.subproject('scope_guard').dependency('scope_guard')
+
+deps = [
+  gmp_dep, 
+  tbb_dep, 
+  json_dep, 
+  scope_guard_dep
+  ]
 
 
 # SOURCE FILES
 ##############
 
-# I'm using `includes` for header-only libs
-incdirs = include_directories('./includes')
 
 src_files_common = [ 
   'alt_bn128.cpp',
@@ -82,7 +95,7 @@ src_files_asm = [
 
 # This flag ensures that the limb type in `gmp.h` and in rapidsnark match
 # on darwin machines
-if build_machine.system() == 'darwin'
+if build_machine.system() == 'darwin' and build_machine.cpu_family() == 'aarch64'
   add_project_arguments('-D_LONG_LONG_LIMB', language : 'cpp')
 endif
 
@@ -117,6 +130,5 @@ rapidsnark_lib = static_library(
   'rapidsnark', 
   src, 
   dependencies: deps,
-  include_directories: incdirs
 )
 
