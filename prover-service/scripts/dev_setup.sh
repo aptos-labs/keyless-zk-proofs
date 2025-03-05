@@ -86,6 +86,6 @@ fi
 
 install_rustup 
 
-SCRIPT_DIR="$(dirname $(pwd))"
+SCRIPT_DIR="$(pwd)"
 add_to_profile "export DYLD_LIBRARY_PATH=\$DYLD_LIBRARY_PATH:$SCRIPT_DIR/rust-rapidsnark/rapidsnark/build/subprojects/oneTBB-2022.0.0"
 add_to_profile "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$SCRIPT_DIR/rust-rapidsnark/rapidsnark/build/subprojects/oneTBB-2022.0.0"
