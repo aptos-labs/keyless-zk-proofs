@@ -21,7 +21,7 @@ public:
     std::uint32_t nVars;
     std::uint32_t nPublic;
     std::uint32_t domainSize;
-    u_int64_t     nCoefs;
+    uint64_t     nCoefs;
 
     void* vk_alpha1;
     void* vk_beta1;

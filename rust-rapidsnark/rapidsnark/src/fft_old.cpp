@@ -8,15 +8,15 @@
 #include "fr.h"
 
 FrElement nqr;
-u_int32_t maxS;
+uint32_t maxS;
 
 using namespace std;
 
 // The function we want to execute on the new thread.
 
-u_int32_t log2(u_int32_t n) {
+uint32_t log2(uint32_t n) {
     assert(n!=0);
-    u_int32_t res=0;
+    uint32_t res=0;
     while (n!=1) {
         n >>= 1;
         res ++;
@@ -35,7 +35,7 @@ void printRaw(FrRawElement a) {
     free(s);
 }
 
-void setRaw(FrRawElement r, u_int32_t a) {
+void setRaw(FrRawElement r, uint32_t a) {
     FrElement tmp;
     tmp.type = Fr_SHORT;
     tmp.shortVal = a;
@@ -43,7 +43,7 @@ void setRaw(FrRawElement r, u_int32_t a) {
     Fr_rawCopy(r, tmp.longVal);
 }
 
-static inline u_int32_t BR(u_int32_t x, u_int32_t l)
+static inline uint32_t BR(uint32_t x, uint32_t l)
 {
     x = (x >> 16) | (x << 16);
     x = ((x & 0xFF00FF00) >> 8) | ((x & 0x00FF00FF) << 8);
@@ -55,8 +55,8 @@ static inline u_int32_t BR(u_int32_t x, u_int32_t l)
 static FrRawElement *rootsOfUnit = NULL;
 #define ROOT(s,j) (rootsOfUnit[(1<<(s))+(j)])
 
-void init(u_int32_t maxDomainSize) {
-    u_int32_t s =log2(maxDomainSize)-1;
+void init(uint32_t maxDomainSize) {
+    uint32_t s =log2(maxDomainSize)-1;
     assert((1 << (s+1)) == maxDomainSize);
     FrElement one = {1, Fr_SHORT};
     FrElement two = {2, Fr_SHORT};
@@ -125,7 +125,7 @@ void init(u_int32_t maxDomainSize) {
     }
 }
 
-void reversePermutationInnerLoop(FrRawElement *a, u_int32_t from, u_int32_t to, u_int32_t l2) {
+void reversePermutationInnerLoop(FrRawElement *a, uint32_t from, uint32_t to, uint32_t l2) {
     FrRawElement tmp;
     for (int i=from; i<to; i++) {
         int r = BR(i, l2);
@@ -138,31 +138,31 @@ void reversePermutationInnerLoop(FrRawElement *a, u_int32_t from, u_int32_t to, 
 }
 
 
-void reversePermutation(FrRawElement *a, u_int32_t n, u_int32_t nThreads) {
+void reversePermutation(FrRawElement *a, uint32_t n, uint32_t nThreads) {
     int l2 = log2(n);
     std::vector<std::thread> threads(nThreads-1);
-    u_int32_t increment = n / nThreads;
+    uint32_t increment = n / nThreads;
     if (increment) {
-        for (u_int32_t i=0; i<nThreads-1; i++) {
+        for (uint32_t i=0; i<nThreads-1; i++) {
             threads[i] = std::thread (reversePermutationInnerLoop, a, i*increment, (i+1)*increment, l2);
         }
     }
     reversePermutationInnerLoop(a, (nThreads-1)*increment, n, l2);
-    for (u_int32_t i=0; i<nThreads-1; i++) {
+    for (uint32_t i=0; i<nThreads-1; i++) {
         if (threads[i].joinable()) threads[i].join();
     }
 
 }
 
 
-void fftInnerLoop(FrRawElement *a, u_int32_t from, u_int32_t to, u_int32_t s) {
+void fftInnerLoop(FrRawElement *a, uint32_t from, uint32_t to, uint32_t s) {
     FrRawElement t;
     FrRawElement u;
-    u_int32_t mdiv2 = (1<<s);
-    u_int32_t m = mdiv2 << 1;
+    uint32_t mdiv2 = (1<<s);
+    uint32_t m = mdiv2 << 1;
     for (int i=from; i<to; i++) {
-        u_int32_t k=(i/mdiv2)*m;
-        u_int32_t j=i%mdiv2;
+        uint32_t k=(i/mdiv2)*m;
+        uint32_t j=i%mdiv2;
 
         Fr_rawMMul(t, ROOT(s, j), a[k+j+mdiv2]);
         Fr_rawCopy(u,a[k+j]);
@@ -171,21 +171,21 @@ void fftInnerLoop(FrRawElement *a, u_int32_t from, u_int32_t to, u_int32_t s) {
     }
 }
 
-void fft(FrRawElement *a, u_int32_t n, u_int32_t nThreads ) {
+void fft(FrRawElement *a, uint32_t n, uint32_t nThreads ) {
     reversePermutation(a, n, nThreads);
-    u_int32_t l2 =log2(n);
+    uint32_t l2 =log2(n);
     assert((1 << l2) == n);
     std::vector<std::thread> threads(nThreads-1);
-    for (u_int32_t s=0; s<l2; s++) {
-        u_int32_t increment = (n >> 1) / nThreads;
+    for (uint32_t s=0; s<l2; s++) {
+        uint32_t increment = (n >> 1) / nThreads;
         if (increment) {
-            for (u_int32_t i=0; i<nThreads-1; i++) {
+            for (uint32_t i=0; i<nThreads-1; i++) {
                 threads[i] = std::thread (fftInnerLoop, a, i*increment, (i+1)*increment, s);
             }
         }
         fftInnerLoop(a, (nThreads-1)*increment, (n >> 1), s);
 
-        for (u_int32_t i=0; i<nThreads-1; i++) {
+        for (uint32_t i=0; i<nThreads-1; i++) {
             if (threads[i].joinable()) threads[i].join();
         }
     }
@@ -194,17 +194,17 @@ void fft(FrRawElement *a, u_int32_t n, u_int32_t nThreads ) {
 int main(int argc, char**argv)
 {
 
-    u_int32_t eN = atoi(argv[1]);
-    u_int32_t nThreads = atoi(argv[2]);
+    uint32_t eN = atoi(argv[1]);
+    uint32_t nThreads = atoi(argv[2]);
 
-    u_int32_t N = (1<<eN);
+    uint32_t N = (1<<eN);
 
     Fr_init();
     init(N);
 
     FrRawElement *v = (FrRawElement *)malloc(N * sizeof(FrRawElement));
 
-    for (u_int32_t i=0; i<N; i++) {
+    for (uint32_t i=0; i<N; i++) {
         setRaw(v[i], i);
         // printRaw(v[i]);
     }
@@ -218,7 +218,7 @@ int main(int argc, char**argv)
     fft(v, N, nThreads);
 
     gettimeofday(&stop, NULL);
-    u_int32_t diff = (stop.tv_sec - start.tv_sec) * 1000000 + stop.tv_usec - start.tv_usec;
+    uint32_t diff = (stop.tv_sec - start.tv_sec) * 1000000 + stop.tv_usec - start.tv_usec;
 
     double diffD = (float)diff / 1000000.0;
 
@@ -227,7 +227,7 @@ int main(int argc, char**argv)
 
 
 /*
-    for (u_int32_t i=0; i<N; i++) {
+    for (uint32_t i=0; i<N; i++) {
         printRaw(v[i]);
     }
 */

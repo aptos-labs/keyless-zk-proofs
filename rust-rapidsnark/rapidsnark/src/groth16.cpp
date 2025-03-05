@@ -415,8 +415,8 @@ template struct Coef<AltBn128::Engine>;
 
 template 
 std::unique_ptr<Prover<AltBn128::Engine>>
-makeProver(u_int32_t nVars, u_int32_t nPublic, u_int32_t domainSize,
-           u_int64_t nCoefs, void* vk_alpha1, void* vk_beta1, void* vk_beta2,
+makeProver(uint32_t nVars, uint32_t nPublic, uint32_t domainSize,
+           uint64_t nCoefs, void* vk_alpha1, void* vk_beta1, void* vk_beta2,
            void* vk_delta1, void* vk_delta2, void* coefs, void* pointsA,
            void* pointsB1, void* pointsB2, void* pointsC, void* pointsH);
 

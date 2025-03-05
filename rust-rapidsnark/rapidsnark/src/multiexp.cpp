@@ -164,7 +164,7 @@ void ParallelMultiexp<Curve>::reduce(typename Curve::Point& res, uint64_t nBits)
             }
         });
 
-    for (u_int32_t i = 0; i < nThreads; i++)
+    for (uint32_t i = 0; i < nThreads; i++)
     {
         g.add(accs[ndiv2].p, accs[ndiv2].p, sall[i].p);
     }
@@ -172,7 +172,7 @@ void ParallelMultiexp<Curve>::reduce(typename Curve::Point& res, uint64_t nBits)
     typename Curve::Point p1;
     reduce(p1, nBits - 1);
 
-    for (u_int32_t i = 0; i < nBits - 1; i++)
+    for (uint32_t i = 0; i < nBits - 1; i++)
         g.dbl(accs[ndiv2].p, accs[ndiv2].p);
     g.add(res, p1, accs[ndiv2].p);
     g.copy(accs[ndiv2].p, g.zero());

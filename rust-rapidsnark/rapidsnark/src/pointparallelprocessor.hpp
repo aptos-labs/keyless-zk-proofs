@@ -38,7 +38,7 @@ private:
     typename Curve::PointAffine *bases;
     GrowableArrayMT<typename Curve::Point> *heap;
     GrowableArrayMT<Op> **ops;
-    u_int32_t nLevels;
+    uint32_t nLevels;
 
     bool terminated;
     uint32_t nThreads;
