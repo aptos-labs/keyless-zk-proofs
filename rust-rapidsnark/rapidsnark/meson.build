@@ -34,8 +34,14 @@ gmp_dep = dependency('gmp')
 
 # oneTBB subproject/dependency, included as a subproject; see ./subprojects/oneTBB.wrap
 opt_var = cmake.subproject_options()
-opt_var.add_cmake_defines({'TBB_TEST': false})
-tbb_dep = cmake.subproject('oneTBB').dependency('tbb')
+opt_var.add_cmake_defines({
+  'TBB_TEST': 'NO',
+  'CMAKE_SHARED_LINKER_FLAGS': '-fuse-ld=lld -Wl,-u'
+})
+
+
+
+tbb_dep = cmake.subproject('oneTBB', options: opt_var).dependency('tbb')
 
 
 # nlohmann/json dependency, included as a subproject; see ./subprojects/json.wrap
