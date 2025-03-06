@@ -74,11 +74,11 @@ function install_rustup {
 
 if [[ $PACKAGE_MANAGER == "apt-get" ]]; then 
   sudo apt-get update
-  sudo apt-get install -y pkg-config meson clang cmake make libyaml-dev nasm libgmp-dev libssl-dev
+  sudo apt-get install -y pkg-config lld meson clang cmake make libyaml-dev nasm libgmp-dev libssl-dev
 elif [[ $PACKAGE_MANAGER == "brew" ]]; then 
   brew install cmake meson libyaml nasm gmp
 elif [[ $PACKAGE_MANAGER == "pacman" ]]; then 
-  sudo pacman -S --needed pkg-config meson clang cmake make libyaml nasm gmp openssl
+  sudo pacman -S --needed pkg-config meson lld clang cmake make libyaml nasm gmp openssl
 else
   echo "Unsupported platform. Currently this script only supports Arch, Ubuntu, Debian and macOS."
   exit 1
