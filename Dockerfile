@@ -4,7 +4,7 @@ FROM archlinux:base-devel as build_prover_service
 ARG TARGETARCH
 
 run pacman -Syu --noconfirm \
- && pacman -S --noconfirm rustup clang meson cmake make libyaml nasm gmp openssl curl git \
+ && pacman -S --noconfirm rustup clang lld meson cmake make libyaml nasm gmp openssl curl git \
  && rustup default stable
 
 COPY --link . .
