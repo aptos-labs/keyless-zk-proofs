@@ -1,6 +1,4 @@
-# Description
-
-## What is the change being pushed?
+# What is the change being pushed?
 
 <!--
  Describe **what** the change is. e.g.,:
@@ -33,20 +31,23 @@
   - highlight any areas where you are particularly concerned or unsure about the code's impact on the change. This can include potential performance or security issues, or compatibility with existing features.
 -->
 
-# Type of Change
+# Type of change
 
+<!-- 
 Select one or more for each category, as applicable.
-
+Delete the category, if not applicable.
 Or, introduce your own, if needed.
+-->
 
-## Circuit change
+**Circuit change?**
 
+- [ ] New circuit feature
 - [ ] Circuit correctness fix
 - [ ] Circuit soundness fix
 - [ ] Circuit test cases
 - [ ] Circuit benchmarks
 
-## Prover service change
+**Prover service change?**
 
 - [ ] New feature
 - [ ] Bug fix
