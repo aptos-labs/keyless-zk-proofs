@@ -1,5 +1,72 @@
 import os
 import urllib.request
+import sys
+from subprocess import Popen, PIPE
+import subprocess
+from os import environ
+from pathlib import Path
+
+envvars_were_added = False
+
+def repo_root():
+    """Return the repo root. Assumes this script is two subdirectories in."""
+    return str(Path(os.path.realpath(__file__)).parents[2])
+
+def resources_dir_root():
+    if 'RESOURCES_DIR' in os.environ:
+        return = os.environ['RESOURCES_DIR']
+    else:
+        return os.path.expanduser("~/.local/share/aptos-prover-service")
+
+
+def download_and_run_shell_script(url):
+    """Download and run shell command at the given URL and exit if it fails."""
+    run_shell_command("curl \"" + url + "\" | bash")
+
+def run_shell_command(command):
+    """Run a command in a shell and exit if it fails."""
+    try:
+        subprocess.run(command, shell=True, check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Error: Command '{' '.join(command)}' failed with error {e}.")
+        sys.exit(1)
+
+
+def add_envvar_to_profile(name, value):
+    """
+    Adds an 'export name=value' line to the user's .bashrc or .zshrc file, if this line doesn't
+    already exist. Chose these files instead of .profile and .zprofile because the latter are 
+    only loaded on login shells (i.e., not when using ssh)
+    """
+    global envvars_were_added
+
+    if os.environ["SHELL"] == "/bin/bash":
+        profile_file_path = os.path.expanduser("~/.bashrc")
+    elif os.environ["SHELL"] == "/bin/zsh":
+        profile_file_path = os.path.expanduser("~/.zshrc")
+    else:
+        eprint("Cannot detect the user's shell to add envvars. Only supports bash and zsh right now. Exiting.")
+        exit(2)
+
+    new_profile_line="export " + name + "=\"" + value + "\""
+
+    with open(profile_file_path, "r") as profile_file:
+        if new_profile_line in profile_file.read():
+            eprint("Line for envvar " + name + " already in " + profile_file_path + " so we won't add it again")
+            return
+
+    with open(profile_file_path, "a") as profile_file:
+        profile_file.write(new_profile_line + "\n")
+
+
+    envvars_were_added = True
+
+
+def remind_to_restart_shell_if_needed():
+    global envvars_were_added 
+
+    if envvars_were_added:
+        eprint("Env-vars were added to your profile. Please restart your shell.") 
 
 
 def download_file(url, dest):
@@ -8,36 +75,8 @@ def download_file(url, dest):
         out_file.write(response.read())
 
 
-def prepare_single_setup(setup_root, url_prover_key, url_main_c, url_main_c_dat, url_vk, url_circuit_config, url_generate_witness_js, url_main_wasm, url_witness_calculator_js):
-    os.makedirs(setup_root, exist_ok=True)
+def eprint(s):
+    print(s, file=sys.stderr)
 
-    prover_key_path = os.path.join(setup_root, "prover_key.zkey")
-    download_file(url_prover_key, prover_key_path)
 
-    main_c_path = os.path.join(setup_root, "main_c")
-    download_file(url_main_c, main_c_path)
-    os.chmod(main_c_path, 0o744)
 
-    main_c_dat_path = os.path.join(setup_root, "main_c.dat")
-    download_file(url_main_c_dat, main_c_dat_path)
-
-    vk_path = os.path.join(setup_root, "verification_key.json")
-    download_file(url_vk, vk_path)
-
-    circuit_config_path = os.path.join(setup_root, "circuit_config.yml")
-    download_file(url_circuit_config, circuit_config_path)
-
-    witness_calculator_js_path = os.path.join(setup_root, "generate_witness.js")
-    download_file(url_generate_witness_js, witness_calculator_js_path)
-
-    main_wasm_path = os.path.join(setup_root, "main.wasm")
-    download_file(url_main_wasm, main_wasm_path)
-
-    witness_calculator_js_path = os.path.join(setup_root, "witness_calculator.js")
-    download_file(url_witness_calculator_js, witness_calculator_js_path)
-
-def force_symlink_dir(target, link_path):
-    if os.path.exists(link_path):
-        assert os.path.islink(link_path)
-        os.remove(link_path)
-    os.symlink(target, link_path, target_is_directory=True)
