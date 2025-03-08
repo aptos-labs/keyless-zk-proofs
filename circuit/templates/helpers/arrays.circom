@@ -85,6 +85,7 @@ template SingleOneArray(len) {
     // support array sizes up to a million. Being conservative here b/c according to Michael this template is very cheap
     signal should_be_all_zeros <== GreaterEqThan(20)([index, len]);
     success === 1 * (1 - should_be_all_zeros);
+    should_be_all_zeros === 0;
 }
 
 // Given an array 'arr', returns the value at index `index`
@@ -160,6 +161,10 @@ template CheckSubstrInclusionPoly(maxStrLen, maxSubstrLen) {
 
     var distinguishing_value = SelectArrayValue(maxStrLen)(challenge_powers, start_index);
 
+    // Fail if ArraySelector returns all 0s
+    signal lhs_is_zero <== IsEqual()([str_poly_eval,0]);
+    lhs_is_zero === 0;
+
     str_poly_eval === distinguishing_value * substr_poly_eval;
 }
 
@@ -174,7 +179,7 @@ template CheckSubstrInclusionPolyBoolean(maxStrLen, maxSubstrLen) {
     signal input substr[maxSubstrLen];
     signal input substr_len;
     signal input start_index;
-    signal output check_passes;
+    signal output success;
 
     signal substr_hash <== HashBytesToFieldWithLen(maxSubstrLen)(substr, substr_len);
     signal random_challenge <== Poseidon(4)([str_hash, substr_hash, substr_len, start_index]);
@@ -207,8 +212,13 @@ template CheckSubstrInclusionPolyBoolean(maxStrLen, maxSubstrLen) {
 
     var distinguishing_value = SelectArrayValue(maxStrLen)(challenge_powers, start_index);
 
+    // Fail if ArraySelector returns all 0s
+    signal lhs_is_zero <== IsEqual()([str_poly_eval,0]);
+    signal not_lhs_is_zero <== NOT()(lhs_is_zero);
+
     signal right_eq <== distinguishing_value * substr_poly_eval;
-    check_passes <== IsEqual()([str_poly_eval, right_eq]);
+    signal check_passes <== IsEqual()([str_poly_eval, right_eq]);
+    success <== AND()(not_lhs_is_zero, check_passes);
 }
 
 // Given `full_string`, `left`, and `right`, checks that full_string = left || right 

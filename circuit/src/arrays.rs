@@ -107,7 +107,7 @@ fn array_selector_test_complex() {
     let out_len = 8;
     // Fails when start = 0 by design
     for start in 1..out_len {
-        for end in start + 1..=out_len {
+        for end in start + 1..out_len {
             let output = build_array_selector_output(out_len, start, end);
             let config = CircuitConfig::new().max_length("expected_output", out_len as usize);
             let circuit_input_signals = CircuitInputSignals::new()
@@ -192,7 +192,7 @@ fn build_left_array_selector_output(len: u32, index: u32) -> Vec<u8> {
 fn left_array_selector_test() {
     let circuit_handle = TestCircuitHandle::new("arrays/left_array_selector_test.circom").unwrap();
     let out_len = 8;
-    for index in 0..=out_len {
+    for index in 0..out_len {
         let output = build_left_array_selector_output(out_len, index);
         let config = CircuitConfig::new().max_length("expected_output", out_len as usize);
         let circuit_input_signals = CircuitInputSignals::new()
@@ -254,7 +254,7 @@ fn build_right_array_selector_output(len: usize, index: usize) -> Vec<u8> {
 fn right_array_selector_test() {
     let circuit_handle = TestCircuitHandle::new("arrays/right_array_selector_test.circom").unwrap();
     let out_len = 8;
-    for index in 0..=out_len {
+    for index in 0..out_len {
         let output = build_right_array_selector_output(out_len, index);
         let config = CircuitConfig::new().max_length("expected_output", out_len);
         let circuit_input_signals = CircuitInputSignals::new()
@@ -317,7 +317,7 @@ fn build_single_one_array_output(len: usize, index: usize) -> Vec<u8> {
 fn single_one_array_test() {
     let circuit_handle = TestCircuitHandle::new("arrays/single_one_array_test.circom").unwrap();
     let out_len = 8;
-    for index in 0..=out_len {
+    for index in 0..out_len {
         let output = build_single_one_array_output(out_len, index);
         let config = CircuitConfig::new().max_length("expected_output", out_len);
         let circuit_input_signals = CircuitInputSignals::new()
@@ -609,6 +609,36 @@ fn check_substr_inclusion_poly_same_test() {
     assert!(result.is_ok());
 }
 
+
+#[test]
+fn check_substr_inclusion_poly_out_of_bounds_test() {
+    let circuit_handle =
+        TestCircuitHandle::new("arrays/check_substr_inclusion_poly_test.circom").unwrap();
+
+    let string = "Hello World!";
+    let max_str_len = 100;
+    let max_substr_len = 20;
+    let config = CircuitConfig::new()
+        .max_length("str", max_str_len)
+        .max_length("substr", max_substr_len);
+    let string_hash = poseidon_bn254::pad_and_hash_string(string, max_str_len).unwrap();
+    let substring = "____bad____";
+    let substring_len = substring.len();
+    let start_index = 1000;
+
+    let circuit_input_signals = CircuitInputSignals::new()
+        .str_input("str", string)
+        .str_input("substr", substring)
+        .u64_input("substr_len", substring_len as u64)
+        .u64_input("start_index", start_index as u64)
+        .fr_input("str_hash", string_hash)
+        .pad(&config)
+        .unwrap();
+
+    let result = circuit_handle.gen_witness(circuit_input_signals);
+    assert!(result.is_err());
+}
+
 #[test]
 fn check_substr_inclusion_poly_large_test() {
     let circuit_handle =
@@ -805,6 +835,37 @@ fn check_substr_inclusion_poly_same_boolean_test() {
 
     let result = circuit_handle.gen_witness(circuit_input_signals);
     assert!(result.is_ok());
+}
+
+
+#[test]
+fn check_substr_inclusion_poly_boolean_out_of_bounds_test() {
+    let circuit_handle =
+        TestCircuitHandle::new("arrays/check_substr_inclusion_poly_boolean_test.circom").unwrap();
+
+    let string = "Hello World!";
+    let max_str_len = 100;
+    let max_substr_len = 20;
+    let config = CircuitConfig::new()
+        .max_length("str", max_str_len)
+        .max_length("substr", max_substr_len);
+    let string_hash = poseidon_bn254::pad_and_hash_string(string, max_str_len).unwrap();
+    let substring = "____bad____";
+    let substring_len = substring.len();
+    let start_index = 1000;
+
+    let circuit_input_signals = CircuitInputSignals::new()
+        .str_input("str", string)
+        .str_input("substr", substring)
+        .u64_input("substr_len", substring_len as u64)
+        .u64_input("start_index", start_index as u64)
+        .fr_input("str_hash", string_hash)
+        .u64_input("expected_output", 1)
+        .pad(&config)
+        .unwrap();
+
+    let result = circuit_handle.gen_witness(circuit_input_signals);
+    assert!(result.is_err());
 }
 
 #[test]
