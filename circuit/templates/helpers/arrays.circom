@@ -5,12 +5,14 @@ include "circomlib/circuits/comparators.circom";
 include "./hashtofield.circom";
 include "./misc.circom";
 
-// Outputs a bit array where indices [start_index, end_index) (inclusive of start_index, exclusive of end_index) are all 1, and all other bits are 0. Does not work if end_index is greater than `len`
+// Outputs a bit array where indices [start_index, end_index) (inclusive of start_index, exclusive of end_index) are all 1, and all other bits are 0.
+// If end_index >= len, returns a bit array where start_index and all indices after it are 1, and all other bits are 0.
 template ArraySelector(len) {
     signal input start_index;
     signal input end_index;
     signal output out[len];
-    assert(end_index > start_index);
+    var start_less_than_end = LessThan(20)([start_index, end_index]);
+    start_less_than_end === 1;
 
     signal start_selector[len] <== SingleOneArray(len)(start_index);
     signal end_selector[len] <== SingleNegOneArray(len)(end_index);
@@ -22,7 +24,7 @@ template ArraySelector(len) {
 }
 
 // Similar to ArraySelector, but works when end_index > start_index is not satisfied, in which
-// case an array of all 0s is returned. Does not work when start_index is 0
+// case an array of all 0s is returned. Does NOT work when start_index is 0
 template ArraySelectorComplex(len) {
     signal input start_index;
     signal input end_index;
@@ -38,6 +40,7 @@ template ArraySelectorComplex(len) {
 }
 
 // Outputs a bit array where all bits to the right of `index` are 0, and all other bits are 1
+// Assumes that 0 <= index < len
 template LeftArraySelector(len) {
     signal input index;
     signal output out[len];
@@ -55,6 +58,7 @@ template LeftArraySelector(len) {
 }
 
 // Outputs a bit array where all bits to the left of `index` are 0, and all other bits are 1
+// Assumes that 0 <= index < len
 template RightArraySelector(len) {
     signal input index;
     signal output out[len];
@@ -67,8 +71,34 @@ template RightArraySelector(len) {
     }
 }
 
+// Given two input arrays `in1` and `in2` each of length `len`, outputs
+// an array `out` that is the same length, which is the elementwise multiplication of
+// `in1` and `in2`
+template ElementwiseMul(len) {
+    signal input in1[len];
+    signal input in2[len];
+    signal output out[len];
+
+    for (var i = 0; i < len; i++) {
+        out[i] <== in1[i] * in2[i];
+    }
+}
+
+// Given an array of integers `in` of all 1s and 0s, returns an array `out` where
+// each 1 is now 0 and each 0 is now 1
+// Assumes `in` contains only 1s and 0s
+template InvertBinaryArray(len) {
+    signal input in[len];
+    signal output out[len];
+
+    for (var i = 0; i < len; i++) {
+        out[i] <== 1 - in[i];
+    }
+}
+
 // Similar to Decoder template from circomlib/circuits/multiplexer.circom
 // Returns a bit array `out` with a 1 at index `index`, and 0s everywhere else
+// Assumes that 0 <= index < len
 template SingleOneArray(len) {
     signal input index;
 
@@ -82,13 +112,14 @@ template SingleOneArray(len) {
         lc = lc + out[i];
     }
     lc ==> success;
-    // support array sizes up to a million. Being conservative here b/c according to Michael this template is very cheap
+    // support array sizes up to a million with the `GreaterEqThan` 20 parameter. Being conservative here b/c according to Michael this template is very cheap
     signal should_be_all_zeros <== GreaterEqThan(20)([index, len]);
     success === 1 * (1 - should_be_all_zeros);
     should_be_all_zeros === 0;
 }
 
 // Given an array 'arr', returns the value at index `index`
+// Assumes that 0 <= index < len
 template SelectArrayValue(len) {
     signal input arr[len];
     signal input index;
@@ -101,6 +132,8 @@ template SelectArrayValue(len) {
 
 // Similar to Decoder template from circomlib/circuits/multiplexer.circom
 // Returns a bit array `out` with a -1 at index `index`, and 0s everywhere else
+// Returns an array of all 0s if it is not the case that 0 <= index < len
+// TODO: Rename this to make returning all 0s when out of bounds more clear
 template SingleNegOneArray(len) {
     signal input index;
     signal output out[len];
@@ -121,7 +154,13 @@ template SingleNegOneArray(len) {
 // Checks that `substr` of length `substr_len` matches `str` beginning at `start_index`
 // Assumes `random_challenge` is computed by the Fiat-Shamir transform
 // Takes in hash of the full string as an optimization, to prevent it being hashed 
-// multiple times if the template is invoked on that string more than once
+// multiple times if the template is invoked on that string more than once, which
+// is very expensive in terms of constraints
+// Assumes that:
+// - `str_hash` is the hash of `str`
+// - `substr` is 0-padded after `substr_len` characters
+// Enforces that:
+// - `str[start_index:substr_len]` = `substr[0:substr_len]`
 template CheckSubstrInclusionPoly(maxStrLen, maxSubstrLen) {
     signal input str[maxStrLen];
     signal input str_hash;
@@ -172,7 +211,11 @@ template CheckSubstrInclusionPoly(maxStrLen, maxSubstrLen) {
 // Assumes `random_challenge` is computed by the Fiat-Shamir transform
 // Takes in hash of the full string as an optimization, to prevent it being hashed 
 // multiple times if the template is invoked on that string more than once
+// Similar to `CheckSubstrInclusionPoly`
 // Returns '1' if the check passes, '0' otherwise
+// Assumes that:
+// - `str_hash` is the hash of `str`
+// - `substr` is 0-padded after `substr_len` characters
 template CheckSubstrInclusionPolyBoolean(maxStrLen, maxSubstrLen) {
     signal input str[maxStrLen];
     signal input str_hash;
@@ -223,7 +266,11 @@ template CheckSubstrInclusionPolyBoolean(maxStrLen, maxSubstrLen) {
 
 // Given `full_string`, `left`, and `right`, checks that full_string = left || right 
 // `random_challenge` is expected to be computed by the Fiat-Shamir transform
-// Assumes `right_len` has been validated to be correct outside of this subcircuit
+// Assumes `right_len` has been validated to be correct outside of this subcircuit, i.e. that
+// `right` is 0-padded after `right_len` values
+// Enforces:
+// - that `left` is 0-padded after `left_len` values
+// - full_string = left || right where || is concatenation
 template ConcatenationCheck(maxFullStringLen, maxLeftStringLen, maxRightStringLen) {
     signal input full_string[maxFullStringLen];
     signal input left[maxLeftStringLen];
@@ -274,12 +321,12 @@ template ConcatenationCheck(maxFullStringLen, maxLeftStringLen, maxRightStringLe
     full_poly_eval === left_poly_eval + distinguishing_value * right_poly_eval;
 }
 
-// Checks every scalar in `in` between 0 and len-1 are valid ASCII digits, i.e. are between
+// Enforces that every value in `in` between 0 and len-1 are valid ASCII digits, i.e. are between
 // 48 and 57 inclusive
 template CheckAreASCIIDigits(maxNumDigits) {
     signal input in[maxNumDigits];
     signal input len;
-    
+
     signal selector[maxNumDigits] <== ArraySelector(maxNumDigits)(0, len);
     for (var i = 0; i < maxNumDigits; i++) {
         var is_less_than_max = LessThan(9)([in[i], 58]);
@@ -290,7 +337,9 @@ template CheckAreASCIIDigits(maxNumDigits) {
 }
 
 // Given a string of digits in ASCII format, returns the digits represented as a single field element
-// Assumes the number represented by the ASCII digits is smaller than the scalar field used by the circuit
+// Assumes:
+// - the number represented by the ASCII `digits` is smaller than the scalar field used by the circuit
+// - `digits` contains only ASCII digit values between 48 and 57 inclusive
 // Does not work when maxLen = 1
 template ASCIIDigitsToField(maxLen) {
     signal input digits[maxLen]; 

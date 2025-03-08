@@ -3,7 +3,8 @@ pragma circom 2.1.3;
 include "circomlib/circuits/poseidon.circom";
 include "circomlib/circuits/comparators.circom";
 
-// Enforces that each scalar in the input array `in` will fit in a byte
+// Enforces that each scalar in the input array `in` will fit in a byte, i.e.
+// is between 0 and 256 exclusive
 template CheckAreBytes(numBytes) {
     signal input in[numBytes];
 
@@ -14,6 +15,7 @@ template CheckAreBytes(numBytes) {
 }
 
 // Enforces that each scalar in the input array `in` will fit in a limb of size 64
+// i.e. is between - and 2^64 exclusive
 template CheckAre64BitLimbs(numLimbs) {
     signal input in[numLimbs];
 
@@ -24,10 +26,13 @@ template CheckAre64BitLimbs(numLimbs) {
 }
 
 // Hashes multiple bytes to one field element using a Poseidon hash
-// We hash the length of the input as well to prevent collisions
+// We hash the length `len` of the input as well to prevent collisions
 // Currently does not work with greater than 64*31=1984 bytes
 //
 // Warning: `numBytes` cannot be 0.
+//
+// Assumes `len` is the length of the input hash. This is only used in hashing and is not verified
+// by this template
 template HashBytesToFieldWithLen(numBytes) {
     signal input in[numBytes];
     signal input len;
@@ -49,7 +54,6 @@ template HashBytesToFieldWithLen(numBytes) {
 }
 
 // Hashes multiple bytes to one field element using a Poseidon hash
-// We hash the length of the input as well to prevent collisions
 // Currently does not work with greater than 64*31=1984 bytes
 //
 // Warning: `numBytes` cannot be 0.
@@ -66,7 +70,9 @@ template HashBytesToField(numBytes) {
     hash <== HashElemsToField(num_elems)(input_packed);
 }
 
-// Hashes multiple field elements to one using Poseidon. Works up to 64 input elements
+// Hashes multiple field elements to one using Poseidon. Works with up to 64 input elements
+// For more than 16 elements, multiple Poseidon hashes are used before being combined in a final
+// hash. This is because the template we use supports only 16 input elements at most
 template HashElemsToField(numElems) {
     signal input in[numElems];
     signal output hash;
@@ -133,6 +139,9 @@ template HashElemsToField(numElems) {
 // Hashes multiple 64 bit limbs to one field element using a Poseidon hash
 // We hash the length of the input as well to avoid collisions
 //
+// Assumes `len` is the length of the provided input. It is used only for hashing and is not
+// verified by this template
+//
 // Warning: `numLimbs` cannot be 0.
 template Hash64BitLimbsToFieldWithLen(numLimbs) {
     signal input in[numLimbs];
@@ -154,10 +163,11 @@ template Hash64BitLimbsToFieldWithLen(numLimbs) {
 }
 
 // Inspired by `Bits2Num` in circomlib. Packs chunks of bits into a single field element
+// Assumes that each value in `in` encodes `bitsPerChunk` bits of a single field element
 template ChunksToFieldElem(numChunks, bitsPerChunk) {
     signal input in[numChunks];
- 
     signal output out;
+
     var lc1 = in[0];
 
     var e2 = 2**bitsPerChunk;
@@ -171,6 +181,9 @@ template ChunksToFieldElem(numChunks, bitsPerChunk) {
 
 // Packs chunks into multiple field elements
 // `inputLen` cannot be 0.
+// Assumes each element in `in` contains `bitsPerChunk` bits of information of a field element
+// Each field element is assumed to be `chunksPerFieldElem` * `bitsPerChunk` bits. The final field element may be less than this
+// There are assumed to be `inputLen` / `chunksPerFieldElem` field elements, rounded up to the nearest whole number.
 template ChunksToFieldElems(inputLen, chunksPerFieldElem, bitsPerChunk) {
     signal input in[inputLen];
     var num_elems = inputLen%chunksPerFieldElem == 0 ? inputLen \ chunksPerFieldElem : (inputLen\chunksPerFieldElem) + 1; // '\' is the quotient operation - we add 1 if there are extra bits past the full chunks

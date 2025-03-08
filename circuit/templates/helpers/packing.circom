@@ -3,6 +3,8 @@ pragma circom 2.1.3;
 include "./arrays.circom";
 
 // Based on `Num2Bits` in circomlib
+// Converts a field element `in` into an array `out` of
+// `n` bits which are all 0 or 1, in big endian order
 template Num2BitsBE(n) {
     signal input in;
     signal output out[n];
@@ -19,7 +21,8 @@ template Num2BitsBE(n) {
     lc1 === in;
 }
 
-// Converts a bit array into a big endian integer
+// Converts a bit array of size `n` into a big endian integer in `out`
+// Assumes `in` contains only 1s and 0s
 // Inspired by Bits2Num in https://github.com/iden3/circomlib/blob/master/circuits/bitify.circom
 template Bits2NumBigEndian(n) { 
     signal input in[n];
@@ -36,7 +39,9 @@ template Bits2NumBigEndian(n) {
 }
 
 
-// Converts byte array `in` into a bit array
+// Converts byte array `in` into a bit array. All values in `in` are
+// assumed to be one byte each, i.e. between 0 and 255 inclusive.
+// These bytes are also assumed to be in big endian order
 template BytesToBits(inputLen) {
     signal input in[inputLen];
     var byte_len = 8;
@@ -55,6 +60,7 @@ template BytesToBits(inputLen) {
 
 // Converts bit array 'in' into an array of field elements of size `bitsPerFieldElem` each
 // Example: with inputLen=11, bitsPerFieldElem=4, [0,0,0,0, 0,0,0,1, 0,1,1,] ==> [0, 1, 6]
+// Assumes all values in `in` are 0 or 1
 template BitsToFieldElems(inputLen, bitsPerFieldElem) {
     signal input in[inputLen];
     var num_elems = inputLen%bitsPerFieldElem == 0 ? inputLen \ bitsPerFieldElem : (inputLen\bitsPerFieldElem) + 1; // '\' is the quotient operation - we add 1 if there are extra bits past the full bytes

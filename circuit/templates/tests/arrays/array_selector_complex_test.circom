@@ -8,6 +8,10 @@ template array_selector_complex_test(len) {
     signal input expected_output[len];
     
     signal out[len] <== ArraySelectorComplex(len)(start_index, end_index);
+    for (var i =0; i < len; i++) {
+        log(out[i]);
+        log(expected_output[i]);
+    }
     out === expected_output;
 }
 

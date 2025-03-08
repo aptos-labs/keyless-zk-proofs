@@ -38,7 +38,7 @@ impl TestCircuitHandle {
     /// Compile the circuit in the given file using BN254 as the underlying curve.
     pub fn new(file_name: &str) -> anyhow::Result<Self> {
         let cargo_manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
-        let include_root_dir = cargo_manifest_dir.join("templates");
+        let include_root_dir = cargo_manifest_dir.join("./templates");
         let src_circuit_path = include_root_dir.join("tests").join(file_name);
         let content = fs::read_to_string(src_circuit_path)?;
         Self::new_from_str(content.as_str())
@@ -66,8 +66,8 @@ impl TestCircuitHandle {
                 dir.path().to_str().unwrap(),
             ])
             .output()?;
-        println!("circom_stdout={}", String::from_utf8_lossy(&output.stdout));
-        println!("circom_stderr={}", String::from_utf8_lossy(&output.stderr));
+        println!("{}", String::from_utf8_lossy(&output.stdout));
+        println!("{}", String::from_utf8_lossy(&output.stderr));
         ensure!(output.status.success());
         Ok(Self { dir })
     }
