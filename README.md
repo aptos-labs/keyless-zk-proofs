@@ -7,15 +7,6 @@ This repo contains:
 4. Some shared rust code in `keyless-common/`
 5. A VK diff tool in `vk-diff` (see its [README](/vk-diff))
 
-## Submodules
-
-This repository uses a Git submodule for its [`rust-rapdisnark`](https://github.com/aptos-labs/rust-rapidsnark) dependency.
-You should pull it via:
-
-```
-git submodule init
-git submodule update
-```
 
 ## TODOs
 
