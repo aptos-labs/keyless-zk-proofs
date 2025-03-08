@@ -86,6 +86,48 @@ pub fn calc_string_bodies(s: &str) -> Vec<bool> {
     string_bodies
 }
 
+pub fn calc_brackets(s: &str) -> Vec<i32> {
+    let bytes = s.as_bytes();
+    let mut res = vec![0; s.len()];
+
+    for i in 0..bytes.len() {
+        let is_open_bracket = bytes[i] == b'{';
+        let is_closed_bracket = bytes[i] == b'}';
+        if is_open_bracket {
+            res[i] = 1;
+        } else if is_closed_bracket {
+            res[i] = -1;
+        } else {
+            res[i] = 0;
+        }
+    }
+    res
+}
+
+pub fn brackets_depth_map(s: &Vec<i32>) -> Vec<i32> {
+    let mut res = s.clone();
+
+    res[0] = s[0];
+    for i in 1..s.len() {
+        res[i] = res[i-1] + res[i];
+    }
+    for i in 0..s.len() {
+        res[i] = res[i] - 1;
+    }
+    for i in 0..s.len() {
+        if res[i] < 0 {
+            res[i] = 0;
+        }
+    }
+    let res_copy = res.clone();
+    for i in 1..s.len() {
+       if res[i] == res_copy[i-1]+1 {
+           res[i] = res[i]-1;
+       }
+    }
+    res
+}
+
 #[test]
 fn is_whitespace_test() {
     let circuit_handle = TestCircuitHandle::new("misc/is_whitespace_test.circom").unwrap();
@@ -346,5 +388,102 @@ fn email_verified_check_test() {
         } else {
             assert!(result.is_err());
         }
+    }
+}
+
+// Tests that the BracketsMaps subcircuit works for several hardcoded test cases
+#[test]
+fn brackets_map_test() {
+    let circuit_handle = TestCircuitHandle::new("misc/brackets_map_test.circom").unwrap();
+    let config = CircuitConfig::new()
+            .max_length("in", 13)
+            .max_length("brackets", 13);
+
+    let test_cases = [("hello world{}", true), ("{}hello world", true), ("hello{} world", true), ("hell{o wor}ld", true), ("hell{o wor}ld", false)];
+    for t in test_cases {
+        let input = t.0;
+        let test_should_pass = t.1;
+        let mut brackets = calc_brackets(&input);
+        if !test_should_pass {
+            brackets[3] = 5;
+        }
+        let brackets_frs: Vec<Fr> = brackets.into_iter().map(|i| Fr::from(i)).collect();
+        let circuit_input_signals = CircuitInputSignals::new()
+            .str_input("in", input)
+            .frs_input("brackets", &brackets_frs)
+            .pad(&config)
+            .unwrap();
+
+        let result = circuit_handle.gen_witness(circuit_input_signals);
+        println!("{:?}", result);
+        if test_should_pass {
+            assert!(result.is_ok());
+        } else {
+            assert!(result.is_err());
+        }
+    }
+}
+
+// Tests that the BracketsDepthMap subcircuit works for a set of hardcoded test cases, using
+// an equivalent Rust function `brackets_depth_map` to compute a reference output
+#[test]
+fn brackets_depth_map_test() {
+    let circuit_handle = TestCircuitHandle::new("misc/brackets_depth_map_test.circom").unwrap();
+    let config = CircuitConfig::new()
+            .max_length("in", 13)
+            .max_length("brackets", 13);
+
+    let test_cases = [("{hello world{}}", true), ("{{}hello world}", true), ("hellllo{} world", true), (" {hello{} worl}", true), ("{hel\"{o wor}\"d}", true), ("{hell{o wor}ld}", false)];
+    for t in test_cases {
+        let initial_array = t.0;
+        let test_should_pass = t.1;
+        let brackets = calc_brackets(&initial_array);
+        let mut brackets_depth_map = brackets_depth_map(&brackets);
+        println!("brackets depth map: {:?}", brackets_depth_map);
+        if !test_should_pass {
+            brackets_depth_map[3] = 5;
+        }
+        let brackets_depth_map_frs: Vec<Fr> = brackets_depth_map.into_iter().map(|i| Fr::from(i)).collect();
+        let brackets_frs: Vec<Fr> = brackets.into_iter().map(|i| Fr::from(i)).collect();
+        let circuit_input_signals = CircuitInputSignals::new()
+            .frs_input("in", &brackets_frs)
+            .frs_input("brackets", &brackets_depth_map_frs)
+            .pad(&config)
+            .unwrap();
+
+        let result = circuit_handle.gen_witness(circuit_input_signals);
+        println!("result: {:?}", result);
+        if test_should_pass {
+            assert!(result.is_ok());
+        } else {
+            assert!(result.is_err());
+        }
+    }
+}
+
+// Tests that the BracketsDepthMap subcircuit works for a set of hardcoded test cases containing an input
+// and an output
+#[test]
+fn brackets_depth_map_hardcoded_test() {
+    let circuit_handle = TestCircuitHandle::new("misc/brackets_depth_map_test.circom").unwrap();
+    let config = CircuitConfig::new()
+            .max_length("in", 13)
+            .max_length("brackets", 13);
+
+    let test_cases = [(vec![0,1,0,1,0,0,0,0,0,0,0,0,-1,0,-1],vec![0,0,0,0,1,1,1,1,1,1,1,1,0,0,0]), (vec![1,0,0,0,0,0,1,1,1,0,0,-1,-1,-1,-1], vec![0,0,0,0,0,0,0,1,2,3,3,2,1,0,0]), (vec![1,0,0,0,0,0,0,0,0,0,0,0,0,0,-1], vec![0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])];
+    for t in test_cases {
+        let brackets = t.0;
+        let brackets_depth_map = t.1;
+        let brackets_depth_map_frs: Vec<Fr> = brackets_depth_map.into_iter().map(|i| Fr::from(i)).collect();
+        let brackets_frs: Vec<Fr> = brackets.into_iter().map(|i| Fr::from(i)).collect();
+        let circuit_input_signals = CircuitInputSignals::new()
+            .frs_input("in", &brackets_frs)
+            .frs_input("brackets", &brackets_depth_map_frs)
+            .pad(&config)
+            .unwrap();
+
+        let result = circuit_handle.gen_witness(circuit_input_signals);
+        println!("result: {:?}", result);
+        assert!(result.is_ok());
     }
 }

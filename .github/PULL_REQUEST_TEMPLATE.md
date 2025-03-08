@@ -41,6 +41,7 @@ Or, introduce your own, if needed.
 
 ## Circuit change
 
+- [ ] New circuit feature
 - [ ] Circuit correctness fix
 - [ ] Circuit soundness fix
 - [ ] Circuit test cases
