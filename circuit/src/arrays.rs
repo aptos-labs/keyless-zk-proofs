@@ -1520,7 +1520,7 @@ fn ascii_digits_to_field_out_of_bounds_test() {
         .unwrap();
 
     let result = circuit_handle.gen_witness(circuit_input_signals);
-    assert!(result.is_ok());
+    assert!(result.is_err());
 }
 
 #[test]
