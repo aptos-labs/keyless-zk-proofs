@@ -33,3 +33,4 @@ install_python() {
 install_python
 python3 $SCRIPT_DIR/python/main.py "$@"
 
+
