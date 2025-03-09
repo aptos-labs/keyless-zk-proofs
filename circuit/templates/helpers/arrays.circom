@@ -29,6 +29,8 @@ template ArraySelectorComplex(len) {
     signal input start_index;
     signal input end_index;
     signal output out[len];
+    signal should_fail <== IsEqual()([start_index, 0]);
+    should_fail === 0;
 
     signal right_bits[len] <== RightArraySelector(len)(start_index-1);
     signal left_bits[len] <== LeftArraySelector(len)(end_index);
@@ -36,17 +38,17 @@ template ArraySelectorComplex(len) {
     for (var i = 0; i < len; i++) {
         out[i] <== right_bits[i] * left_bits[i]; 
     }
-
 }
 
-// Outputs a bit array where all bits to the right of `index` are 0, and all other bits are 1
-// Assumes that 0 <= index < len
+// Outputs a bit array where all bits to the right of `index` are 0, and all other bits including `index` are 1
+// Assumes that 0 <= index < len, and that len > 1
 template LeftArraySelector(len) {
     signal input index;
     signal output out[len];
 
+    // SingleOneArray will fail if index >= len
     signal bits[len] <== SingleOneArray(len)(index);
-    var sum;
+    var sum = 0;
     for (var i = 0; i < len; i++) {
         sum = sum + bits[i];
     }
@@ -57,12 +59,13 @@ template LeftArraySelector(len) {
     }
 }
 
-// Outputs a bit array where all bits to the left of `index` are 0, and all other bits are 1
+// Outputs a bit array where all bits to the left of `index` are 0, and all other bits are 1 including `index`
 // Assumes that 0 <= index < len
 template RightArraySelector(len) {
     signal input index;
     signal output out[len];
 
+    // SingleOneArray fails if index >= len
     signal bits[len] <== SingleOneArray(len)(index);
 
     out[0] <== 0;
@@ -74,6 +77,7 @@ template RightArraySelector(len) {
 // Given two input arrays `in1` and `in2` each of length `len`, outputs
 // an array `out` that is the same length, which is the elementwise multiplication of
 // `in1` and `in2`
+// WARNING: This could cause integer overflow if the product of any two multiplied elements exceeds the field modulus
 template ElementwiseMul(len) {
     signal input in1[len];
     signal input in2[len];
@@ -108,12 +112,14 @@ template SingleOneArray(len) {
 
     for (var i = 0; i < len; i++) {
         out[i] <-- (index == i) ? 1 : 0;
+        // Enforces that either out[i] is 0, or index = i
         out[i] * (index-i) === 0;
         lc = lc + out[i];
     }
     lc ==> success;
     // support array sizes up to a million with the `GreaterEqThan` 20 parameter. Being conservative here b/c according to Michael this template is very cheap
     signal should_be_all_zeros <== GreaterEqThan(20)([index, len]);
+    // Enforces that `lc` is equal to 1 if len < index
     success === 1 * (1 - should_be_all_zeros);
     should_be_all_zeros === 0;
 }
