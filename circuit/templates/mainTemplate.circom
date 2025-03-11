@@ -1,3 +1,13 @@
+/**
+ * It generally helps to be familiar with the design and terminology from AIP-61:
+ *
+ *   https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-61.md
+ *
+ * It would also help to generally be familiar with the principles and ideas
+ * behind keyless accounts:
+ *
+ *   https://alinush.org/keyless
+ */
 pragma circom 2.1.3;
 
 include "helpers/base64.circom";
@@ -331,7 +341,7 @@ template identity(
     
     nonce_field_elem === computed_nonce;
 
-    // Compute the address seed
+    // Compute the identity commitment (IDC)
     signal input pepper;
     signal hashable_private_aud_value[maxAudValueLen];
     for (var i = 0; i < maxAudValueLen; i++) {
@@ -343,8 +353,8 @@ template identity(
     log("uid val hash is: ", uid_value_hashed);
     signal uid_name_hashed <== HashBytesToFieldWithLen(maxUIDNameLen)(uid_name, uid_name_len);
     log("uid name hash is: ", uid_name_hashed);
-    signal addr_seed <== Poseidon(4)([pepper, private_aud_val_hashed, uid_value_hashed, uid_name_hashed]);
-    log("addr seed is: ", addr_seed);
+    signal idc <== Poseidon(4)([pepper, private_aud_val_hashed, uid_value_hashed, uid_name_hashed]);
+    log("IDC is: ", idc);
 
     // Check public inputs are correct 
 
@@ -358,7 +368,7 @@ template identity(
     log("iss field hash is: ", hashed_iss_value);
     signal hashed_extra_field <== HashBytesToFieldWithLen(maxEFKVPairLen)(extra_field, extra_field_len);
     log("extra field hash is: ", hashed_extra_field);
-    signal computed_public_inputs_hash <== Poseidon(14)([temp_pubkey[0], temp_pubkey[1], temp_pubkey[2], temp_pubkey_len, addr_seed, exp_date, exp_delta, hashed_iss_value, use_extra_field, hashed_extra_field, hashed_jwt_header, hashed_pubkey_modulus, override_aud_val_hashed, use_aud_override]);
+    signal computed_public_inputs_hash <== Poseidon(14)([temp_pubkey[0], temp_pubkey[1], temp_pubkey[2], temp_pubkey_len, idc, exp_date, exp_delta, hashed_iss_value, use_extra_field, hashed_extra_field, hashed_jwt_header, hashed_pubkey_modulus, override_aud_val_hashed, use_aud_override]);
     log("public inputs hash is: ", computed_public_inputs_hash);
     
     signal input public_inputs_hash;
