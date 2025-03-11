@@ -2,33 +2,60 @@ import os
 import utils
 
 
-def prepare_single_setup(setup_root, url_prover_key, url_main_c, url_main_c_dat, url_vk, url_circuit_config, url_generate_witness_js, url_main_wasm, url_witness_calculator_js):
-    os.makedirs(setup_root, exist_ok=True)
+def download_setup(setup):
+    os.makedirs(setup.setup_root, exist_ok=True)
 
-    prover_key_path = os.path.join(setup_root, "prover_key.zkey")
-    utils.download_file(url_prover_key, prover_key_path)
+    prover_key_path = os.path.join(setup.setup_root, "prover_key.zkey")
+    utils.download_file(setup.url_prover_key, prover_key_path)
 
-    main_c_path = os.path.join(setup_root, "main_c")
-    utils.download_file(url_main_c, main_c_path)
+    vk_path = os.path.join(setup.setup_root, "verification_key.json")
+    utils.download_file(setup.url_vk, vk_path)
+
+    circuit_config_path = os.path.join(setup.setup_root, "circuit_config.yml")
+    utils.download_file(setup.url_circuit_config, circuit_config_path)
+
+
+
+def download_witness_gen_binaries_c(setup):
+    os.makedirs(setup.setup_root, exist_ok=True)
+
+
+    main_c_path = os.path.join(setup.setup_root, "main_c")
+    utils.download_file(setup.url_main_c, main_c_path)
     os.chmod(main_c_path, 0o744)
 
-    main_c_dat_path = os.path.join(setup_root, "main_c.dat")
-    utils.download_file(url_main_c_dat, main_c_dat_path)
+    main_c_dat_path = os.path.join(setup.setup_root, "main_c.dat")
+    utils.download_file(setup.url_main_c_dat, main_c_dat_path)
 
-    vk_path = os.path.join(setup_root, "verification_key.json")
-    utils.download_file(url_vk, vk_path)
+    witness_calculator_js_path = os.path.join(setup.setup_root, "generate_witness.js")
+    utils.download_file(setup.url_generate_witness_js, witness_calculator_js_path)
 
-    circuit_config_path = os.path.join(setup_root, "circuit_config.yml")
-    utils.download_file(url_circuit_config, circuit_config_path)
+    main_wasm_path = os.path.join(setup.setup_root, "main.wasm")
+    utils.download_file(setup.url_main_wasm, main_wasm_path)
 
-    witness_calculator_js_path = os.path.join(setup_root, "generate_witness.js")
-    utils.download_file(url_generate_witness_js, witness_calculator_js_path)
+    witness_calculator_js_path = os.path.join(setup.setup_root, "witness_calculator.js")
+    utils.download_file(setup.url_witness_calculator_js, witness_calculator_js_path)
 
-    main_wasm_path = os.path.join(setup_root, "main.wasm")
-    utils.download_file(url_main_wasm, main_wasm_path)
+def download_witness_gen_binaries_wasm(setup):
+    os.makedirs(setup.setup_root, exist_ok=True)
 
-    witness_calculator_js_path = os.path.join(setup_root, "witness_calculator.js")
-    utils.download_file(url_witness_calculator_js, witness_calculator_js_path)
+
+    main_c_path = os.path.join(setup.setup_root, "main_c")
+    utils.download_file(setup.url_main_c, main_c_path)
+    os.chmod(main_c_path, 0o744)
+
+    main_c_dat_path = os.path.join(setup.setup_root, "main_c.dat")
+    utils.download_file(setup.url_main_c_dat, main_c_dat_path)
+
+    witness_calculator_js_path = os.path.join(setup.setup_root, "generate_witness.js")
+    utils.download_file(setup.url_generate_witness_js, witness_calculator_js_path)
+
+    main_wasm_path = os.path.join(setup.setup_root, "main.wasm")
+    utils.download_file(setup.url_main_wasm, main_wasm_path)
+
+    witness_calculator_js_path = os.path.join(setup.setup_root, "witness_calculator.js")
+    utils.download_file(setup.url_witness_calculator_js, witness_calculator_js_path)
+
 
 def force_symlink_dir(target, link_path):
     if os.path.exists(link_path):

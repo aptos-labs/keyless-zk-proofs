@@ -30,6 +30,26 @@ def install_snarkjs():
     install_npm_package("snarkjs")
     eprint("Installation of snarkjs succeeded")
 
+def install_rust():
+    eprint("Checking for rustup...")
+    if shutil.which("rustup"):
+        eprint("Rustup installed.")
+    else:
+        eprint("Rustup not installed, installing...")
+        utils.download_and_run_shell_script_with_opts(
+                "https://sh.rustup.rs",
+                "-y --default-toolchain stable"
+                )
+        eprint("Installation of rustup succeeded. Setting path environment variable...")
+
+        if "CARGO_HOME" in os.environ:
+            utils.add_envvar_to_profile("PATH", "$PATH:" + os.environ["CARGO_HOME"] + "/bin")
+        else:
+            utils.add_envvar_to_profile("PATH", "$PATH:" + os.path.expanduser("~/.cargo/bin"))
+
+        eprint("Done.")
+
+
 def install_npm_package(package):
     utils.run_shell_command("source ~/.nvm/nvm.sh; npm install -g " + package)
 
@@ -59,13 +79,13 @@ def run_platform_package_manager_command(package):
     package_manager = platform_package_manager()
     try:
         if package_manager == "brew":
-                subprocess.run(["brew", "install", package])
+                utils.run_shell_command("brew install " + package)
         elif package_manager == "pacman":
-                subprocess.run(["pacman", "-S" "--needed", "--noconfirm", package])
+                utils.run_shell_command("pacman -S --needed --noconfirm " + package)
         elif package_manager == "apt-get":
-                subprocess.run(["apt-get", "update"])
-                subprocess.run(["apt-get", "install" "-y", package])
-    except subprocess.CalledProcessError:
+                utils.run_shell_command("apt-get update")
+                utils.run_shell_command("apt-get install -y " + package)
+    except:
         eprint("Installing " + package + " failed. Exiting.")
         exit(2)
 
@@ -107,6 +127,8 @@ deps_by_platform = {
         "circomlib": install_circomlib,
         "snarkjs": install_snarkjs,
         "meson": "meson",
+        "rust": install_rust,
+        "pkg-config": "pkg-config",
         "cmake": "cmake",
         "make": "make",
         "clang": "clang",

@@ -14,7 +14,7 @@ def repo_root():
 
 def resources_dir_root():
     if 'RESOURCES_DIR' in os.environ:
-        return = os.environ['RESOURCES_DIR']
+        return os.environ['RESOURCES_DIR']
     else:
         return os.path.expanduser("~/.local/share/aptos-prover-service")
 
@@ -22,6 +22,10 @@ def resources_dir_root():
 def download_and_run_shell_script(url):
     """Download and run shell command at the given URL and exit if it fails."""
     run_shell_command("curl \"" + url + "\" | bash")
+
+def download_and_run_shell_script_with_opts(url, opts):
+    """Download and run shell command at the given URL and exit if it fails."""
+    run_shell_command("curl \"" + url + "\" | bash -s -- " + opts)
 
 def run_shell_command(command):
     """Run a command in a shell and exit if it fails."""
@@ -40,13 +44,17 @@ def add_envvar_to_profile(name, value):
     """
     global envvars_were_added
 
-    if os.environ["SHELL"] == "/bin/bash":
-        profile_file_path = os.path.expanduser("~/.bashrc")
-    elif os.environ["SHELL"] == "/bin/zsh":
-        profile_file_path = os.path.expanduser("~/.zshrc")
+    if "SHELL" in os.environ:
+        if os.environ["SHELL"] == "/bin/bash":
+            profile_file_path = os.path.expanduser("~/.bashrc")
+        elif os.environ["SHELL"] == "/bin/zsh":
+            profile_file_path = os.path.expanduser("~/.zshrc")
+        else:
+            eprint("Cannot detect the user's shell to add envvars. Only supports bash and zsh right now. Exiting.")
+            exit(2)
     else:
-        eprint("Cannot detect the user's shell to add envvars. Only supports bash and zsh right now. Exiting.")
-        exit(2)
+        eprint("Not in a shell. Not adding envvar to path.")
+        return
 
     new_profile_line="export " + name + "=\"" + value + "\""
 
@@ -54,6 +62,8 @@ def add_envvar_to_profile(name, value):
         if new_profile_line in profile_file.read():
             eprint("Line for envvar " + name + " already in " + profile_file_path + " so we won't add it again")
             return
+
+
 
     with open(profile_file_path, "a") as profile_file:
         profile_file.write(new_profile_line + "\n")

@@ -1,11 +1,10 @@
 
 # syntax=docker/dockerfile:1.7
 
-FROM archlinux:base-devel 
-ARG TARGETARCH
-
-
-COPY --link . .
-
-RUN ./scripts/setup_environment.sh prover-service:install-deps
+# The image that is actually deployed
+FROM debian:bookworm
+ 
+# need libyaml and gmp 
+RUN apt-get update \
+ && apt-get install -y libyaml-dev libgmp-dev
 

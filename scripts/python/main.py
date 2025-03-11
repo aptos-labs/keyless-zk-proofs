@@ -16,10 +16,10 @@ Usage:
    setup_environment.sh <one or more setup actions> : run the given setup actions
    setup_environment.sh -h                        : print this screen
 
-   (if no actions are provided, default is "all")
+   (if no actions are provided, default is "setup-dev-environment")
 
-   Any of the actions below should be referenced as <parent>:<child>. So for example, to install
-   the prover service deps, "prover-service:install-deps".
+   Any of the actions below should be referenced as <parent> <child>. So for example, to install
+   the prover service deps, "prover-service install-deps".
 
    Current actions:
    --------------
@@ -39,7 +39,16 @@ Usage:
 
    - trusted-setup:
 
-      - download-latest: downloads latest trusted setup and installs it in RESOURCES_DIR.
+      - download-latest-setup: downloads latest trusted setup and installs it in RESOURCES_DIR. If
+        RESOURCES_DIR is not set, uses the default location "~/.local/share/aptos-prover-service".
+
+      - download-latest-witness-gen-c: downloads the C witness generation binaries for the latest 
+        trusted setup and installs it in RESOURCES_DIR. If RESOURCES_DIR is not set, uses the default 
+        location "~/.local/share/aptos-prover-service".
+
+      - download-latest-witness-gen-wasm: downloads the wasm witness generation binaries for the 
+        latest trusted setup and installs it in RESOURCES_DIR. If RESOURCES_DIR is not set, uses 
+        the default location "~/.local/share/aptos-prover-service".
 
       - run-dummy-setup: Compiles the circuit in this repo and runs a dummy *untrusted* setup 
         based on the result of that compilation. Installs it in RESOURCES_DIR? What about 
@@ -51,77 +60,20 @@ Usage:
       - prover-service:install-deps
       - prover-service:add-envvars-to-profile
       - circuit:install-deps
-      - trusted-setup:download-latest
+      - trusted-setup:download-latest-setup
+      - trusted-setup:download-latest-witness-gen-c
+      - trusted-setup:download-latest-witness-gen-wasm
+
 """, file=sys.stderr)
 
 
-
-
-
-prover_service_handlers = {
-        "install-deps": prover_service.install_deps,
-        "add-envvars-to-profile": prover_service.add_envvars_to_profile
-        }
-
-
-cicuit_handlers = {
-        "install-deps": circuit.install_deps,
-        }
-
-trusted_setup_handlers = {
-        "download-latest": trusted_setup.download_latest,
-        "run-dummy-setup": trusted_setup.run_dummy_setup
-        }
-
-misc_handlers = {
-        "compute-sample-proof": misc.compute_sample_proof
-        }
-
-
-
-
-
-def handle_prover_service_action(action):
-    if action not in prover_service_handlers:
-        action_not_recognized("prover-service:" + action)
-    else:
-        prover_service_handlers[action]()
-
-
-def handle_circuit_action(action):
-    if action not in circuit_handlers:
-        action_not_recognized("circuit:" + action)
-    else:
-        circuit_handlers[action]()
-
-
-def handle_trusted_setup_action(action):
-    if action not in trusted_setup_handlers:
-        action_not_recognized("trusted-setup:" + action)
-    else:
-        trusted_setup_handlers[action]()
-
-def handle_misc_action(action):
-    if action not in misc_handlers:
-        action_not_recognized("trusted-setup:" + action)
-    else:
-        misc_handlers[action]()
-
-
-handlers = { 
-            "prover-service": handle_prover_service_action,
-            "circuit": handle_circuit_action,
-            "trusted-setup": handle_trusted_setup_action,
-            "misc": handle_misc_action,
-            "-h": print_usage
-            }
-
-
-def handle_setup_dev_env_action():
+def setup_dev_environment():
     handle_action("prover-service:install-deps")
     handle_action("prover-service:add-envvars-to-profile")
     handle_action("circuit:install-deps")
-    handle_action("trusted-setup:download-latest")
+    handle_action("trusted-setup:download-latest-setup")
+    handle_action("trusted-setup:download-latest-witness-gen-c")
+    handle_action("trusted-setup:download-latest-witness-gen-wasm")
 
 
 def action_not_recognized(action):
@@ -135,16 +87,53 @@ def handle_action(action):
     action_category = action_parts[0]
     action_body = ":".join(action_parts[1:])
 
-    if action_category not in handlers:
-        action_not_recognized(action)
-    else:
-        handlers[action_category](action_body)
+    
+    if action_category == "prover-service":
+        if action_body == "install-deps":
+            prover_service.install_deps()
+        elif action_body == "add-envvars-to-profile":
+            prover_service.add_envvars_to_profile()
+        else:
+            action_not_recognized(action)
 
+
+    elif action_category == "circuit":
+        if action_body == "install-deps":
+            circuit.install_deps()
+        else:
+            action_not_recognized(action)
+
+
+    elif action_category == "trusted-setup":
+        if action_body == "download-latest-setup":
+            trusted_setup.download_latest_setup()
+        elif action_body == "download-latest-witness-gen-c":
+            trusted_setup.download_latest_witness_gen_c()
+        elif action_body == "download-latest-witness-gen-wasm":
+            trusted_setup.download_latest_witness_gen_wasm()
+        elif action_body == "run-dummy-setup":
+            trusted_setup.run_dummy_setup()
+        else:
+            action_not_recognized(action)
+
+
+    elif action_category == "misc":
+        if action_body == "compute-sample-proof":
+            misc.compute_sample_proof()
+        else:
+            action_not_recognized(action)
+
+    elif action_category == "setup-dev-environment":
+        setup_dev_environment()
+    elif action_category == "-h":
+        print_usage()
+    else:
+        action_not_recognized(action)
 
 
 
 if len(sys.argv) == 1:
-    handle_setup_dev_env_action()
+    setup_dev_environment()
 
 for action in sys.argv[1:]:
     handle_action(action)

@@ -8,10 +8,21 @@ install_python() {
     case $OS in
       Linux*)
         if command -v apt-get > /dev/null; then
-          sudo apt-get update
-          sudo apt-get install -y python3 
+          if command -v sudo > /dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y python3 curl
+          else
+            apt-get update
+            apt-get install -y python3 curl
+          fi
         elif command -v pacman > /dev/null; then
-          sudo pacman -S --needed --noconfirm python 
+          if command -v sudo > /dev/null; then
+            sudo pacman -Syu --noconfirm
+            sudo pacman -S --needed --noconfirm python curl
+          else
+            pacman -Syu --noconfirm
+            pacman -S --needed --noconfirm python curl
+          fi
         else
           echo "No suitable package manager found for Linux."
         fi
@@ -31,6 +42,8 @@ install_python() {
 }
 
 install_python
+
+
 python3 $SCRIPT_DIR/python/main.py "$@"
 
 
