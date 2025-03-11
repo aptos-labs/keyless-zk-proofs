@@ -4,7 +4,7 @@
 if git diff --cached --name-only | grep -q '^circuit/templates/.*\.circom$'; then
     echo "Detected changes in *.circom files!"
     echo
-    echo "Running circom compilation. This will take ~20 seconds..."
+    echo "Running circom compilation. This will take ~45 seconds..."
 
     # Move into the circuit/templates directory
     pushd circuit/templates > /dev/null
