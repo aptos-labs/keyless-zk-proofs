@@ -12,30 +12,31 @@ include "helpers/rsa/bigint.circom";
 include "../node_modules/circomlib/circuits/poseidon.circom";
 include "../node_modules/circomlib/circuits/bitify.circom";
 
-// The main Aptos Keyless circuit
+// The main Aptos Keyless circuit. The parameters below are max lengths, 
+// in bytes, for the...
 template identity(
-    maxJWTLen,          // Max byte length of the full base64 JWT with SHA2 padding
-    maxJWTHeaderLen,    // Max byte length of the full base64 JWT header with separator
-    maxJWTPayloadLen,   // Max byte length of the full base64 JWT payload with SHA2 padding
-    maxAudKVPairLen,    // Max byte length of the ASCII aud field
-    maxAudNameLen,      // Max byte length of the ASCII aud name    
-    maxAudValueLen,     // Max byte length of the ASCII aud value
-    maxIssKVPairLen,    // Max byte length of the ASCII iss field
-    maxIssNameLen,      // Max byte length of the ASCII iss name
-    maxIssValueLen,     // Max byte length of the ASCII iss value
-    maxIatKVPairLen,    // Max byte length of the ASCII iat field
-    maxIatNameLen,      // Max byte length of the ASCII iat name
-    maxIatValueLen,     // Max byte length of the ASCII iat value
-    maxNonceKVPairLen,  // Max byte length of the ASCII nonce field
-    maxNonceNameLen,    // Max byte length of the ASCII nonce name
-    maxNonceValueLen,   // Max byte length of the ASCII nonce value
-    maxEVKVPairLen,     // Max byte length of the ASCII email verified field
-    maxEVNameLen,       // Max byte length of the ASCII email verified name
-    maxEVValueLen,      // Max byte length of the ASCII email verified value
-    maxUIDKVPairLen,    // Max byte length of the ASCII uid field
-    maxUIDNameLen,      // Max byte length of the ASCII uid name
-    maxUIDValueLen,     // Max byte length of the ASCII uid value
-    maxEFKVPairLen      // Max byte length of the ASCII extra field
+    maxJWTLen,          // ...full base64 JWT with SHA2 padding
+    maxJWTHeaderLen,    // ...full base64 JWT header with separator
+    maxJWTPayloadLen,   // ...full base64 JWT payload with SHA2 padding
+    maxAudKVPairLen,    // ...ASCII aud field
+    maxAudNameLen,      // ...ASCII aud name
+    maxAudValueLen,     // ...ASCII aud value
+    maxIssKVPairLen,    // ...ASCII iss field
+    maxIssNameLen,      // ...ASCII iss name
+    maxIssValueLen,     // ...ASCII iss value
+    maxIatKVPairLen,    // ...ASCII iat field
+    maxIatNameLen,      // ...ASCII iat name
+    maxIatValueLen,     // ...ASCII iat value
+    maxNonceKVPairLen,  // ...ASCII nonce field
+    maxNonceNameLen,    // ...ASCII nonce name
+    maxNonceValueLen,   // ...ASCII nonce value
+    maxEVKVPairLen,     // ...ASCII email verified field
+    maxEVNameLen,       // ...ASCII email verified name
+    maxEVValueLen,      // ...ASCII email verified value
+    maxUIDKVPairLen,    // ...ASCII uid field
+    maxUIDNameLen,      // ...ASCII uid name
+    maxUIDValueLen,     // ...ASCII uid value
+    maxEFKVPairLen      // ...ASCII extra field
 ) {
 
     signal input jwt[maxJWTLen]; // maxJWTLen is in bytes. Base64 format
