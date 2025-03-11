@@ -7,3 +7,5 @@ onchain_vk.json
 onchain_vk_2.json
 prover_request_payload.json
 __pycache__
+
+*.r1cs
