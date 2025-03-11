@@ -28,7 +28,7 @@ FROM debian:bookworm
  
 # need libyaml and gmp 
 RUN apt-get update \
- && apt-get install -y libyaml-dev libgmp-dev
+ && apt-get install -y libyaml-dev libgmp-dev libssl-dev
 
 # copy prover service binary
 COPY --link --from=build_prover_service ./prover-service-bin ./prover-service-bin
