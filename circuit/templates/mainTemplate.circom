@@ -25,9 +25,9 @@ include "../node_modules/circomlib/circuits/bitify.circom";
 // The main Aptos Keyless circuit. The parameters below are max lengths, 
 // in bytes, for the...
 template identity(
-    maxJWTLen,          // ...full base64 JWT with SHA2 padding
-    maxJWTHeaderLen,    // ...full base64 JWT header with separator
-    maxJWTPayloadLen,   // ...full base64 JWT payload with SHA2 padding
+    maxJWTLen,          // ...full base64url JWT with SHA2 padding
+    maxJWTHeaderLen,    // ...full base64url JWT header with separator
+    maxJWTPayloadLen,   // ...full base64url JWT payload with SHA2 padding
     maxAudKVPairLen,    // ...ASCII aud field
     maxAudNameLen,      // ...ASCII aud name
     maxAudValueLen,     // ...ASCII aud value
@@ -49,7 +49,7 @@ template identity(
     maxEFKVPairLen      // ...ASCII extra field
 ) {
 
-    signal input jwt[maxJWTLen]; // maxJWTLen is in bytes. Base64 format
+    signal input jwt[maxJWTLen]; // base64url format
 
     signal input jwt_header_with_separator[maxJWTHeaderLen]; // jwt header + '.'
     signal input jwt_payload[maxJWTPayloadLen];
@@ -101,7 +101,7 @@ template identity(
 
     RsaVerifyPkcs1v15(size_limbs, signature_len)(signature, pubkey_modulus, hash_le);
 
-    var max_ascii_jwt_payload_len = (3*maxJWTPayloadLen)\4; //TODO: Describe constraints this puts on max payload size. This equation comes from the implementation of Base64Decode - base64 encoding is about 33% larger than the originally encoded data
+    var max_ascii_jwt_payload_len = (3*maxJWTPayloadLen)\4; //TODO: Describe constraints this puts on max payload size. This equation comes from the implementation of Base64Decode - base64url encoding is about 33% larger than the originally encoded data
     signal input jwt_payload_without_sha_padding[maxJWTPayloadLen];
     signal jwt_payload_hash <== HashBytesToFieldWithLen(maxJWTPayloadLen)(jwt_payload, b64_payload_len);
 

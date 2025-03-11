@@ -5,8 +5,8 @@ pragma circom 2.1.3;
 include "circomlib/circuits/comparators.circom";
 
 // http://0x80.pl/notesen/2016-01-17-sse-base64-decoding.html#vector-lookup-base
-// Modified to support Base64URL format instead of Base64
-// Also accepts zero padding, which is not in the Base64/Base64URL format
+// Modified to support base64url format instead of base64.
+// Also accepts zero padding, which is not in the base64/base64url format.
 template Base64URLLookup() {
     signal input in;
     signal output out;
@@ -86,9 +86,9 @@ template Base64URLLookup() {
     1 === result;
 }
 
-// Takes in an array `in` of Base64URL characters and decodes it to ASCII characters in `out`. `in` may be
+// Takes in an array `in` of base64url characters and decodes it to ASCII characters in `out`. `in` may be
 // 0-padded after its base64 elements
-// Assumes `in` contains only Base64URL characters followed by 0-padding
+// Assumes `in` contains only base64url characters followed by 0-padding
 template Base64Decode(N) {
     //var N = ((3*M)\4)+2; // Rough inverse of the computation performed to compute M
     var M = 4*((N+2)\3);
