@@ -3,7 +3,8 @@
 SCRIPT_DIR=$(dirname "$0")
 
 install_python() {
-    echo "Installing python if needed..."
+  echo "Installing python if needed..."
+  if ! command -v python3 > /dev/null || ! command -v curl > /dev/null; then
     OS=$(uname -s)
     case $OS in
       Linux*)
@@ -39,6 +40,7 @@ install_python() {
         ;;
     esac
     echo "python installation finished."
+  fi
 }
 
 install_python
