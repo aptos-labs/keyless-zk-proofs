@@ -54,7 +54,6 @@ impl TestCircuitHandle {
             String::from_utf8(Command::new("npm").args(["root", "-g"]).output()?.stdout).unwrap();
         tmp_circuit_file.write_all(circuit_src.as_bytes())?;
 
-
         let circom_path = PathBuf::from(env::var("CARGO_HOME").unwrap()).join("bin/circom");
         let output = Command::new(circom_path)
             .args([
