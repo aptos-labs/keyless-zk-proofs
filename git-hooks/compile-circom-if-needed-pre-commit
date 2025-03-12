@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Check if any .circom files in 'circuit/templates' changed
+if git diff --cached --name-only | grep -q '^circuit/templates/.*\.circom$'; then
+    echo "Detected changes in *.circom files!"
+    echo
+    echo "Running circom compilation. This will take ~45 seconds..."
+
+    # Move into the circuit/templates directory
+    pushd circuit/templates > /dev/null
+
+    # Run your circom command
+    circom -l "$(npm root -g)" main.circom --r1cs
+
+    # Check if circom command succeeded
+    if [ $? -ne 0 ]; then
+        echo "Error: circom compilation failed. Commit aborted."
+        popd > /dev/null
+        exit 1
+    fi
+
+    echo "circom compilation succeeded."
+    popd > /dev/null
+fi
+
+exit 0

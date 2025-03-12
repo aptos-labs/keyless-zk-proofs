@@ -6,12 +6,14 @@ use aptos_keyless_common::input_processing::{
     circuit_input_signals::CircuitInputSignals, config::CircuitConfig,
 };
 
+#[derive(Clone)]
 struct JWTField<T> {
     whole_field: T,
     name: T,
     value: T,
 }
 
+#[derive(Clone)]
 struct JWTFieldMaliciousIndices<T> {
     whole_field: T,
     name: T,
@@ -165,6 +167,7 @@ fn email_verified_test<T: JWTFieldIndices + JWTFieldStr>(
 fn unquoted_test<T: JWTFieldIndices + JWTFieldStr>(
     field: T,
     test_circom_file: &str,
+    skip_checks: bool,
 ) -> Result<tempfile::NamedTempFile, anyhow::Error> {
     let circuit_handle = TestCircuitHandle::new(test_circom_file).unwrap();
 
@@ -182,6 +185,7 @@ fn unquoted_test<T: JWTFieldIndices + JWTFieldStr>(
         .usize_input("value_index", field.value_index())
         .usize_input("value_len", field.value_len())
         .usize_input("colon_index", field.colon_index())
+        .usize_input("skip_checks", skip_checks as usize)
         .pad(&config)
         .unwrap();
 
@@ -193,6 +197,7 @@ fn unquoted_test<T: JWTFieldIndices + JWTFieldStr>(
 fn quoted_test<T: JWTFieldIndices + JWTFieldStr>(
     field: T,
     test_circom_file: &str,
+    skip_checks: bool,
 ) -> Result<tempfile::NamedTempFile, anyhow::Error> {
     let circuit_handle = TestCircuitHandle::new(test_circom_file).unwrap();
 
@@ -215,6 +220,7 @@ fn quoted_test<T: JWTFieldIndices + JWTFieldStr>(
         .usize_input("value_index", field.value_index())
         .usize_input("value_len", field.value_len())
         .usize_input("colon_index", field.colon_index())
+        .usize_input("skip_checks", skip_checks as usize)
         .pad(&config)
         .unwrap();
 
@@ -224,11 +230,19 @@ fn quoted_test<T: JWTFieldIndices + JWTFieldStr>(
 }
 
 fn should_pass_quoted<T: JWTFieldIndices + JWTFieldStr>(field: T) {
-    assert!(quoted_test(field, "jwt_field_parsing/parse_quoted_test.circom").is_ok());
+    assert!(quoted_test(field, "jwt_field_parsing/parse_quoted_test.circom", false).is_ok());
+}
+
+fn should_pass_quoted_skip_checks<T: JWTFieldIndices + JWTFieldStr>(field: T) {
+    assert!(quoted_test(field, "jwt_field_parsing/parse_quoted_test.circom", true).is_ok());
 }
 
 fn should_pass_unquoted<T: JWTFieldIndices + JWTFieldStr>(field: T) {
-    assert!(unquoted_test(field, "jwt_field_parsing/parse_unquoted_test.circom").is_ok());
+    assert!(unquoted_test(field, "jwt_field_parsing/parse_unquoted_test.circom", false).is_ok());
+}
+
+fn should_pass_unquoted_skip_checks<T: JWTFieldIndices + JWTFieldStr>(field: T) {
+    assert!(unquoted_test(field, "jwt_field_parsing/parse_unquoted_test.circom", true).is_ok());
 }
 
 fn should_pass_ev<T: JWTFieldIndices + JWTFieldStr>(field: T) {
@@ -240,11 +254,11 @@ fn should_pass_ev<T: JWTFieldIndices + JWTFieldStr>(field: T) {
 }
 
 fn should_fail_quoted<T: JWTFieldIndices + JWTFieldStr>(field: T) {
-    assert!(quoted_test(field, "jwt_field_parsing/parse_quoted_test.circom").is_err());
+    assert!(quoted_test(field, "jwt_field_parsing/parse_quoted_test.circom", false).is_err());
 }
 
 fn should_fail_unquoted<T: JWTFieldIndices + JWTFieldStr>(field: T) {
-    assert!(unquoted_test(field, "jwt_field_parsing/parse_unquoted_test.circom").is_err());
+    assert!(unquoted_test(field, "jwt_field_parsing/parse_unquoted_test.circom", false).is_err());
 }
 
 #[allow(dead_code)]
@@ -283,17 +297,20 @@ fn no_whitespace_unquoted() {
 fn malicious_value_1() {
     let mut field = jwt_field_str_malicious_indices("\"sub\": \"a\\\",b\",", "sub", "a\\");
     field.whole_field_len = field.whole_field.find(',').unwrap() + 1;
-    should_fail_quoted(field);
+    should_fail_quoted(field.clone());
+    should_pass_quoted_skip_checks(field);
 }
 
 // fails to parse now with StringBodies logic
 #[test]
 fn malicious_value_2() {
-    should_fail_quoted(jwt_field_str(
+    let field = jwt_field_str(
         "\"name1\":\"value1\",\"name2\":\"value2\",",
         "name1",
         "value1\",\"name2\":\"value2",
-    ));
+    );
+    should_fail_quoted(field.clone());
+    should_pass_quoted_skip_checks(field);
 }
 
 #[test]
@@ -308,27 +325,37 @@ fn end_with_curly_bracket_unquoted() {
 
 #[test]
 fn should_fail_when_name_has_no_first_quote() {
-    should_fail_quoted(jwt_field_str("name\": \"value\",", "name", "value"));
+    let field = jwt_field_str("name\": \"value\",", "name", "value");
+    should_fail_quoted(field.clone());
+    should_pass_quoted_skip_checks(field);
 }
 
 #[test]
 fn should_fail_when_name_has_no_second_quote() {
-    should_fail_quoted(jwt_field_str("\"name: \"value\",", "name", "value"));
+    let field = jwt_field_str("\"name: \"value\",", "name", "value");
+    should_fail_quoted(field.clone());
+    should_pass_quoted_skip_checks(field);
 }
 
 #[test]
 fn should_fail_when_name_has_no_quotes() {
-    should_fail_quoted(jwt_field_str("name: \"value\",", "name", "value"));
+    let field = jwt_field_str("name: \"value\",", "name", "value");
+    should_fail_quoted(field.clone());
+    should_pass_quoted_skip_checks(field);
 }
 
 #[test]
 fn should_fail_when_name_not_equal_quoted() {
-    should_fail_quoted(jwt_field_str("\"name\": \"value\",", "fake", "value"));
+    let field = jwt_field_str("\"name\": \"value\",", "fake", "value");
+    should_fail_quoted(field.clone());
+    should_pass_quoted_skip_checks(field);
 }
 
 #[test]
 fn should_fail_when_name_not_equal_unquoted() {
-    should_fail_unquoted(jwt_field_str("\"name\": value,", "fake", "value"));
+    let field = jwt_field_str("\"name\": value,", "fake", "value");
+    should_fail_unquoted(field.clone());
+    should_pass_unquoted_skip_checks(field);
 }
 
 #[test]
@@ -336,7 +363,8 @@ fn should_fail_when_value_not_equal_quoted() {
     let mut field = jwt_field_str_malicious_indices("\"name\": \"value\",", "name", "fake");
     field.whole_field_len = field.whole_field.len();
     field.value_index = field.whole_field.find("value").unwrap();
-    should_fail_quoted(field);
+    should_fail_quoted(field.clone());
+    should_pass_quoted_skip_checks(field);
 }
 
 #[test]
@@ -344,7 +372,8 @@ fn should_fail_when_value_not_equal_unquoted() {
     let mut field = jwt_field_str_malicious_indices("\"name\": value,", "name", "fake");
     field.whole_field_len = field.whole_field.len();
     field.value_index = field.whole_field.find("value").unwrap();
-    should_fail_unquoted(field);
+    should_fail_unquoted(field.clone());
+    should_pass_unquoted_skip_checks(field);
 }
 
 // ref: Circuit Bug #3, https://www.notion.so/aptoslabs/JWTFieldCheck-does-not-properly-constrain-field_len-which-can-cause-the-circuit-to-accept-field-val-9943c152e7274f35a1669a6cb416c7bf?pvs=4
@@ -355,7 +384,8 @@ fn malicious_field_len() {
     field.value_index = field.whole_field.find(',').unwrap();
     assert_ne!(field.whole_field_len, field.whole_field.len());
 
-    should_fail_quoted(field);
+    should_fail_quoted(field.clone());
+    should_pass_quoted_skip_checks(field);
 }
 
 // ref: Circuit Bug #4, https://www.notion.so/aptoslabs/JWTFieldCheck-allows-for-maliciously-truncating-field-values-at-any-character-f8695dcd397a4bc2b66d52349388499f?pvs=4
@@ -365,7 +395,8 @@ fn malicious_value_len_1() {
 
     field.whole_field_len = field.whole_field.find(',').unwrap() + 1;
 
-    should_fail_quoted(field);
+    should_fail_quoted(field.clone());
+    should_pass_quoted_skip_checks(field);
 }
 
 #[test]
@@ -378,7 +409,8 @@ fn malicious_value_len_2() {
 
     let field = jwt_field_str_malicious_indices("\"sub\":user,fake,", "sub", "user,fake");
 
-    should_fail_unquoted(field);
+    should_fail_unquoted(field.clone());
+    should_pass_unquoted_skip_checks(field);
 }
 
 #[test]

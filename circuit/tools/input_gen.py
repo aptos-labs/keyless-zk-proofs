@@ -168,18 +168,18 @@ secret = rsa.generate_private_key(
     key_size=2048
 )
 
+#class MyPyJWT(jwt.PyJWT):
+#    def _encode_payload(
+#            self,
+#            payload: dict[str, Any],
+#            headers: dict[str, Any] | None = None,
+#            json_encoder: type[json.JSONEncoder] | None = None,
+#    ) -> bytes:
+#        return original_str  # json.dumps(payload, separators=(",", ":"), ).encode("utf-8")
 
-class MyPyJWT(jwt.PyJWT):
-    def _encode_payload(
-            self,
-            payload: dict[str, Any],
-            headers: dict[str, Any] | None = None,
-            json_encoder: type[json.JSONEncoder] | None = None,
-    ) -> bytes:
-        return original_str  # json.dumps(payload, separators=(",", ":"), ).encode("utf-8")
 
-
-signed_b64_jwt_string = MyPyJWT().encode(jwt_dict, secret, algorithm="RS256", headers={"kid": "test_jwk"})
+signed_b64_jwt_string = jwt.encode(jwt_dict, secret, algorithm="RS256", headers={"kid": "test_jwk"})
+#signed_b64_jwt_string = MyPyJWT().encode(jwt_dict, secret, algorithm="RS256", headers={"kid": "test_jwk"})
 unsigned_b64_jwt_string = signed_b64_jwt_string[:signed_b64_jwt_string.rfind(".")]
 
 # public_key = secret.public_key().public_bytes(
@@ -223,6 +223,7 @@ override_aud_value_value = pad_string("", maxAudValueLen)
 private_aud_value_len_value = aud_value_len_value
 override_aud_value_len_value = '"' + "0" + '"'
 use_aud_override_value = '"' + "0" + '"'
+skip_aud_checks_value = '"' + "0" + '"'
 
 maxIatKVPairLen = 50
 maxIatNameLen = 10
@@ -445,7 +446,7 @@ jwt_payload_string = unsigned_b64_jwt_string_sha_padded[unsigned_b64_jwt_string_
 payload_value = pad_string(jwt_payload_string, jwt_max_payload_len)
 
 # Compute RSA signature over the full unsigned JWT
-with open(f"tools/test_rsa_privkey.pem", 'rb') as f:
+with open(f"./tools/test_rsa_privkey.pem", 'rb') as f:
     privkey_str = f.read()
     f.close()
 keyPair = Crypto.PublicKey.RSA.import_key(privkey_str)
@@ -554,7 +555,8 @@ json_dict = {
     "\"extra_field_len\"": extra_field_len_value,
     "\"extra_index\"": extra_index_value,
     "\"jwt_payload_without_sha_padding\"": jwt_payload_string_no_padding_value,
-    "\"use_extra_field\"": use_extra_field_value
+    "\"use_extra_field\"": use_extra_field_value,
+    "\"skip_aud_checks\"": skip_aud_checks_value
 }
 inputs_dot_json = format_output(json_dict)
 
