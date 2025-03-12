@@ -14,7 +14,7 @@ def install_node():
     """Install nvm, and then use it to install nodejs."""
     print("Installing node")
     install_nvm()
-    utils.run_shell_command("source ~/.nvm/nvm.sh; nvm install node")
+    utils.run_shell_command(". ~/.nvm/nvm.sh; nvm install node")
     print("Installation of node succeeded")
 
 def install_circom():
@@ -51,7 +51,7 @@ def install_rust():
 
 
 def install_npm_package(package):
-    utils.run_shell_command("source ~/.nvm/nvm.sh; npm install -g " + package)
+    utils.run_shell_command(". ~/.nvm/nvm.sh; npm install -g " + package)
 
 def platform_package_manager():
     if platform.system() == 'Linux':
