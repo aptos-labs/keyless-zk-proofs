@@ -6,7 +6,6 @@ set -x
 export RESOURCES_DIR="$HOME/.local/share/aptos-prover-service"
 python3 ./scripts/prepare_setups.py
 ./prover-service/scripts/dev_setup.sh
-./prover/scripts/dev_setup.sh
 
 
 # Install pre-commit hook
