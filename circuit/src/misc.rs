@@ -104,15 +104,16 @@ pub fn calc_brackets(s: &str) -> Vec<i32> {
     res
 }
 
-pub fn brackets_depth_map(s: &Vec<i32>) -> Vec<i32> {
-    let mut res = s.clone();
+#[allow(clippy::needless_range_loop)]
+pub fn brackets_depth_map(s: &[i32]) -> Vec<i32> {
+    let mut res = s.to_vec();
 
     res[0] = s[0];
     for i in 1..s.len() {
-        res[i] = res[i-1] + res[i];
+        res[i] += res[i - 1];
     }
     for i in 0..s.len() {
-        res[i] = res[i] - 1;
+        res[i] -= 1;
     }
     for i in 0..s.len() {
         if res[i] < 0 {
@@ -121,9 +122,9 @@ pub fn brackets_depth_map(s: &Vec<i32>) -> Vec<i32> {
     }
     let res_copy = res.clone();
     for i in 1..s.len() {
-       if res[i] == res_copy[i-1]+1 {
-           res[i] = res[i]-1;
-       }
+        if res[i] == res_copy[i - 1] + 1 {
+            res[i] -= 1;
+        }
     }
     res
 }
@@ -396,18 +397,24 @@ fn email_verified_check_test() {
 fn brackets_map_test() {
     let circuit_handle = TestCircuitHandle::new("misc/brackets_map_test.circom").unwrap();
     let config = CircuitConfig::new()
-            .max_length("in", 13)
-            .max_length("brackets", 13);
+        .max_length("in", 13)
+        .max_length("brackets", 13);
 
-    let test_cases = [("hello world{}", true), ("{}hello world", true), ("hello{} world", true), ("hell{o wor}ld", true), ("hell{o wor}ld", false)];
+    let test_cases = [
+        ("hello world{}", true),
+        ("{}hello world", true),
+        ("hello{} world", true),
+        ("hell{o wor}ld", true),
+        ("hell{o wor}ld", false),
+    ];
     for t in test_cases {
         let input = t.0;
         let test_should_pass = t.1;
-        let mut brackets = calc_brackets(&input);
+        let mut brackets = calc_brackets(input);
         if !test_should_pass {
             brackets[3] = 5;
         }
-        let brackets_frs: Vec<Fr> = brackets.into_iter().map(|i| Fr::from(i)).collect();
+        let brackets_frs: Vec<Fr> = brackets.into_iter().map(Fr::from).collect();
         let circuit_input_signals = CircuitInputSignals::new()
             .str_input("in", input)
             .frs_input("brackets", &brackets_frs)
@@ -430,21 +437,29 @@ fn brackets_map_test() {
 fn brackets_depth_map_test() {
     let circuit_handle = TestCircuitHandle::new("misc/brackets_depth_map_test.circom").unwrap();
     let config = CircuitConfig::new()
-            .max_length("in", 13)
-            .max_length("brackets", 13);
+        .max_length("in", 13)
+        .max_length("brackets", 13);
 
-    let test_cases = [("{hello world{}}", true), ("{{}hello world}", true), ("hellllo{} world", true), (" {hello{} worl}", true), ("{hel\"{o wor}\"d}", true), ("{hell{o wor}ld}", false)];
+    let test_cases = [
+        ("{hello world{}}", true),
+        ("{{}hello world}", true),
+        ("hellllo{} world", true),
+        (" {hello{} worl}", true),
+        ("{hel\"{o wor}\"d}", true),
+        ("{hell{o wor}ld}", false),
+    ];
     for t in test_cases {
         let initial_array = t.0;
         let test_should_pass = t.1;
-        let brackets = calc_brackets(&initial_array);
+        let brackets = calc_brackets(initial_array);
         let mut brackets_depth_map = brackets_depth_map(&brackets);
         println!("brackets depth map: {:?}", brackets_depth_map);
         if !test_should_pass {
             brackets_depth_map[3] = 5;
         }
-        let brackets_depth_map_frs: Vec<Fr> = brackets_depth_map.into_iter().map(|i| Fr::from(i)).collect();
-        let brackets_frs: Vec<Fr> = brackets.into_iter().map(|i| Fr::from(i)).collect();
+        let brackets_depth_map_frs: Vec<Fr> =
+            brackets_depth_map.into_iter().map(Fr::from).collect();
+        let brackets_frs: Vec<Fr> = brackets.into_iter().map(Fr::from).collect();
         let circuit_input_signals = CircuitInputSignals::new()
             .frs_input("in", &brackets_frs)
             .frs_input("brackets", &brackets_depth_map_frs)
@@ -467,15 +482,29 @@ fn brackets_depth_map_test() {
 fn brackets_depth_map_hardcoded_test() {
     let circuit_handle = TestCircuitHandle::new("misc/brackets_depth_map_test.circom").unwrap();
     let config = CircuitConfig::new()
-            .max_length("in", 13)
-            .max_length("brackets", 13);
+        .max_length("in", 13)
+        .max_length("brackets", 13);
 
-    let test_cases = [(vec![0,1,0,1,0,0,0,0,0,0,0,0,-1,0,-1],vec![0,0,0,0,1,1,1,1,1,1,1,1,0,0,0]), (vec![1,0,0,0,0,0,1,1,1,0,0,-1,-1,-1,-1], vec![0,0,0,0,0,0,0,1,2,3,3,2,1,0,0]), (vec![1,0,0,0,0,0,0,0,0,0,0,0,0,0,-1], vec![0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])];
+    let test_cases = [
+        (
+            vec![0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, -1],
+            vec![0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+        ),
+        (
+            vec![1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, -1, -1, -1, -1],
+            vec![0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 3, 2, 1, 0, 0],
+        ),
+        (
+            vec![1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1],
+            vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ),
+    ];
     for t in test_cases {
         let brackets = t.0;
         let brackets_depth_map = t.1;
-        let brackets_depth_map_frs: Vec<Fr> = brackets_depth_map.into_iter().map(|i| Fr::from(i)).collect();
-        let brackets_frs: Vec<Fr> = brackets.into_iter().map(|i| Fr::from(i)).collect();
+        let brackets_depth_map_frs: Vec<Fr> =
+            brackets_depth_map.into_iter().map(Fr::from).collect();
+        let brackets_frs: Vec<Fr> = brackets.into_iter().map(Fr::from).collect();
         let circuit_input_signals = CircuitInputSignals::new()
             .frs_input("in", &brackets_frs)
             .frs_input("brackets", &brackets_depth_map_frs)

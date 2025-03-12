@@ -33,7 +33,7 @@ struct Args {
 fn main() {
     let args = Args::parse();
     let on_chain_json_url = format!("https://api.{}.aptoslabs.com/v1/accounts/0x1/resource/0x1::keyless_account::Groth16VerificationKey",
-                                    args.network.to_string());
+                                    args.network);
     println!();
 
     println!("Fetching snarkjs VK from {}", args.snarkjs_json_url);
@@ -55,7 +55,7 @@ fn main() {
     let on_chain_vk_json = ureq::get(on_chain_json_url.as_str())
         .call()
         .into_json()
-        .expect(format!("Failed to parse {} VK JSON", args.network).as_str());
+        .unwrap_or_else(|_| panic!("Failed to parse {} VK JSON", args.network));
     let on_chain_vk_json_pretty = serde_json::to_string_pretty(&on_chain_vk_json).unwrap();
     // println!(format!("{} JSON VK:\n {}", args.network, on_chain_vk_json_pretty_str));
     let on_chain_vk =
