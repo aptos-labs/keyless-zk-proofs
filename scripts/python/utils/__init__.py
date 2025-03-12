@@ -1,6 +1,7 @@
 import os
 import urllib.request
 import sys
+import shutil
 from subprocess import Popen, PIPE
 import subprocess
 from os import environ
@@ -38,6 +39,9 @@ def run_shell_command(command, as_root=False):
 
         subprocess.run(command, shell=True, check=True)
     except subprocess.CalledProcessError as e:
+        print(f"Error: Command '{' '.join(command)}' failed with error {e}.")
+        sys.exit(1)
+    except Exception as e:
         print(f"Error: Command '{' '.join(command)}' failed with error {e}.")
         sys.exit(1)
 
