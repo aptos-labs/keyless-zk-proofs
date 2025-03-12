@@ -27,9 +27,15 @@ def download_and_run_shell_script_with_opts(url, opts):
     """Download and run shell command at the given URL and exit if it fails."""
     run_shell_command("curl \"" + url + "\" | bash -s -- " + opts)
 
-def run_shell_command(command):
+def run_shell_command(command, as_root=False):
     """Run a command in a shell and exit if it fails."""
     try:
+        if as_root:
+            if shutil.which("sudo"):
+                command = "sudo " + command
+            else:
+                eprint("sudo not found. Assuming you don't need privilege escalation.")
+
         subprocess.run(command, shell=True, check=True)
     except subprocess.CalledProcessError as e:
         print(f"Error: Command '{' '.join(command)}' failed with error {e}.")

@@ -81,10 +81,10 @@ def run_platform_package_manager_command(package):
         if package_manager == "brew":
                 utils.run_shell_command("brew install " + package)
         elif package_manager == "pacman":
-                utils.run_shell_command("pacman -S --needed --noconfirm " + package)
+                utils.run_shell_command("pacman -S --needed --noconfirm " + package, as_root=True)
         elif package_manager == "apt-get":
-                utils.run_shell_command("apt-get update")
-                utils.run_shell_command("apt-get install -y " + package)
+                utils.run_shell_command("apt-get update", as_root=True)
+                utils.run_shell_command("apt-get install -y " + package, as_root=True)
     except:
         eprint("Installing " + package + " failed. Exiting.")
         exit(2)
