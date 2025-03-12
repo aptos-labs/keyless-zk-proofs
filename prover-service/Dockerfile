@@ -6,7 +6,7 @@ ARG TARGETARCH
 
 COPY --link . .
 
-run ./scripts/setup_environment.sh prover-service:install-deps
+RUN ./scripts/setup_environment.sh prover-service:install-deps
 
 # Build gmp separately so that docker will cache this step
 RUN /root/.cargo/bin/cargo build --release -p prover-service \
