@@ -19,7 +19,7 @@ fn build_array_selector_output(len: u32, start: u32, end: u32) -> Vec<u8> {
 }
 
 fn build_array_selector_complex_output(len: u32, start: u32, end: u32) -> Vec<u8> {
-   if start >= end {
+    if start >= end {
         return vec![0; len as usize];
     }
     build_array_selector_output(len, start, end)
@@ -35,26 +35,32 @@ fn invert_binary_array_test() {
     let circuit_handle = TestCircuitHandle::new("arrays/invert_binary_array_test.circom").unwrap();
 
     for b0 in [true, false] {
-       for b1 in [true, false] {
-           for b2 in [true,false] {
-               for b3 in [true, false] {
-                   let test_case = [b0, b1, b2, b3];
-                   let output = build_invert_binary_array_output(test_case.to_vec());
-                   let config =
-                       CircuitConfig::new().max_length("in", output.len() as usize).max_length("expected_out", output.len() as usize);
-                   let circuit_input_signals = CircuitInputSignals::new()
-                       .bytes_input("in", &test_case.into_iter().map(|x| x as u8).collect::<Vec<u8>>()[..])
-                       .bytes_input("expected_out", &output.into_iter().map(|x| x as u8).collect::<Vec<u8>>()[..])
-                       .pad(&config)
-                       .unwrap();
-                   let result = circuit_handle.gen_witness(circuit_input_signals);
-                   println!("{:?}", result);
-                   assert!(result.is_ok());
-               }
-           }
-       }
+        for b1 in [true, false] {
+            for b2 in [true, false] {
+                for b3 in [true, false] {
+                    let test_case = [b0, b1, b2, b3];
+                    let output = build_invert_binary_array_output(test_case.to_vec());
+                    let config = CircuitConfig::new()
+                        .max_length("in", output.len() as usize)
+                        .max_length("expected_out", output.len() as usize);
+                    let circuit_input_signals = CircuitInputSignals::new()
+                        .bytes_input(
+                            "in",
+                            &test_case.into_iter().map(|x| x as u8).collect::<Vec<u8>>()[..],
+                        )
+                        .bytes_input(
+                            "expected_out",
+                            &output.into_iter().map(|x| x as u8).collect::<Vec<u8>>()[..],
+                        )
+                        .pad(&config)
+                        .unwrap();
+                    let result = circuit_handle.gen_witness(circuit_input_signals);
+                    println!("{:?}", result);
+                    assert!(result.is_ok());
+                }
+            }
+        }
     }
-
 }
 
 // Tests that the ElementwiseMul subcircuit works using random inputs of size 5
@@ -64,26 +70,34 @@ fn elementwise_mul_test() {
 
     let mut rng = rand::thread_rng();
     for _i in 0..25 {
-            let test_case_left: Vec<u64> = (0..4).map(|_| rng.gen_range(0, (u64::MAX as f64).sqrt() as u64)).collect();
-            let test_case_right: Vec<u64> = (0..4).map(|_| rng.gen_range(0, (u64::MAX as f64).sqrt() as u64)).collect();
-            let output: Vec<u64> = test_case_left.clone().into_iter().zip(test_case_right.clone()).map(|(x,y)| x * y).collect();
-            let test_case_left_frs: Vec<Fr> = test_case_left.into_iter().map(|i| Fr::from(i)).collect();
-            let test_case_right_frs: Vec<Fr> = test_case_right.into_iter().map(|i| Fr::from(i)).collect();
-            let output_frs: Vec<Fr> = output.clone().into_iter().map(|i| Fr::from(i)).collect();
+        let test_case_left: Vec<u64> = (0..4)
+            .map(|_| rng.gen_range(0, (u64::MAX as f64).sqrt() as u64))
+            .collect();
+        let test_case_right: Vec<u64> = (0..4)
+            .map(|_| rng.gen_range(0, (u64::MAX as f64).sqrt() as u64))
+            .collect();
+        let output: Vec<u64> = test_case_left
+            .clone()
+            .into_iter()
+            .zip(test_case_right.clone())
+            .map(|(x, y)| x * y)
+            .collect();
+        let test_case_left_frs: Vec<Fr> = test_case_left.into_iter().map(Fr::from).collect();
+        let test_case_right_frs: Vec<Fr> = test_case_right.into_iter().map(Fr::from).collect();
+        let output_frs: Vec<Fr> = output.clone().into_iter().map(Fr::from).collect();
 
-            let config =
-                CircuitConfig::new().max_length("left", output.len() as usize)
-                                        .max_length("right", output.len() as usize)
-
-                                        .max_length("expected_out", output.len() as usize);
-            let circuit_input_signals = CircuitInputSignals::new()
-                .frs_input("left", &test_case_left_frs)
-                .frs_input("right", &test_case_right_frs)
-                .frs_input("expected_out", &output_frs)
-                .pad(&config)
-                .unwrap();
-            let result = circuit_handle.gen_witness(circuit_input_signals);
-            assert!(result.is_ok());
+        let config = CircuitConfig::new()
+            .max_length("left", output.len())
+            .max_length("right", output.len())
+            .max_length("expected_out", output.len());
+        let circuit_input_signals = CircuitInputSignals::new()
+            .frs_input("left", &test_case_left_frs)
+            .frs_input("right", &test_case_right_frs)
+            .frs_input("expected_out", &output_frs)
+            .pad(&config)
+            .unwrap();
+        let result = circuit_handle.gen_witness(circuit_input_signals);
+        assert!(result.is_ok());
     }
 }
 
@@ -94,8 +108,7 @@ fn array_selector_test() {
     for start in 0..out_len {
         for end in start + 1..=out_len {
             let output = build_array_selector_output(out_len, start, end);
-            let config =
-                CircuitConfig::new().max_length("expected_output", out_len as usize);
+            let config = CircuitConfig::new().max_length("expected_output", out_len as usize);
             let circuit_input_signals = CircuitInputSignals::new()
                 .u64_input("start_index", start as u64)
                 .u64_input("end_index", end as u64)
@@ -211,7 +224,6 @@ fn array_selector_test_out_of_bounds() {
     assert!(result.is_ok());
 }
 
-
 #[test]
 fn array_selector_test_complex() {
     let circuit_handle =
@@ -221,8 +233,7 @@ fn array_selector_test_complex() {
     for start in 1..out_len {
         for end in start + 1..out_len {
             let output = build_array_selector_complex_output(out_len, start, end);
-            let config =
-                CircuitConfig::new().max_length("expected_output", out_len as usize);
+            let config = CircuitConfig::new().max_length("expected_output", out_len as usize);
             let circuit_input_signals = CircuitInputSignals::new()
                 .u64_input("start_index", start as u64)
                 .u64_input("end_index", end as u64)
@@ -277,7 +288,8 @@ fn array_selector_test_complex_small() {
 
 #[test]
 fn array_selector_test_complex_wrong_start() {
-    let circuit_handle = TestCircuitHandle::new("arrays/array_selector_complex_test.circom").unwrap();
+    let circuit_handle =
+        TestCircuitHandle::new("arrays/array_selector_complex_test.circom").unwrap();
     let out_len = 8;
     let start = 3;
     let end = 3;
@@ -296,7 +308,8 @@ fn array_selector_test_complex_wrong_start() {
 
 #[test]
 fn array_selector_test_complex_reverse_start() {
-    let circuit_handle = TestCircuitHandle::new("arrays/array_selector_complex_test.circom").unwrap();
+    let circuit_handle =
+        TestCircuitHandle::new("arrays/array_selector_complex_test.circom").unwrap();
     let out_len = 8;
     let start = 5;
     let end = 3;
@@ -312,7 +325,6 @@ fn array_selector_test_complex_reverse_start() {
     let result = circuit_handle.gen_witness(circuit_input_signals);
     assert!(result.is_ok());
 }
-
 
 fn build_left_array_selector_output(len: u32, index: u32) -> Vec<u8> {
     let len = len as usize;
@@ -377,8 +389,7 @@ fn left_array_selector_test_small() {
 #[test]
 #[should_panic]
 fn left_array_selector_test_out_of_bounds() {
-    let circuit_handle =
-        TestCircuitHandle::new("arrays/left_array_selector_test.circom").unwrap();
+    let circuit_handle = TestCircuitHandle::new("arrays/left_array_selector_test.circom").unwrap();
     let out_len = 8;
     let index = 9;
     let output = build_left_array_selector_output(out_len, index);
@@ -392,7 +403,6 @@ fn left_array_selector_test_out_of_bounds() {
     let result = circuit_handle.gen_witness(circuit_input_signals);
     assert!(result.is_ok());
 }
-
 
 fn build_right_array_selector_output(len: usize, index: usize) -> Vec<u8> {
     if index < len {
@@ -459,8 +469,7 @@ fn right_array_selector_test_small() {
 #[test]
 #[should_panic]
 fn right_array_selector_test_out_of_bounds() {
-    let circuit_handle =
-        TestCircuitHandle::new("arrays/right_array_selector_test.circom").unwrap();
+    let circuit_handle = TestCircuitHandle::new("arrays/right_array_selector_test.circom").unwrap();
     let out_len = 8;
     let index = 9;
     let output = build_left_array_selector_output(out_len, index);
@@ -709,7 +718,6 @@ fn single_neg_one_array_out_of_bounds_test() {
     let result = circuit_handle.gen_witness(circuit_input_signals);
     assert!(result.is_ok());
 }
-
 
 #[test]
 fn single_neg_one_array_large_test() {
@@ -1068,7 +1076,6 @@ fn check_substr_inclusion_poly_same_boolean_test() {
     assert!(result.is_ok());
 }
 
-
 #[test]
 fn check_substr_inclusion_poly_boolean_out_of_bounds_test() {
     let circuit_handle =
@@ -1395,9 +1402,7 @@ fn check_are_ascii_digits_out_of_bounds_test() {
     let mut rng = rand::thread_rng();
     let len = 22;
     let digits: Vec<u8> = (0..20).map(|_| rng.gen_range(0, 9)).collect();
-    let mut input_arr = digits_to_ascii_digits(digits.to_vec());
-    let mut not_digits: Vec<u8> = (0..8 - 22).map(|_| rng.gen_range(0, 250)).collect();
-    input_arr.append(&mut not_digits);
+    let input_arr = digits_to_ascii_digits(digits.to_vec());
 
     let config = CircuitConfig::new().max_length("in", max_input_len);
     let circuit_input_signals = CircuitInputSignals::new()

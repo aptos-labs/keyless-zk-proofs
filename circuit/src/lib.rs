@@ -103,3 +103,8 @@ impl TestCircuitHandle {
 //     let compile_circuit();
 //     witness_gen(witness_gen_js_path, witness_gen_wasm_path, &formatted_input_str).unwrap();
 // }
+
+#[test]
+fn main_template_should_compile() {
+    TestCircuitHandle::new("../main.circom").unwrap();
+}
