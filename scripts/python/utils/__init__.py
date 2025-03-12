@@ -6,6 +6,8 @@ from subprocess import Popen, PIPE
 import subprocess
 from os import environ
 from pathlib import Path
+import tempfile
+import contextlib
 
 envvars_were_added = False
 
@@ -45,6 +47,17 @@ def run_shell_command(command, as_root=False):
         print(f"Error: Command '{' '.join(command)}' failed with error {e}.")
         sys.exit(1)
 
+
+def cargo_install_from_git(repo, ref=None):
+    with tempfile.TemporaryDirectory() as temp_dir:
+        with contextlib.chdir(temp_dir):
+            run_shell_command("git clone '" + repo + "' repo_dir")
+            with contextlib.chdir("repo_dir"):
+                if ref:
+                    run_shell_command("git switch -d " + ref)
+                run_shell_command("cargo build --release")
+                run_shell_command("cargo install --path circom")
+            
 
 def add_envvar_to_profile(name, value):
     """

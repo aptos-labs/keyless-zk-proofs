@@ -18,7 +18,9 @@ def install_node():
     print("Installation of node succeeded")
 
 def install_circom():
-    print("placeholder: installing circom")
+    eprint("Installing circom")
+    utils.cargo_install_from_git("https://github.com/iden3/circom", "v2.1.7")
+    eprint("Installation of circom succeeded")
 
 def install_circomlib():
     eprint("Installing circomlib")
