@@ -1,6 +1,6 @@
 pragma circom 2.1.3;
 
-include "helpers/base64.circom";
+include "helpers/base64url.circom";
 
 template base64_decode_test(maxJWTPayloadLen) {
     var max_ascii_jwt_payload_len = (3*maxJWTPayloadLen)\4;

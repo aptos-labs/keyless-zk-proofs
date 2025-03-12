@@ -1,7 +1,7 @@
 
 pragma circom 2.1.3;
 
-include "helpers/base64.circom";
+include "helpers/base64url.circom";
 
 template base64_lookup_test() {
     signal input in_b64_char;

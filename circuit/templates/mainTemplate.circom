@@ -10,7 +10,7 @@
  */
 pragma circom 2.1.3;
 
-include "helpers/base64.circom";
+include "helpers/base64url.circom";
 include "helpers/arrays.circom";
 include "helpers/misc.circom";
 include "helpers/packing.circom";
