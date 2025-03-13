@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 
-members = ["circuit", "keyless-common", "prover", "vk-diff"]
+members = ["circuit", "keyless-common", "prover-service", "vk-diff", "rust-rapidsnark"]
 
 [workspace.package]
 authors = ["Aptos Labs <opensource@aptoslabs.com>"]
@@ -46,6 +46,7 @@ axum-server = { version = "0.6.0", features = [
 backtrace = "0.3.69"
 base64 = "0.13.0"
 bcs = { git = "https://github.com/aptos-labs/bcs.git", rev = "d31fab9d81748e2594be5cd5cdf845786a30562d" }
+bindgen = "0.69.2"
 clap = { version = "3.1.8", features = ["derive"] }
 dashmap = "5.5.3"
 figment = { version = "0.10.14", features = ["yaml", "env"] }
