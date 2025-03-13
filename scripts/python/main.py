@@ -51,7 +51,8 @@ Usage:
         the default location "~/.local/share/aptos-prover-service".
 
       - run-dummy-setup: Compiles the circuit in this repo and runs a dummy *untrusted* setup 
-        based on the result of that compilation. Installs it in RESOURCES_DIR? What about 
+        based on the result of that compilation. Installs it in RESOURCES_DIR? Is it bad that 
+        it will overwrite any existing setup downloaded using trusted-setup:download-latest-setup?
 
    - misc:
       - compute-sample-proof
