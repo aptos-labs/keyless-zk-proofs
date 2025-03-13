@@ -4,7 +4,7 @@ set -e
 
 SCRIPT_DIR=$(dirname "$0")
 
-install_python() {
+install_deps() {
   echo "Bootstrap: checking for python, pipx, curl and invoke..."
   if ! command -v python3 > /dev/null || ! command -v curl > /dev/null || ! ( command -v invoke > /dev/null || /bin/ls ~/.local/bin/invoke > /dev/null ); then
     echo "Dependencies not all found, installing..."
@@ -14,11 +14,11 @@ install_python() {
         if command -v apt-get > /dev/null; then
           if command -v sudo > /dev/null; then
             sudo apt-get update
-            sudo apt-get install -y python3 python3-pip curl
+            sudo apt-get install -y python3 python3-pip pipx curl
             pipx install invoke
           else
             apt-get update
-            apt-get install -y python3 python3-pip curl
+            apt-get install -y python3 python3-pip pipx curl
             pipx install invoke
           fi
         elif command -v pacman > /dev/null; then
@@ -53,7 +53,7 @@ install_python() {
   fi
 }
 
-install_python
+install_deps
 
 
 python3 $SCRIPT_DIR/python/main.py "$@"
