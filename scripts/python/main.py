@@ -14,8 +14,8 @@ import misc
 def print_usage(unused=[]):
     eprint("""
 Usage:
-   setup_environment.sh <one or more setup actions> : run the given setup actions
-   setup_environment.sh -h                        : print this screen
+   task.sh <one or more setup actions> : run the given setup actions
+   task.sh -h                          : print this screen
 
    (if no actions are provided, default is "setup-dev-environment")
 
