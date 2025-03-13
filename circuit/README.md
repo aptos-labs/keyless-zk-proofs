@@ -7,7 +7,7 @@ The scripts in this repository will not work without installing the dependencies
 To install, please run the following from the repo root:
 
 ```
-./scripts/setup_environment.sh circuit:install-deps
+./scripts/task.sh circuit:install-deps
 ```
 
 ## Running circuit unit tests
@@ -25,7 +25,7 @@ cargo test
 To generate a sample prover and verifier key pair, run the following command from the repo root:
 
 ```
-./scripts/setup_environment.sh trusted-setup:run-dummy-setup
+./scripts/task.sh trusted-setup:run-dummy-setup
 ```
 
 ## Generating a sample proof

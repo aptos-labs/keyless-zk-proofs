@@ -13,7 +13,7 @@ envvars_were_added = False
 
 def repo_root():
     """Return the repo root. Assumes this script is two subdirectories in."""
-    return str(Path(os.path.realpath(__file__)).parents[2])
+    return str(Path(os.path.realpath(__file__)).parents[3])
 
 def resources_dir_root():
     if 'RESOURCES_DIR' in os.environ:
@@ -41,10 +41,10 @@ def run_shell_command(command, as_root=False):
 
         subprocess.run(command, shell=True, check=True)
     except subprocess.CalledProcessError as e:
-        print(f"Error: Command '{' '.join(command)}' failed with error {e}.")
+        eprint(f"Error: Command '{' '.join(command)}' failed with error {e}.")
         sys.exit(1)
     except Exception as e:
-        print(f"Error: Command '{' '.join(command)}' failed with error {e}.")
+        eprint(f"Error: Command '{' '.join(command)}' failed with error {e}.")
         sys.exit(1)
 
 

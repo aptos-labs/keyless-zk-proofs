@@ -17,7 +17,7 @@ To setup your environment for both the prover service and the circuit, run
 the following command:
 
 ```
-./scripts/setup_environment.sh
+./scripts/task.sh setup-dev-environment
 ```
 
 ## TODOs

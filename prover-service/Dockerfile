@@ -17,7 +17,7 @@ RUN /root/.cargo/bin/cargo build --release -p prover-service \
 # Download trusted setup and witness gen binaries
 ENV RESOURCES_DIR=/resources
 
-RUN ./scripts/setup_environment.sh trusted-setup:download-latest-setup \
+RUN ./scripts/task.sh trusted-setup:download-latest-setup \
                                    trusted-setup:download-latest-witness-gen-c
 
 

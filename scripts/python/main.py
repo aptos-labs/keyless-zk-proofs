@@ -2,6 +2,7 @@ import os
 import sys
 
 import utils
+from utils import eprint
 import prover_service
 import circuit
 import trusted_setup
@@ -11,7 +12,7 @@ import misc
 
 
 def print_usage(unused=[]):
-    print("""
+    eprint("""
 Usage:
    setup_environment.sh <one or more setup actions> : run the given setup actions
    setup_environment.sh -h                        : print this screen
@@ -50,12 +51,16 @@ Usage:
         latest trusted setup and installs it in RESOURCES_DIR. If RESOURCES_DIR is not set, uses 
         the default location "~/.local/share/aptos-prover-service".
 
-      - run-dummy-setup: Compiles the circuit in this repo and runs a dummy *untrusted* setup 
-        based on the result of that compilation. Installs it in RESOURCES_DIR? Is it bad that 
+      - run-dummy-setup: UNIMPLEMENTED Compiles the circuit in this repo and runs a dummy *untrusted* 
+        setup based on the result of that compilation. Installs it in RESOURCES_DIR? Is it bad that 
         it will overwrite any existing setup downloaded using trusted-setup:download-latest-setup?
 
    - misc:
-      - compute-sample-proof
+
+      - compute-sample-proof: UNIMPLEMENTED
+
+      - install-circom-precommit-hook: Installs a pre-commit hook that requires the main circuit to 
+        compile before committing.
 
    - setup-dev-environment: runs the following tasks:
       - prover-service:install-deps
@@ -65,7 +70,7 @@ Usage:
       - trusted-setup:download-latest-witness-gen-c
       - trusted-setup:download-latest-witness-gen-wasm
 
-""", file=sys.stderr)
+""")
 
 
 def setup_dev_environment():
@@ -78,7 +83,7 @@ def setup_dev_environment():
 
 
 def action_not_recognized(action):
-    print("Action '" + action + "' not recognized.", file=sys.stderr)
+    eprint("Action '" + action + "' not recognized.")
     print_usage()
     exit(1)
 
@@ -121,6 +126,8 @@ def handle_action(action):
     elif action_category == "misc":
         if action_body == "compute-sample-proof":
             misc.compute_sample_proof()
+        elif action_body == "install-circom-precommit-hook":
+            misc.install_circom_precommit_hook()
         else:
             action_not_recognized(action)
 

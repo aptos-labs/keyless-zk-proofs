@@ -82,5 +82,6 @@ def download_latest_witness_gen_wasm():
     eprint("Done.")
 
 def run_dummy_setup():
-    print("run_dummy_setup")
-    print("Not yet implemented")
+    eprint("run_dummy_setup")
+    eprint("Not yet implemented")
+    exit(2)
