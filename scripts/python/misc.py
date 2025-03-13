@@ -15,11 +15,16 @@ def compute_sample_proof():
 def install_circom_precommit_hook():
     eprint("Installing precommit hook...")
 
+    hook_src_path = utils.repo_root() + "/git-hooks/compile-circom-if-needed-pre-commit"
     hook_dest_path = utils.repo_root() + "/.git/hooks/pre-commit"
+    eprint(hook_src_path)
+    eprint(hook_dest_path)
+
+    
 
     pathlib.Path(hook_dest_path).unlink(True)
-    shutil.copyfile(utils.repo_root() + "/git-hooks/compile-circom-if-needed-pre-commit", hook_dest_path)
-    os.chmod(hook_dest_path, stat.S_IXOTH )
+    shutil.copyfile(hook_src_path, hook_dest_path)
+    os.chmod(hook_dest_path, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR)
     
     eprint("Done.")
 
