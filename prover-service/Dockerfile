@@ -1,35 +1,46 @@
 # syntax=docker/dockerfile:1.7
 
-FROM archlinux:base-devel as build_prover_service
+# The image used for building
+FROM debian:bookworm as build_prover_service
 ARG TARGETARCH
-
-run pacman -Syu --noconfirm \
- && pacman -S --noconfirm rustup clang lld meson cmake make libyaml nasm gmp openssl curl git \
- && rustup default stable
 
 COPY --link . .
 
+RUN ./scripts/task.sh prover-service:install-deps
+
 # Build gmp separately so that docker will cache this step
-RUN cargo build --release -p prover-service \
+RUN /root/.cargo/bin/cargo build --release -p prover-service \
  && cp target/release/prover-service /prover-service-bin
 
-FROM archlinux:base-devel
- 
-run pacman -Syu --noconfirm \
- && pacman -S --noconfirm libyaml gmp curl python
 
-# copy prover server
+
+# Download trusted setup and witness gen binaries
+ENV RESOURCES_DIR=/resources
+
+RUN ./scripts/task.sh trusted-setup:download-latest-setup \
+                                   trusted-setup:download-latest-witness-gen-c
+
+
+
+
+# The image that is actually deployed
+FROM debian:bookworm
+ 
+# need libyaml and gmp 
+RUN apt-get update \
+ && apt-get install -y libyaml-dev libgmp-dev libssl-dev
+
+# copy prover service binary
 COPY --link --from=build_prover_service ./prover-service-bin ./prover-service-bin
+# copy oneTBB dylib
 COPY --link --from=build_prover_service ./rust-rapidsnark/rapidsnark/build/subprojects/oneTBB-2022.0.0 ./rapidsnark-libdir
+# copy trusted setup and witness generation binaries
+COPY --link --from=build_prover_service ./resources ./resources
+# copy prover service config file
+COPY --link ./prover-service/config.yml ./config.yml
 
 ARG GIT_COMMIT
 ENV GIT_COMMIT=$GIT_COMMIT
-
-COPY scripts scripts
-ENV RESOURCES_DIR=/resources
-RUN python3 scripts/prepare_setups.py
-
-COPY --link ./prover-service/config.yml ./config.yml
 
 EXPOSE 8080
 

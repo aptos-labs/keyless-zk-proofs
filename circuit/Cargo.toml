@@ -1,6 +1,6 @@
 [package]
 name = "aptos-keyless-circuit"
-description = "Aptos Keyless circuit"
+description = "The Aptos Keyless circuit (circom) and unit tests (rust)."
 version = "0.1.0"
 
 # Workspace inherited keys

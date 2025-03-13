@@ -47,13 +47,15 @@ impl TestCircuitHandle {
     pub fn new_from_str(circuit_src: &str) -> anyhow::Result<Self> {
         let dir = tempdir()?;
         let cargo_manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
-        let include_root_dir = cargo_manifest_dir.join("./templates");
+        let include_root_dir = cargo_manifest_dir.join("templates");
         let tmp_circuit_path = dir.path().to_owned().join("circuit.circom");
         let mut tmp_circuit_file = File::create(&tmp_circuit_path)?;
         let global_node_modules_path =
             String::from_utf8(Command::new("npm").args(["root", "-g"]).output()?.stdout).unwrap();
         tmp_circuit_file.write_all(circuit_src.as_bytes())?;
-        let output = Command::new("circom")
+
+        let circom_path = PathBuf::from(env::var("CARGO_HOME").unwrap()).join("bin/circom");
+        let output = Command::new(circom_path)
             .args([
                 "-l",
                 include_root_dir.to_str().unwrap(),
