@@ -47,7 +47,7 @@ fn base64_decode_test() {
 }
 
 #[test]
-fn base64_lookup_test() {
+fn base64url_lookup_test() {
     let circuit_handle = TestCircuitHandle::new("base64_lookup_test.circom").unwrap();
 
     let base64_chars = (b'A'..=b'Z')

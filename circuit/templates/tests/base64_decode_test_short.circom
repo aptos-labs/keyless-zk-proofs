@@ -2,16 +2,16 @@ pragma circom 2.1.3;
 
 include "helpers/base64url.circom";
 
-template base64_decode_test(maxJWTPayloadLen) {
+template base64url_decode_test(maxJWTPayloadLen) {
     var max_ascii_jwt_payload_len = (3*maxJWTPayloadLen)\4;
     signal input jwt_payload[maxJWTPayloadLen];
     signal input ascii_jwt_payload[max_ascii_jwt_payload_len];
-    component base64decode = Base64Decode(max_ascii_jwt_payload_len);
-    base64decode.in <== jwt_payload;
-    ascii_jwt_payload === base64decode.out;
+    component base64urldecode = Base64urlDecode(max_ascii_jwt_payload_len);
+    base64urldecode.in <== jwt_payload;
+    ascii_jwt_payload === base64urldecode.out;
 
 }
 
-component main = base64_decode_test(
+component main = base64url_decode_test(
    4
 );

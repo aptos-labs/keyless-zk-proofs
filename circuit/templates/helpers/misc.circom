@@ -234,7 +234,7 @@ template BracketsDepthMap(len) {
 
 // Given a base64url-encoded array `in`, max length `maxN`, and actual unpadded length `n`, returns
 // the actual length of the decoded string
-template Base64DecodedLength(maxN) {
+template Base64urlDecodedLength(maxN) {
     var max_q = (3 * maxN) \ 4;
     //signal input in[maxN];
     signal input n; // actual length
