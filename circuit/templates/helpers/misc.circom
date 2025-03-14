@@ -231,35 +231,3 @@ template BracketsDepthMap(len) {
         out[i] <== prelim_out3[i] - is_inc;
     }
 }
-
-// Given a base64url-encoded array `in`, max length `maxN`, and actual unpadded length `n`, returns
-// the actual length of the decoded string
-template Base64urlDecodedLength(maxN) {
-    var max_q = (3 * maxN) \ 4;
-    //signal input in[maxN];
-    signal input n; // actual length
-    signal output decoded_len;
-    signal q <-- 3*n \ 4;
-    signal r <-- 3*n % 4;
-
-    3*n - 4*q - r === 0;
-    signal r_correct_reminder <== LessThan(2)([r, 4]);
-    r_correct_reminder === 1;
-
-    // use log function to compute log(max_q)
-    signal q_correct_quotient <== LessThan(252)([q, max_q]);
-    q_correct_quotient === 1;
-
-    // var eq = 61;
-    // assumes valid encoding (if last != "=" then second to last is also
-    // != "=")
-    // TODO: We don't seem to need this, as the jwt spec removes b64 padding
-    // see https://datatracker.ietf.org/doc/html/rfc7515#page-54
-    //signal l <== SelectArrayValue(maxN)(in, n - 1);
-    //signal s2l <== SelectArrayValue(maxN)(in, n - 2);
-    //signal s_l <== IsEqual()([l, eq]);
-    //signal s_s2l <== IsEqual()([s2l, eq]);
-    //signal reducer <== -1*s_l -1*s_s2l;
-    //decoded_len <== q + reducer;
-    //log("decoded_len", decoded_len);
-}
