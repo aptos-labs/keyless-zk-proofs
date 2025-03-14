@@ -206,9 +206,11 @@ template CheckSubstrInclusionPoly(maxStrLen, maxSubstrLen) {
 
     var distinguishing_value = SelectArrayValue(maxStrLen)(challenge_powers, start_index);
 
+    // assert LHS != 0 && str_poly_eval == distinguishing_value * substr_poly_eval
+
     // Fail if ArraySelector returns all 0s
-    signal lhs_is_zero <== IsEqual()([str_poly_eval,0]);
-    lhs_is_zero === 0;
+    signal not_zero <== NOT()(IsZero()(str_poly_eval));
+    not_zero === 1;
 
     str_poly_eval === distinguishing_value * substr_poly_eval;
 }
@@ -261,13 +263,16 @@ template CheckSubstrInclusionPolyBoolean(maxStrLen, maxSubstrLen) {
 
     var distinguishing_value = SelectArrayValue(maxStrLen)(challenge_powers, start_index);
 
-    // Fail if ArraySelector returns all 0s
-    signal lhs_is_zero <== IsEqual()([str_poly_eval,0]);
-    signal not_lhs_is_zero <== NOT()(lhs_is_zero);
+    // Should fail if ArraySelector returns all 0s
 
-    signal right_eq <== distinguishing_value * substr_poly_eval;
-    signal check_passes <== IsEqual()([str_poly_eval, right_eq]);
-    success <== AND()(not_lhs_is_zero, check_passes);
+    // assert LHS != 0 && str_poly_eval == distinguishing_value * substr_poly_eval
+    success <== AND()(
+        NOT()(IsZero()(str_poly_eval)),
+        IsEqual()([
+            str_poly_eval,
+            distinguishing_value * substr_poly_eval
+        ])
+    );
 }
 
 // Given `full_string`, `left`, and `right`, checks that full_string = left || right 
