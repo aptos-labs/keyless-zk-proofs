@@ -97,3 +97,82 @@ template BitsToFieldElems(inputLen, bitsPerFieldElem) {
     bits_2_num_be[num_elems-1].out ==> elems[num_elems-1];
 }
 
+// Enforces that each scalar in the input array `in` will fit in a byte, i.e.
+// is between 0 and 256 exclusive
+template CheckAreBytes(numBytes) {
+    signal input in[numBytes];
+
+    for (var i = 0; i < numBytes; i++) {
+        var is_byte = LessThan(9)([in[i], 256]);
+        is_byte === 1;
+    }
+}
+
+// Enforces that each scalar in the input array `in` will fit in a limb of size 64
+// i.e. is between - and 2^64 exclusive
+template CheckAre64BitLimbs(numLimbs) {
+    signal input in[numLimbs];
+
+    for (var i = 0; i < numLimbs; i++) {
+        var is_byte = LessThan(65)([in[i], 2**64]);
+        is_byte === 1;
+    }
+}
+
+// Inspired by `Bits2Num` in circomlib. Packs chunks of bits into a single field element
+// Assumes that each value in `in` encodes `bitsPerChunk` bits of a single field element
+template ChunksToFieldElem(numChunks, bitsPerChunk) {
+    signal input in[numChunks];
+    signal output out;
+
+    var lc1 = in[0];
+
+    var e2 = 2**bitsPerChunk;
+    for (var i = 1; i<numChunks; i++) {
+        lc1 += in[i] * e2;
+        e2 = e2 * (2**bitsPerChunk);
+    }
+
+    lc1 ==> out;
+}
+
+// Packs chunks into multiple field elements
+// `inputLen` cannot be 0.
+// Assumes each element in `in` contains `bitsPerChunk` bits of information of a field element
+// Each field element is assumed to be `chunksPerFieldElem` * `bitsPerChunk` bits. The final field element may be less than this
+// There are assumed to be `inputLen` / `chunksPerFieldElem` field elements, rounded up to the nearest whole number.
+template ChunksToFieldElems(inputLen, chunksPerFieldElem, bitsPerChunk) {
+    signal input in[inputLen];
+    var num_elems = inputLen%chunksPerFieldElem == 0 ? inputLen \ chunksPerFieldElem : (inputLen\chunksPerFieldElem) + 1; // '\' is the quotient operation - we add 1 if there are extra bits past the full chunks
+    signal output elems[num_elems];
+    component chunks_2_field[num_elems]; 
+    for (var i = 0; i < num_elems-1; i++) {
+        chunks_2_field[i] = ChunksToFieldElem(chunksPerFieldElem, bitsPerChunk); // assign circuit component
+    }
+
+    // If we have an extra chunk that isn't full of bits, we truncate the Bits2NumBigEndian component size for that chunk. This is equivalent to 0 padding the end of the array
+    var num_extra_chunks = inputLen % chunksPerFieldElem;
+    if (num_extra_chunks == 0) {
+        num_extra_chunks = chunksPerFieldElem; // The last field element is full
+        chunks_2_field[num_elems-1] = ChunksToFieldElem(chunksPerFieldElem, bitsPerChunk);
+    } else {
+        chunks_2_field[num_elems-1] = ChunksToFieldElem(num_extra_chunks, bitsPerChunk);
+    }
+
+    // Assign all but the last field element
+    for (var i = 0; i < num_elems-1; i++) {
+        for (var j = 0; j < chunksPerFieldElem; j++) {
+            var index = (i * chunksPerFieldElem) + j;
+            chunks_2_field[i].in[j] <== in[index];
+        }
+        chunks_2_field[i].out ==> elems[i];
+    }
+
+    // Assign the last field element
+    var i = num_elems-1;
+    for (var j = 0; j < num_extra_chunks; j++) {
+        var index = (i*chunksPerFieldElem) + j;
+        chunks_2_field[num_elems-1].in[j] <== in[index];
+    }
+    chunks_2_field[i].out ==> elems[i];
+}
