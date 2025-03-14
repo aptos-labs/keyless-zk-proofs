@@ -174,45 +174,11 @@ template CheckSubstrInclusionPoly(maxStrLen, maxSubstrLen) {
     signal input substr_len;
     signal input start_index;
 
-    signal substr_hash <== HashBytesToFieldWithLen(maxSubstrLen)(substr, substr_len);
-    signal random_challenge <== Poseidon(4)([str_hash, substr_hash, substr_len, start_index]);
+    signal success <== CheckSubstrInclusionPolyBoolean(maxStrLen, maxSubstrLen)(
+        str, str_hash, substr, substr_len, start_index
+    );
 
-    signal challenge_powers[maxStrLen];
-    challenge_powers[0] <== 1;
-    challenge_powers[1] <== random_challenge;
-    for (var i = 2; i < maxStrLen; i++) {
-        challenge_powers[i] <== challenge_powers[i-1] * random_challenge;
-    }
-
-    signal selector_bits[maxStrLen] <== ArraySelector(maxStrLen)(start_index, start_index+substr_len); 
-
-    signal selected_str[maxStrLen];
-    for (var i = 0; i < maxStrLen; i++) {
-        selected_str[i] <== selector_bits[i] * str[i];
-    }
-    
-    signal str_poly[maxStrLen];
-    for (var i = 0; i < maxStrLen; i++) {
-        str_poly[i] <== selected_str[i] * challenge_powers[i];
-    }
-
-    signal substr_poly[maxSubstrLen];
-    for (var i = 0; i < maxSubstrLen; i++) {
-        substr_poly[i] <== substr[i] * challenge_powers[i];
-    }
-
-    signal str_poly_eval <== CalculateTotal(maxStrLen)(str_poly);
-    signal substr_poly_eval <== CalculateTotal(maxSubstrLen)(substr_poly);
-
-    var distinguishing_value = SelectArrayValue(maxStrLen)(challenge_powers, start_index);
-
-    // assert LHS != 0 && str_poly_eval == distinguishing_value * substr_poly_eval
-
-    // Fail if ArraySelector returns all 0s
-    signal not_zero <== NOT()(IsZero()(str_poly_eval));
-    not_zero === 1;
-
-    str_poly_eval === distinguishing_value * substr_poly_eval;
+    success === 1;
 }
 
 // Checks that `substr` of length `substr_len` matches `str` beginning at `start_index`
@@ -263,9 +229,9 @@ template CheckSubstrInclusionPolyBoolean(maxStrLen, maxSubstrLen) {
 
     var distinguishing_value = SelectArrayValue(maxStrLen)(challenge_powers, start_index);
 
-    // Should fail if ArraySelector returns all 0s
+    // Fail if ArraySelector returns all 0s
 
-    // assert LHS != 0 && str_poly_eval == distinguishing_value * substr_poly_eval
+    // assert str_poly_eval != 0 && str_poly_eval == distinguishing_value * substr_poly_eval
     success <== AND()(
         NOT()(IsZero()(str_poly_eval)),
         IsEqual()([
