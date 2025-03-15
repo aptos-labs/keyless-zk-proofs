@@ -81,17 +81,18 @@ template identity(
 
     dot === 46; // '.'
 
-    var signature_len = 32;
-    var size_limbs = 64; // The size of limbs used in the big integer implementation leveraged by RSAVerify65537
-    // Pack hash bits into 4 64-bit values
-    signal packed_jwt_hash[4] <== BitsToFieldElems(256, size_limbs)(jwt_sha_hash); // (input length, byte size of outputs)
+    // An RSA signature will be represented as a vector of 64-bit limbs.
+    var SIGNATURE_LIMB_BIT_WIDTH = 64;
+    var SIGNATURE_NUM_LIMBS = 32;
+    // Pack the 256-bit hashed message bits into 4 limbs
+    signal packed_jwt_hash[4] <== BitsToFieldElems(256, SIGNATURE_LIMB_BIT_WIDTH)(jwt_sha_hash);
 
     // Verify signature over hash of JWT using modulus input
-    signal input signature[signature_len];
-    CheckAre64BitLimbs(signature_len)(signature);
-    signal input pubkey_modulus[signature_len];
+    signal input signature[SIGNATURE_NUM_LIMBS];
+    CheckAre64BitLimbs(SIGNATURE_NUM_LIMBS)(signature);
+    signal input pubkey_modulus[SIGNATURE_NUM_LIMBS];
     // RSA verification assumes the signature is less than the pubkey modulus
-    signal sig_ok <== BigLessThan(252, signature_len)(signature, pubkey_modulus);
+    signal sig_ok <== BigLessThan(252, SIGNATURE_NUM_LIMBS)(signature, pubkey_modulus);
     sig_ok === 1;
 
     var hash_le[4];
@@ -99,7 +100,7 @@ template identity(
         hash_le[i] = packed_jwt_hash[3-i];
     }
 
-    RsaVerifyPkcs1v15(size_limbs, signature_len)(signature, pubkey_modulus, hash_le);
+    RsaVerifyPkcs1v15(SIGNATURE_LIMB_BIT_WIDTH, SIGNATURE_NUM_LIMBS)(signature, pubkey_modulus, hash_le);
 
     var max_ascii_jwt_payload_len = (3*maxJWTPayloadLen)\4; //TODO: Describe constraints this puts on max payload size. This equation comes from the implementation of Base64UrlDecode - base64url encoding is about 33% larger than the originally encoded data
     signal input jwt_payload_without_sha_padding[maxJWTPayloadLen];
@@ -362,7 +363,7 @@ template identity(
     log("override aud val hash is: ", override_aud_val_hashed);
     signal hashed_jwt_header <== HashBytesToFieldWithLen(maxJWTHeaderLen)(jwt_header_with_separator, header_len_with_separator);
     log("jwt header hash is: ", hashed_jwt_header);
-    signal hashed_pubkey_modulus <== Hash64BitLimbsToFieldWithLen(signature_len)(pubkey_modulus, 256); // 256 bytes per signature
+    signal hashed_pubkey_modulus <== Hash64BitLimbsToFieldWithLen(SIGNATURE_NUM_LIMBS)(pubkey_modulus, 256); // 256 bytes per signature
     log("pubkey hash is: ", hashed_pubkey_modulus);
     signal hashed_iss_value <== HashBytesToFieldWithLen(maxIssValueLen)(iss_value, iss_value_len);
     log("iss field hash is: ", hashed_iss_value);
