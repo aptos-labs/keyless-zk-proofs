@@ -64,7 +64,15 @@ template identity(
     signal input b64u_jwt_payload_sha2_padded[maxJWTPayloadLen];
     signal input b64u_jwt_payload_sha2_padded_len;
 
-    ConcatenationCheck(maxJWTLen, maxJWTHeaderLen, maxJWTPayloadLen)(b64u_jwt_no_sig_sha2_padded, b64u_jwt_header_w_dot, b64u_jwt_payload_sha2_padded, b64u_jwt_header_w_dot_len, b64u_jwt_payload_sha2_padded_len);
+    // Checks that the base64-encoded JWT payload & header are correctly concatenated:
+    // i.e., that `b64u_jwt_no_sig_sha2_padded` is the concatenation of `b64u_jwt_header_w_dot` with` b64u_jwt_payload_sha2_padded`
+    ConcatenationCheck(maxJWTLen, maxJWTHeaderLen, maxJWTPayloadLen)(
+        b64u_jwt_no_sig_sha2_padded,
+        b64u_jwt_header_w_dot,
+        b64u_jwt_payload_sha2_padded,
+        b64u_jwt_header_w_dot_len,
+        b64u_jwt_payload_sha2_padded_len
+    );
 
     // Convert jwt bytes into bits for SHA256 hashing
     signal jwt_bits[maxJWTLen * 8] <== BytesToBits(maxJWTLen)(b64u_jwt_no_sig_sha2_padded);
