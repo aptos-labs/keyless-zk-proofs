@@ -109,7 +109,7 @@ template identity(
     var SHA2_MAX_NUM_BLOCKS = (maxJWTLen * 8) \ 512;
 
     // Computes the SHA2-256 hash of the JWT
-    signal jwt_sha_hash[256] <== Sha2_256_prepadded_varlen(SHA2_MAX_NUM_BLOCKS)(
+    signal jwt_hash[256] <== Sha2_256_prepadded_varlen(SHA2_MAX_NUM_BLOCKS)(
         sha2_input_bits,
         sha2_num_blocks - 1
     );
@@ -123,7 +123,7 @@ template identity(
     var SIGNATURE_LIMB_BIT_WIDTH = 64;
     var SIGNATURE_NUM_LIMBS = 32;
     // Pack the 256-bit hashed message bits into 4 limbs
-    signal packed_jwt_hash[4] <== BitsToFieldElems(256, SIGNATURE_LIMB_BIT_WIDTH)(jwt_sha_hash);
+    signal packed_jwt_hash[4] <== BitsToFieldElems(256, SIGNATURE_LIMB_BIT_WIDTH)(jwt_hash);
 
     // Verify signature over hash of JWT using modulus input
     signal input signature[SIGNATURE_NUM_LIMBS];
