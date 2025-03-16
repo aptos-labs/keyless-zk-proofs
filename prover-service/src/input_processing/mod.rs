@@ -60,7 +60,7 @@ pub fn derive_circuit_input_signals(
             "b64u_jwt_header_w_dot_len",
             jwt_parts.header_undecoded_with_dot().len(),
         )
-        .usize_input("b64_payload_len", jwt_parts.payload_undecoded().len())
+        .usize_input("b64u_jwt_payload_sha2_padded_len", jwt_parts.payload_undecoded().len())
         .usize_input(
             "jwt_num_sha2_blocks",
             unsigned_jwt_with_padding.len() * 8 / 512,
