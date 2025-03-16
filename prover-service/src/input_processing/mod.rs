@@ -62,15 +62,15 @@ pub fn derive_circuit_input_signals(
         )
         .usize_input("b64u_jwt_payload_sha2_padded_len", jwt_parts.payload_undecoded().len())
         .usize_input(
-            "jwt_num_sha2_blocks",
+            "sha2_num_blocks",
             unsigned_jwt_with_padding.len() * 8 / 512,
         )
         .bytes_input(
-            "jwt_len_bit_encoded",
+            "sha2_num_bits",
             &jwt_bit_len_binary(jwt_parts.unsigned_undecoded().as_bytes()).as_bytes()?,
         )
         .bytes_input(
-            "padding_without_len",
+            "sha2_padding",
             &compute_sha_padding_without_len(jwt_parts.unsigned_undecoded().as_bytes())
                 .as_bytes()?,
         )

@@ -4,8 +4,8 @@ max_lengths:
   b64u_jwt_header_w_dot: 300
   b64u_jwt_payload_sha2_padded: 1472
   jwt_payload_without_sha_padding: 1472
-  jwt_len_bit_encoded: 8
-  padding_without_len: 64
+  sha2_num_bits: 8
+  sha2_padding: 64  # TODO: Why do we need a constant for this? It is standardized that SHA2-padding is at most 64 bytes (512 bits)...
   temp_pubkey: 3
   iss_field: 140
   iss_field_string_bodies: 140

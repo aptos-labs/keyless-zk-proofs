@@ -51,26 +51,26 @@ template identity(
     maxEFKVPairLen      // ...ASCII extra field
 ) {
     // base64url-encoded JWT header + payload + SHA2 padding, but without RSA signature:
-    // i.e., SHA2Pad( base64Url(JWT header) + "." + base64Url(JWT payload) )
+    //   i.e., SHA2Pad( base64Url(JWT header) + "." + base64Url(JWT payload) )
     // TODO: Why does this need to be an input signal?
-    //  Can't it be an intermediate signal produced as an output from some kind of `Concatenate` template?
+    //   Can't it be an intermediate signal produced as an output from some kind of `Concatenate` template?
     signal input b64u_jwt_no_sig_sha2_padded[maxJWTLen]; // base64url format
 
     // base64url-encoded JWT header + the ASCII dot following it
     // TODO: We need to check 0-padding for the last `maxJWTHeaderLen - b64u_jwt_header_w_dot_len` bytes
-    //  But right now this is done implicitly in ConcatenationCheck (a bit dangerous)
+    //   But right now this is done implicitly in ConcatenationCheck (a bit dangerous)
     // TODO: Can we leverage tags / buses here to propagate information about having checked the padding?
     signal input b64u_jwt_header_w_dot[maxJWTHeaderLen];
     signal input b64u_jwt_header_w_dot_len;
 
     // base64url-encoded JWT payload with SHA2 padding
     // TODO: We need to check 0-padding for the last `maxJWTPayloadLen - b64u_jwt_payload_sha2_padded_len` bytes?
-    //  But right now this is done implicitly in ConcatenationCheck (a bit dangerous)
+    //   But right now this is done implicitly in ConcatenationCheck (a bit dangerous)
     signal input b64u_jwt_payload_sha2_padded[maxJWTPayloadLen];
     signal input b64u_jwt_payload_sha2_padded_len;
 
     // Checks that the base64-encoded JWT payload & header are correctly concatenated:
-    // i.e., that `b64u_jwt_no_sig_sha2_padded` is the concatenation of `b64u_jwt_header_w_dot` with` b64u_jwt_payload_sha2_padded`
+    //   i.e., that `b64u_jwt_no_sig_sha2_padded` is the concatenation of `b64u_jwt_header_w_dot` with` b64u_jwt_payload_sha2_padded`
     ConcatenationCheck(maxJWTLen, maxJWTHeaderLen, maxJWTPayloadLen)(
         b64u_jwt_no_sig_sha2_padded,
         b64u_jwt_header_w_dot,
@@ -81,16 +81,27 @@ template identity(
 
     // Convert the byte array in `b64u_jwt_no_sig_sha2_padded` into a bit vector, for SHA2-256 hashing
     signal jwt_bits[maxJWTLen * 8] <== BytesToBits(maxJWTLen)(b64u_jwt_no_sig_sha2_padded);
-    signal input jwt_num_sha2_blocks;   // TODO: Why not assign this? (And constrain it too?)
-    signal input jwt_len_bit_encoded[8]; // 64 bit encoding of the b64u_jwt_no_sig_sha2_padded len, in bits
-    signal input padding_without_len[64]; // 1 followed by K 0s, where K is the smallest positive integer solution to L + 1 + K = 448, and L is the b64u_jwt_no_sig_sha2_padded length in bits. Max length is 512 bits
+
+    signal input sha2_num_blocks;
+
+    // The length of `b64u_jwt_no_sig_sha2_padded` in bits, denoted by `L` and
+    //   encoded as a byte array of size 8.
+    // (=> max length in bits must be expressible in 8*8 = 64 bits)
+    signal input sha2_num_bits[8];
+
+    // SHA2-256 padding: up to 512 bits as per https://www.rfc-editor.org/rfc/rfc4634.html#section-4.1:
+    //   i.e., a 1-bit followed by `K` 0 bits, where `K` is the smallest
+    //   integer >= 0 s.t. `L + 1 + K = 448 (mod 512)`
+    // Note: The padding is stored as a byte array of size 8.
+    // Note: By "padding" here we just mean the "10000..." bits *without* the length L appended to them
+    signal input sha2_padding[64];
 
     Sha2PaddingVerify(maxJWTLen)(
         b64u_jwt_no_sig_sha2_padded,
-        jwt_num_sha2_blocks,
+        sha2_num_blocks,
         b64u_jwt_header_w_dot_len + b64u_jwt_payload_sha2_padded_len,
-        jwt_len_bit_encoded,
-        padding_without_len
+        sha2_num_bits,
+        sha2_padding
     );
 
     // A SHA2 block is 512 bits. (Note: '\' performs division rounding up to a whole integer)
@@ -99,7 +110,7 @@ template identity(
     // Compute hash of JWT
     signal jwt_sha_hash[256] <== Sha2_256_prepadded_varlen(max_num_jwt_blocks)(
         jwt_bits,
-        jwt_num_sha2_blocks - 1
+        sha2_num_blocks - 1
     );
 
     // TODO: Can this be a signal also? What's the difference? Can it just be removed?
