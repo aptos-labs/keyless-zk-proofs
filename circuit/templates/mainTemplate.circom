@@ -355,27 +355,28 @@ template identity(
         hashable_private_aud_value[i] <== private_aud_value[i] * perform_aud_checks;
     }
     signal private_aud_val_hashed <== HashBytesToFieldWithLen(maxAudValueLen)(hashable_private_aud_value, private_aud_value_len);
-    log("private aud val hash is: ", private_aud_val_hashed);
     signal uid_value_hashed <== HashBytesToFieldWithLen(maxUIDValueLen)(uid_value, uid_value_len);
-    log("uid val hash is: ", uid_value_hashed);
     signal uid_name_hashed <== HashBytesToFieldWithLen(maxUIDNameLen)(uid_name, uid_name_len);
-    log("uid name hash is: ", uid_name_hashed);
     signal idc <== Poseidon(4)([pepper, private_aud_val_hashed, uid_value_hashed, uid_name_hashed]);
+
+    log("private aud val hash is: ", private_aud_val_hashed);
+    log("uid val hash is: ", uid_value_hashed);
+    log("uid name hash is: ", uid_name_hashed);
     log("IDC is: ", idc);
 
     // Check public inputs are correct 
-
     signal override_aud_val_hashed <== HashBytesToFieldWithLen(maxAudValueLen)(override_aud_value, override_aud_value_len);
-    log("override aud val hash is: ", override_aud_val_hashed);
     signal hashed_jwt_header <== HashBytesToFieldWithLen(maxJWTHeaderLen)(b64u_jwt_header_w_dot, b64u_jwt_header_w_dot_len);
-    log("JWT header hash is: ", hashed_jwt_header);
     signal hashed_pubkey_modulus <== Hash64BitLimbsToFieldWithLen(SIGNATURE_NUM_LIMBS)(pubkey_modulus, 256); // 256 bytes per signature
-    log("pubkey hash is: ", hashed_pubkey_modulus);
     signal hashed_iss_value <== HashBytesToFieldWithLen(maxIssValueLen)(iss_value, iss_value_len);
-    log("iss field hash is: ", hashed_iss_value);
     signal hashed_extra_field <== HashBytesToFieldWithLen(maxEFKVPairLen)(extra_field, extra_field_len);
-    log("extra field hash is: ", hashed_extra_field);
     signal computed_public_inputs_hash <== Poseidon(14)([temp_pubkey[0], temp_pubkey[1], temp_pubkey[2], temp_pubkey_len, idc, exp_date, exp_delta, hashed_iss_value, use_extra_field, hashed_extra_field, hashed_jwt_header, hashed_pubkey_modulus, override_aud_val_hashed, use_aud_override]);
+
+    log("override aud val hash is: ", override_aud_val_hashed);
+    log("JWT header hash is: ", hashed_jwt_header);
+    log("pubkey hash is: ", hashed_pubkey_modulus);
+    log("iss field hash is: ", hashed_iss_value);
+    log("extra field hash is: ", hashed_extra_field);
     log("public inputs hash is: ", computed_public_inputs_hash);
     
     signal input public_inputs_hash;
