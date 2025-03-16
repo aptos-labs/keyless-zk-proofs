@@ -53,7 +53,7 @@ pub fn derive_circuit_input_signals(
                 .payload_with_padding()?,
         )
         .str_input(
-            "jwt_payload_without_sha_padding",
+            "b64_jwt_payload",
             &jwt_parts.payload_undecoded(),
         )
         .usize_input(
