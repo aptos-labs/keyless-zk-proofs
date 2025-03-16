@@ -152,16 +152,15 @@ template identity(
 
     RsaVerifyPkcs1v15(SIGNATURE_LIMB_BIT_WIDTH, SIGNATURE_NUM_LIMBS)(signature, pubkey_modulus, hash_le);
 
-    // TODO: Describe constraints this puts on max payload size. This equation comes from the implementation of Base64UrlDecode - base64url encoding is about 33% larger than the originally encoded data
-    var MAX_ASCII_JWT_PAYLOAD_LEN = (3 * maxJWTPayloadLen) \ 4;
     signal input jwt_payload_without_sha_padding[maxJWTPayloadLen];
+    log("jwt_payload_without_sha_padding: ");
 
     signal jwt_payload_hash <== HashBytesToFieldWithLen(maxJWTPayloadLen)(b64u_jwt_payload_sha2_padded, b64u_jwt_payload_sha2_padded_len);
 
     CheckSubstrInclusionPoly(maxJWTPayloadLen, maxJWTPayloadLen)(b64u_jwt_payload_sha2_padded, jwt_payload_hash, jwt_payload_without_sha_padding, b64u_jwt_payload_sha2_padded_len, 0); // index is 0
 
-    log("jwt_payload_without_sha_padding: ");
-
+    // TODO: Describe constraints this puts on max payload size. This equation comes from the implementation of Base64UrlDecode - base64url encoding is about 33% larger than the originally encoded data
+    var MAX_ASCII_JWT_PAYLOAD_LEN = (3 * maxJWTPayloadLen) \ 4;
     signal ascii_jwt_payload[MAX_ASCII_JWT_PAYLOAD_LEN] <== Base64UrlDecode(MAX_ASCII_JWT_PAYLOAD_LEN)(jwt_payload_without_sha_padding);
 
     signal ascii_payload_len <== Base64UrlDecodedLength(maxJWTPayloadLen)(b64u_jwt_payload_sha2_padded_len);
