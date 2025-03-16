@@ -83,6 +83,11 @@ template identity(
         b64u_jwt_payload_sha2_padded_len
     );
 
+    // TODO: Can this be a signal also? What's the difference? Can it just be removed?
+    var dot = SelectArrayValue(maxJWTLen)(b64u_jwt_no_sig_sha2_padded, b64u_jwt_header_w_dot_len - 1);
+
+    dot === 46; // '.'
+
     //
     // SHA2-256 hashing
     //
@@ -121,11 +126,6 @@ template identity(
         sha2_input_bits,
         sha2_num_blocks - 1
     );
-
-    // TODO: Can this be a signal also? What's the difference? Can it just be removed?
-    var dot = SelectArrayValue(maxJWTLen)(b64u_jwt_no_sig_sha2_padded, b64u_jwt_header_w_dot_len-1);
-
-    dot === 46; // '.'
 
     //
     // JWT RSA signature verification
