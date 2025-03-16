@@ -7,6 +7,8 @@
  * behind keyless accounts:
  *
  *   https://alinush.org/keyless
+ *
+ * (Of course, circom expertise is a must: https://alinush.org/circom)
  */
 pragma circom 2.1.3;
 
@@ -15,12 +17,12 @@ include "helpers/arrays.circom";
 include "helpers/misc.circom";
 include "helpers/packing.circom";
 include "helpers/hashtofield.circom";
-include "helpers/sha.circom";
-include "helpers/rsa/rsa_verify.circom";
 include "helpers/jwt_field_parsing.circom";
+include "helpers/sha.circom";
 include "helpers/rsa/bigint.circom";
-include "../node_modules/circomlib/circuits/poseidon.circom";
-include "../node_modules/circomlib/circuits/bitify.circom";
+include "helpers/rsa/rsa_verify.circom";
+include "circomlib/circuits/poseidon.circom";
+include "circomlib/circuits/bitify.circom";
 
 // The main Aptos Keyless circuit. The parameters below are max lengths, 
 // in bytes, for the...
