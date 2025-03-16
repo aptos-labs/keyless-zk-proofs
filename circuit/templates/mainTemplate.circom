@@ -79,8 +79,9 @@ template identity(
         b64u_jwt_payload_sha2_padded_len
     );
 
-    // Convert the byte array in `b64u_jwt_no_sig_sha2_padded` into a bit vector, for SHA2-256 hashing
-    signal jwt_bits[maxJWTLen * 8] <== BytesToBits(maxJWTLen)(b64u_jwt_no_sig_sha2_padded);
+    // The SHA2-padded input to be hashed, encoded as a bit array:
+    //   i.e., `b64u_jwt_no_sig_sha2_padded`, but viewed as a bit array
+    signal sha2_input_bits[maxJWTLen * 8] <== BytesToBits(maxJWTLen)(b64u_jwt_no_sig_sha2_padded);
 
     signal input sha2_num_blocks;
 
@@ -109,7 +110,7 @@ template identity(
 
     // Compute hash of JWT
     signal jwt_sha_hash[256] <== Sha2_256_prepadded_varlen(max_num_jwt_blocks)(
-        jwt_bits,
+        sha2_input_bits,
         sha2_num_blocks - 1
     );
 
