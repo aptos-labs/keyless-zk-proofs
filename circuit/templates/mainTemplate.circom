@@ -50,36 +50,40 @@ template identity(
     maxUIDValueLen,     // ...ASCII uid value
     maxEFKVPairLen      // ...ASCII extra field
 ) {
+    // base64url-encoded JWT header + payload + SHA2 padding, but without RSA signature:
+    // i.e., SHA2Pad( base64Url(JWT header) + "." + base64Url(JWT payload) )
+    // TODO: Why does this need to be an input signal?
+    //  Can't it be an intermediate signal produced as an output from some kind of `Concatenate` template?
+    signal input b64u_jwt_no_sig_sha2_padded[maxJWTLen]; // base64url format
 
-    signal input jwt[maxJWTLen]; // base64url format
+    // base64url-encoded JWT header + the ASCII dot following it
+    signal input b64u_jwt_header_w_dot[maxJWTHeaderLen];
+    signal input b64u_jwt_header_w_dot_len;
 
-    signal input jwt_header_with_separator[maxJWTHeaderLen]; // jwt header + '.'
-    signal input jwt_payload[maxJWTPayloadLen];
-
-
-    signal input header_len_with_separator;
+    // base64url-encoded JWT payload with SHA2 padding
+    signal input b64u_jwt_payload_sha2_padded[maxJWTPayloadLen];
     signal input b64_payload_len; 
 
-    ConcatenationCheck(maxJWTLen, maxJWTHeaderLen, maxJWTPayloadLen)(jwt, jwt_header_with_separator, jwt_payload, header_len_with_separator, b64_payload_len);
+    ConcatenationCheck(maxJWTLen, maxJWTHeaderLen, maxJWTPayloadLen)(b64u_jwt_no_sig_sha2_padded, b64u_jwt_header_w_dot, b64u_jwt_payload_sha2_padded, b64u_jwt_header_w_dot_len, b64_payload_len);
 
     var byte_len = 8;
 
     // Convert jwt bytes into bits for SHA256 hashing
-    signal jwt_bits[byte_len*maxJWTLen] <== BytesToBits(maxJWTLen)(jwt);
+    signal jwt_bits[byte_len*maxJWTLen] <== BytesToBits(maxJWTLen)(b64u_jwt_no_sig_sha2_padded);
 
 
     signal input jwt_num_sha2_blocks;
-    signal input jwt_len_bit_encoded[8]; // 64 bit encoding of the jwt len, in bits
-    signal input padding_without_len[64]; // 1 followed by K 0s, where K is the smallest positive integer solution to L + 1 + K = 448, and L is the jwt length in bits. Max length is 512 bits
+    signal input jwt_len_bit_encoded[8]; // 64 bit encoding of the b64u_jwt_no_sig_sha2_padded len, in bits
+    signal input padding_without_len[64]; // 1 followed by K 0s, where K is the smallest positive integer solution to L + 1 + K = 448, and L is the b64u_jwt_no_sig_sha2_padded length in bits. Max length is 512 bits
 
-    Sha2PaddingVerify(maxJWTLen)(jwt, jwt_num_sha2_blocks, header_len_with_separator+b64_payload_len, jwt_len_bit_encoded, padding_without_len);
+    Sha2PaddingVerify(maxJWTLen)(b64u_jwt_no_sig_sha2_padded, jwt_num_sha2_blocks, b64u_jwt_header_w_dot_len+b64_payload_len, jwt_len_bit_encoded, padding_without_len);
 
     var max_num_jwt_blocks = (maxJWTLen*8)\512; // A SHA2 block is 512 bits. '\' performs division rounding up to a whole integer
 
     // Compute hash of JWT
     signal jwt_sha_hash[256] <== Sha2_256_prepadded_varlen(max_num_jwt_blocks)(jwt_bits, jwt_num_sha2_blocks-1); 
 
-    var dot = SelectArrayValue(maxJWTLen)(jwt, header_len_with_separator-1);
+    var dot = SelectArrayValue(maxJWTLen)(b64u_jwt_no_sig_sha2_padded, b64u_jwt_header_w_dot_len-1);
 
     dot === 46; // '.'
 
@@ -106,9 +110,9 @@ template identity(
 
     var max_ascii_jwt_payload_len = (3*maxJWTPayloadLen)\4; //TODO: Describe constraints this puts on max payload size. This equation comes from the implementation of Base64UrlDecode - base64url encoding is about 33% larger than the originally encoded data
     signal input jwt_payload_without_sha_padding[maxJWTPayloadLen];
-    signal jwt_payload_hash <== HashBytesToFieldWithLen(maxJWTPayloadLen)(jwt_payload, b64_payload_len);
+    signal jwt_payload_hash <== HashBytesToFieldWithLen(maxJWTPayloadLen)(b64u_jwt_payload_sha2_padded, b64_payload_len);
 
-    CheckSubstrInclusionPoly(maxJWTPayloadLen, maxJWTPayloadLen)(jwt_payload, jwt_payload_hash, jwt_payload_without_sha_padding, b64_payload_len, 0); // index is 0
+    CheckSubstrInclusionPoly(maxJWTPayloadLen, maxJWTPayloadLen)(b64u_jwt_payload_sha2_padded, jwt_payload_hash, jwt_payload_without_sha_padding, b64_payload_len, 0); // index is 0
 
     log("jwt_payload_without_sha_padding: ");
     signal ascii_jwt_payload[max_ascii_jwt_payload_len] <== Base64UrlDecode(max_ascii_jwt_payload_len)(jwt_payload_without_sha_padding);
@@ -136,7 +140,7 @@ template identity(
     signal input aud_field[maxAudKVPairLen]; // ASCII
     signal input aud_field_string_bodies[maxAudKVPairLen]; // ASCII
     signal input aud_field_len; // ASCII
-    signal input aud_index; // index of aud field in ASCII jwt
+    signal input aud_index; // index of aud field in ASCII b64u_jwt_no_sig_sha2_padded
     CheckSubstrInclusionPoly(max_ascii_jwt_payload_len, maxAudKVPairLen)(ascii_jwt_payload, ascii_jwt_payload_hash, aud_field, aud_field_len, aud_index); 
     CheckSubstrInclusionPoly(max_ascii_jwt_payload_len, maxAudKVPairLen)(string_bodies, ascii_jwt_payload_hash, aud_field_string_bodies, aud_field_len, aud_index);
     EnforceNotNested(max_ascii_jwt_payload_len)(aud_index, aud_field_len, unquoted_brackets_depth_map);
@@ -363,8 +367,8 @@ template identity(
 
     signal override_aud_val_hashed <== HashBytesToFieldWithLen(maxAudValueLen)(override_aud_value, override_aud_value_len);
     log("override aud val hash is: ", override_aud_val_hashed);
-    signal hashed_jwt_header <== HashBytesToFieldWithLen(maxJWTHeaderLen)(jwt_header_with_separator, header_len_with_separator);
-    log("jwt header hash is: ", hashed_jwt_header);
+    signal hashed_jwt_header <== HashBytesToFieldWithLen(maxJWTHeaderLen)(b64u_jwt_header_w_dot, b64u_jwt_header_w_dot_len);
+    log("JWT header hash is: ", hashed_jwt_header);
     signal hashed_pubkey_modulus <== Hash64BitLimbsToFieldWithLen(SIGNATURE_NUM_LIMBS)(pubkey_modulus, 256); // 256 bytes per signature
     log("pubkey hash is: ", hashed_pubkey_modulus);
     signal hashed_iss_value <== HashBytesToFieldWithLen(maxIssValueLen)(iss_value, iss_value_len);

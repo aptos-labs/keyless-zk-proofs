@@ -42,13 +42,13 @@ pub fn derive_circuit_input_signals(
 
     let mut circuit_input_signals = CircuitInputSignals::new()
         // "global" inputs
-        .bytes_input("jwt", &unsigned_jwt_with_padding)
+        .bytes_input("b64u_jwt_no_sig_sha2_padded", &unsigned_jwt_with_padding)
         .str_input(
-            "jwt_header_with_separator",
+            "b64u_jwt_header_w_dot",
             &jwt_parts.header_undecoded_with_dot(),
         )
         .bytes_input(
-            "jwt_payload",
+            "b64u_jwt_payload_sha2_padded",
             &UnsignedJwtPartsWithPadding::from_b64_bytes_with_padding(&unsigned_jwt_with_padding)
                 .payload_with_padding()?,
         )
@@ -57,7 +57,7 @@ pub fn derive_circuit_input_signals(
             &jwt_parts.payload_undecoded(),
         )
         .usize_input(
-            "header_len_with_separator",
+            "b64u_jwt_header_w_dot_len",
             jwt_parts.header_undecoded_with_dot().len(),
         )
         .usize_input("b64_payload_len", jwt_parts.payload_undecoded().len())

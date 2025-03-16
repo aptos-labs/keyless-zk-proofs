@@ -1,8 +1,8 @@
 has_input_skip_aud_checks: true
 max_lengths:
-  jwt: 1536
-  jwt_header_with_separator: 300
-  jwt_payload: 1472
+  b64u_jwt_no_sig_sha2_padded: 1536
+  b64u_jwt_header_w_dot: 300
+  b64u_jwt_payload_sha2_padded: 1472
   jwt_payload_without_sha_padding: 1472
   jwt_len_bit_encoded: 8
   padding_without_len: 64

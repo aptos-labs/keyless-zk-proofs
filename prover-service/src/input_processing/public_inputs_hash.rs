@@ -121,7 +121,7 @@ pub fn compute_public_inputs_hash(input: &Input, config: &CircuitConfig) -> anyh
     let jwt_header_str = jwt_parts.header_undecoded_with_dot();
     let jwt_header_hash = poseidon_bn254::pad_and_hash_string(
         &jwt_header_str,
-        config.max_lengths["jwt_header_with_separator"],
+        config.max_lengths["b64u_jwt_header_w_dot"],
     )?;
     frs.push(jwt_header_hash);
 
