@@ -166,7 +166,8 @@ fn email_verified_test<T: JWTFieldIndices + JWTFieldStr>(
 
 #[test]
 fn email_verified_check_test() {
-    let circuit_handle = TestCircuitHandle::new("jwt_field_parsing/email_verified_check_test.circom").unwrap();
+    let circuit_handle =
+        TestCircuitHandle::new("jwt_field_parsing/email_verified_check_test.circom").unwrap();
 
     let testcases = [
         ("email_verified", "true", "email", true, true),
@@ -210,7 +211,6 @@ fn email_verified_check_test() {
         }
     }
 }
-
 
 fn unquoted_test<T: JWTFieldIndices + JWTFieldStr>(
     field: T,

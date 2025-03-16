@@ -1,5 +1,15 @@
 #!/bin/bash
 
+# Run cargo fmt in check mode only on circuit/src
+cargo fmt --manifest-path circuit/Cargo.toml -- --check
+
+# Check the result
+if [ $? -ne 0 ]; then
+  echo "Error: 'cargo fmt' check failed in circuit/src."
+  echo "Please run 'cargo fmt' in circuit/src and stage the changes."
+  exit 1
+fi
+
 # Check if any .circom files in 'circuit/templates' changed
 if git diff --cached --name-only | grep -q '^circuit/templates/.*\.circom$'; then
     echo "Detected changes in *.circom files!"
@@ -10,7 +20,7 @@ if git diff --cached --name-only | grep -q '^circuit/templates/.*\.circom$'; the
     pushd circuit/templates > /dev/null
 
     # Run your circom command
-    circom -l "$(npm root -g)" main.circom --r1cs
+    time circom -l "$(npm root -g)" main.circom --r1cs
 
     # Check if circom command succeeded
     if [ $? -ne 0 ]; then
