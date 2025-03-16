@@ -88,6 +88,20 @@ template identity(
 
     dot === 46; // '.'
 
+
+    // Removes the padding from the base64-encoded JWT payload
+    signal input b64u_jwt_payload[maxJWTPayloadLen];
+    log("b64u_jwt_payload: ");
+
+    CheckSubstrInclusionPoly(maxJWTPayloadLen, maxJWTPayloadLen)(
+        str <== b64u_jwt_payload_sha2_padded,
+        // TODO: Unnecessarily hashing this a 2nd time here (already hashed for ConcatenationCheck)
+        str_hash <== HashBytesToFieldWithLen(maxJWTPayloadLen)(b64u_jwt_payload_sha2_padded, b64u_jwt_payload_sha2_padded_len),
+        substr <== b64u_jwt_payload,
+        substr_len <== b64u_jwt_payload_sha2_padded_len,
+        start_index <== 0
+    );
+
     //
     // SHA2-256 hashing
     //
@@ -152,18 +166,9 @@ template identity(
 
     RsaVerifyPkcs1v15(SIGNATURE_LIMB_BIT_WIDTH, SIGNATURE_NUM_LIMBS)(signature, pubkey_modulus, hash_le);
 
-    signal input b64u_jwt_payload[maxJWTPayloadLen];
-    log("b64u_jwt_payload: ");
-
-    // Removes the padding from the base64-encoded JWT payload
-    CheckSubstrInclusionPoly(maxJWTPayloadLen, maxJWTPayloadLen)(
-        str <== b64u_jwt_payload_sha2_padded,
-        // TODO: Unnecessarily hashing this a 2nd time here (already hashed for ConcatenationCheck)
-        str_hash <== HashBytesToFieldWithLen(maxJWTPayloadLen)(b64u_jwt_payload_sha2_padded, b64u_jwt_payload_sha2_padded_len),
-        substr <== b64u_jwt_payload,
-        substr_len <== b64u_jwt_payload_sha2_padded_len,
-        start_index <== 0
-    );
+    //
+    // Decoding the base64url-encoded JWT
+    //
 
     // TODO(Michael): Describe constraints this puts on max payload size.
     // Note: Recall that base64url encoding is about 33% larger than the originally encoded data
