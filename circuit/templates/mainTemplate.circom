@@ -83,11 +83,15 @@ template identity(
         b64u_jwt_payload_sha2_padded_len
     );
 
-    // TODO: Can this be a signal also? What's the difference? Can it just be removed?
+    // TODO: Can this var be a signal also? What's the difference? Can the variable just be removed?
+    // Note: We need this to ensure the circuit cannot be tricked in terms of where the base64-encoded
+    //   JWT payload starts. Even though the circuit does not care about what's in the header, it 
+    //   needs to ensure it's looking at the right payload (e.g., if it misinterprets the header
+    //   as part of the payload *and* the header is adversarially-controlled, the circuit could be
+    //   tricked into parsing an `email` field maliciously placed in the header).
     var dot = SelectArrayValue(maxJWTLen)(b64u_jwt_no_sig_sha2_padded, b64u_jwt_header_w_dot_len - 1);
 
     dot === 46; // '.'
-
 
     // Removes the padding from the base64-encoded JWT payload
     signal input b64u_jwt_payload[maxJWTPayloadLen];
@@ -105,10 +109,6 @@ template identity(
     //
     // SHA2-256 hashing
     //
-
-    // The SHA2-padded input to be hashed, encoded as a bit array:
-    //   i.e., `b64u_jwt_no_sig_sha2_padded`, but viewed as a bit array
-    signal sha2_input_bits[maxJWTLen * 8] <== BytesToBits(maxJWTLen)(b64u_jwt_no_sig_sha2_padded);
 
     signal input sha2_num_blocks;
 
@@ -137,8 +137,8 @@ template identity(
 
     // Computes the SHA2-256 hash of the JWT
     signal jwt_hash[256] <== Sha2_256_prepadded_varlen(SHA2_MAX_NUM_BLOCKS)(
-        sha2_input_bits,
-        sha2_num_blocks - 1
+        in <== BytesToBits(maxJWTLen)(b64u_jwt_no_sig_sha2_padded),
+        tBlock <== sha2_num_blocks - 1
     );
 
     //
