@@ -57,10 +57,15 @@ template identity(
     signal input b64u_jwt_no_sig_sha2_padded[maxJWTLen]; // base64url format
 
     // base64url-encoded JWT header + the ASCII dot following it
+    // TODO: We need to check 0-padding for the last `maxJWTHeaderLen - b64u_jwt_header_w_dot_len` bytes
+    //  But right now this is done implicitly in ConcatenationCheck (a bit dangerous)
+    // TODO: Can we leverage tags / buses here to propagate information about having checked the padding?
     signal input b64u_jwt_header_w_dot[maxJWTHeaderLen];
     signal input b64u_jwt_header_w_dot_len;
 
     // base64url-encoded JWT payload with SHA2 padding
+    // TODO: We need to check 0-padding for the last `maxJWTPayloadLen - b64u_jwt_payload_sha2_padded_len` bytes?
+    //  But right now this is done implicitly in ConcatenationCheck (a bit dangerous)
     signal input b64u_jwt_payload_sha2_padded[maxJWTPayloadLen];
     signal input b64u_jwt_payload_sha2_padded_len;
 
@@ -74,21 +79,30 @@ template identity(
         b64u_jwt_payload_sha2_padded_len
     );
 
-    // Convert jwt bytes into bits for SHA256 hashing
+    // Convert the byte array in `b64u_jwt_no_sig_sha2_padded` into a bit vector, for SHA2-256 hashing
     signal jwt_bits[maxJWTLen * 8] <== BytesToBits(maxJWTLen)(b64u_jwt_no_sig_sha2_padded);
-
-
-    signal input jwt_num_sha2_blocks;
+    signal input jwt_num_sha2_blocks;   // TODO: Why not assign this? (And constrain it too?)
     signal input jwt_len_bit_encoded[8]; // 64 bit encoding of the b64u_jwt_no_sig_sha2_padded len, in bits
     signal input padding_without_len[64]; // 1 followed by K 0s, where K is the smallest positive integer solution to L + 1 + K = 448, and L is the b64u_jwt_no_sig_sha2_padded length in bits. Max length is 512 bits
 
-    Sha2PaddingVerify(maxJWTLen)(b64u_jwt_no_sig_sha2_padded, jwt_num_sha2_blocks, b64u_jwt_header_w_dot_len + b64u_jwt_payload_sha2_padded_len, jwt_len_bit_encoded, padding_without_len);
+    Sha2PaddingVerify(maxJWTLen)(
+        b64u_jwt_no_sig_sha2_padded,
+        jwt_num_sha2_blocks,
+        b64u_jwt_header_w_dot_len + b64u_jwt_payload_sha2_padded_len,
+        jwt_len_bit_encoded,
+        padding_without_len
+    );
 
-    var max_num_jwt_blocks = (maxJWTLen*8)\512; // A SHA2 block is 512 bits. '\' performs division rounding up to a whole integer
+    // A SHA2 block is 512 bits. (Note: '\' performs division rounding up to a whole integer)
+    var max_num_jwt_blocks = (maxJWTLen * 8) \ 512;
 
     // Compute hash of JWT
-    signal jwt_sha_hash[256] <== Sha2_256_prepadded_varlen(max_num_jwt_blocks)(jwt_bits, jwt_num_sha2_blocks-1); 
+    signal jwt_sha_hash[256] <== Sha2_256_prepadded_varlen(max_num_jwt_blocks)(
+        jwt_bits,
+        jwt_num_sha2_blocks - 1
+    );
 
+    // TODO: Can this be a signal also? What's the difference? Can it just be removed?
     var dot = SelectArrayValue(maxJWTLen)(b64u_jwt_no_sig_sha2_padded, b64u_jwt_header_w_dot_len-1);
 
     dot === 46; // '.'
