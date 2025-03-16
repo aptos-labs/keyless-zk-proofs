@@ -66,10 +66,8 @@ template identity(
 
     ConcatenationCheck(maxJWTLen, maxJWTHeaderLen, maxJWTPayloadLen)(b64u_jwt_no_sig_sha2_padded, b64u_jwt_header_w_dot, b64u_jwt_payload_sha2_padded, b64u_jwt_header_w_dot_len, b64u_jwt_payload_sha2_padded_len);
 
-    var byte_len = 8;
-
     // Convert jwt bytes into bits for SHA256 hashing
-    signal jwt_bits[byte_len*maxJWTLen] <== BytesToBits(maxJWTLen)(b64u_jwt_no_sig_sha2_padded);
+    signal jwt_bits[maxJWTLen * 8] <== BytesToBits(maxJWTLen)(b64u_jwt_no_sig_sha2_padded);
 
 
     signal input jwt_num_sha2_blocks;
