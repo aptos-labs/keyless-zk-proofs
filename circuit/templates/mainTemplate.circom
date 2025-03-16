@@ -160,7 +160,8 @@ template identity(
 
     CheckSubstrInclusionPoly(maxJWTPayloadLen, maxJWTPayloadLen)(b64u_jwt_payload_sha2_padded, jwt_payload_hash, b64_jwt_payload, b64u_jwt_payload_sha2_padded_len, 0); // index is 0
 
-    // TODO: Describe constraints this puts on max payload size. This equation comes from the implementation of Base64UrlDecode - base64url encoding is about 33% larger than the originally encoded data
+    // TODO(Michael): Describe constraints this puts on max payload size.
+    // Note: Recall that base64url encoding is about 33% larger than the originally encoded data
     var MAX_ASCII_JWT_PAYLOAD_LEN = (3 * maxJWTPayloadLen) \ 4;
     signal ascii_jwt_payload[MAX_ASCII_JWT_PAYLOAD_LEN] <== Base64UrlDecode(MAX_ASCII_JWT_PAYLOAD_LEN)(b64_jwt_payload);
 
