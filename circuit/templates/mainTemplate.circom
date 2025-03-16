@@ -100,7 +100,10 @@ template identity(
     CheckSubstrInclusionPoly(maxJWTPayloadLen, maxJWTPayloadLen)(
         str <== b64u_jwt_payload_sha2_padded,
         // TODO: Unnecessarily hashing this a 2nd time here (already hashed for ConcatenationCheck)
-        str_hash <== HashBytesToFieldWithLen(maxJWTPayloadLen)(b64u_jwt_payload_sha2_padded, b64u_jwt_payload_sha2_padded_len),
+        str_hash <== HashBytesToFieldWithLen(maxJWTPayloadLen)(
+            b64u_jwt_payload_sha2_padded,
+            b64u_jwt_payload_sha2_padded_len
+        ),
         substr <== b64u_jwt_payload,
         substr_len <== b64u_jwt_payload_sha2_padded_len,
         start_index <== 0
