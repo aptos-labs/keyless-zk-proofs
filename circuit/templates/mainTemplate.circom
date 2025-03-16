@@ -50,6 +50,10 @@ template identity(
     maxUIDValueLen,     // ...ASCII uid value
     maxEFKVPairLen      // ...ASCII extra field
 ) {
+    //
+    // JWT splitting into header and payload
+    //
+
     // base64url-encoded JWT header + payload + SHA2 padding, but without RSA signature:
     //   i.e., SHA2Pad( base64Url(JWT header) + "." + base64Url(JWT payload) )
     // TODO: Why does this need to be an input signal?
@@ -78,6 +82,10 @@ template identity(
         b64u_jwt_header_w_dot_len,
         b64u_jwt_payload_sha2_padded_len
     );
+
+    //
+    // SHA2-256 hashing
+    //
 
     // The SHA2-padded input to be hashed, encoded as a bit array:
     //   i.e., `b64u_jwt_no_sig_sha2_padded`, but viewed as a bit array
@@ -118,6 +126,10 @@ template identity(
     var dot = SelectArrayValue(maxJWTLen)(b64u_jwt_no_sig_sha2_padded, b64u_jwt_header_w_dot_len-1);
 
     dot === 46; // '.'
+
+    //
+    // JWT RSA signature verification
+    //
 
     // An RSA signature will be represented as a vector of 64-bit limbs.
     var SIGNATURE_LIMB_BIT_WIDTH = 64;
