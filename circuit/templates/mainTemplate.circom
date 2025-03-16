@@ -156,26 +156,14 @@ template identity(
     // JWT RSA signature verification
     //
 
-    // An RSA signature will be represented as a vector of 64-bit limbs.
-    var SIGNATURE_LIMB_BIT_WIDTH = 64;
-
+    // An RSA signature will be represented as a size-32 array of 64-bit limbs.
     signal input signature[SIGNATURE_NUM_LIMBS];
     signal input pubkey_modulus[SIGNATURE_NUM_LIMBS];
 
-    // Pack the 256-bit hashed message bits into 4 limbs
-    signal packed_jwt_hash[4] <== BitsToFieldElems(256, SIGNATURE_LIMB_BIT_WIDTH)(jwt_hash);
-
-    CheckAre64BitLimbs(SIGNATURE_NUM_LIMBS)(signature);
-    // RSA verification assumes the signature is less than the pubkey modulus
-    signal sig_ok <== BigLessThan(252, SIGNATURE_NUM_LIMBS)(signature, pubkey_modulus);
-    sig_ok === 1;
-
-    var hash_le[4];
-    for (var i = 0; i < 4; i++) {
-        hash_le[i] = packed_jwt_hash[3-i];
-    }
-
-    RsaVerifyPkcs1v15(SIGNATURE_LIMB_BIT_WIDTH, SIGNATURE_NUM_LIMBS)(signature, pubkey_modulus, hash_le);
+    var SIGNATURE_LIMB_BIT_WIDTH = 64;
+    RSA_2048_e_3_PKCS1_V1_5_Verify(SIGNATURE_LIMB_BIT_WIDTH, SIGNATURE_NUM_LIMBS)(
+        signature, pubkey_modulus, jwt_hash
+    );
 
     //
     // Decoding the base64url-encoded JWT
@@ -452,4 +440,27 @@ template identity(
     
     signal input public_inputs_hash;
     public_inputs_hash === computed_public_inputs_hash;
+}
+
+// Assumes the public key `e = 3`
+// Assumes messages are 256-sized bit arrays
+template RSA_2048_e_3_PKCS1_V1_5_Verify(SIGNATURE_LIMB_BIT_WIDTH, SIGNATURE_NUM_LIMBS) {
+    signal input signature[SIGNATURE_NUM_LIMBS];
+    signal input pubkey_modulus[SIGNATURE_NUM_LIMBS];
+    signal input jwt_hash[256];   // typicall, this is a hash of a larger message (in our case a SHA2-256 hash)
+
+    // Pack the 256-bit hashed message bits into 4 limbs
+    signal packed_jwt_hash[4] <== BitsToFieldElems(256, SIGNATURE_LIMB_BIT_WIDTH)(jwt_hash);
+
+    CheckAre64BitLimbs(SIGNATURE_NUM_LIMBS)(signature);
+    // RSA verification assumes the signature is less than the pubkey modulus
+    signal sig_ok <== BigLessThan(252, SIGNATURE_NUM_LIMBS)(signature, pubkey_modulus);
+    sig_ok === 1;
+
+    var hash_le[4];
+    for (var i = 0; i < 4; i++) {
+        hash_le[i] = packed_jwt_hash[3-i];
+    }
+
+    RsaVerifyPkcs1v15(SIGNATURE_LIMB_BIT_WIDTH, SIGNATURE_NUM_LIMBS)(signature, pubkey_modulus, hash_le);
 }
