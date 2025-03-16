@@ -51,6 +51,13 @@ template identity(
     maxEFKVPairLen      // ...ASCII extra field
 ) {
     //
+    // Global variables
+    //
+
+    // RSA signatures and pubkeys are stored as 64-bit (8-byte) limbs
+    var SIGNATURE_NUM_LIMBS = 32;
+
+    //
     // JWT splitting into header and payload
     //
 
@@ -151,14 +158,14 @@ template identity(
 
     // An RSA signature will be represented as a vector of 64-bit limbs.
     var SIGNATURE_LIMB_BIT_WIDTH = 64;
-    var SIGNATURE_NUM_LIMBS = 32;
+
+    signal input signature[SIGNATURE_NUM_LIMBS];
+    signal input pubkey_modulus[SIGNATURE_NUM_LIMBS];
+
     // Pack the 256-bit hashed message bits into 4 limbs
     signal packed_jwt_hash[4] <== BitsToFieldElems(256, SIGNATURE_LIMB_BIT_WIDTH)(jwt_hash);
 
-    // Verify signature over hash of JWT using modulus input
-    signal input signature[SIGNATURE_NUM_LIMBS];
     CheckAre64BitLimbs(SIGNATURE_NUM_LIMBS)(signature);
-    signal input pubkey_modulus[SIGNATURE_NUM_LIMBS];
     // RSA verification assumes the signature is less than the pubkey modulus
     signal sig_ok <== BigLessThan(252, SIGNATURE_NUM_LIMBS)(signature, pubkey_modulus);
     sig_ok === 1;
