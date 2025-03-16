@@ -106,10 +106,10 @@ template identity(
     );
 
     // A SHA2 block is 512 bits. (Note: '\' performs division rounding up to a whole integer)
-    var max_num_jwt_blocks = (maxJWTLen * 8) \ 512;
+    var SHA2_MAX_NUM_BLOCKS = (maxJWTLen * 8) \ 512;
 
     // Compute hash of JWT
-    signal jwt_sha_hash[256] <== Sha2_256_prepadded_varlen(max_num_jwt_blocks)(
+    signal jwt_sha_hash[256] <== Sha2_256_prepadded_varlen(SHA2_MAX_NUM_BLOCKS)(
         sha2_input_bits,
         sha2_num_blocks - 1
     );
