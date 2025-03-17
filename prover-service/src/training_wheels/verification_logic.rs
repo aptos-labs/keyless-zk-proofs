@@ -125,7 +125,7 @@ pub fn compute_nonce(
 ) -> Result<Fr> {
     let mut frs = poseidon_bn254::keyless::pad_and_pack_bytes_to_scalars_with_len(
         epk.to_bytes().as_slice(),
-        config.max_lengths["temp_pubkey"] * poseidon_bn254::keyless::BYTES_PACKED_PER_SCALAR,
+        config.max_lengths["epk"] * poseidon_bn254::keyless::BYTES_PACKED_PER_SCALAR,
     )?;
 
     frs.push(Fr::from(exp_date));

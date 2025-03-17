@@ -421,10 +421,12 @@ template identity(
     // Calculate nonce
     //
 
-    signal input temp_pubkey[3]; // Represented as 3 elements of up to 31 bytes each to allow for pubkeys of up to 64 bytes each
-    signal input temp_pubkey_len; // This is public and checked by the verifier. Included in nonce hash to prevent collisions
-    signal input jwt_randomness;
-    signal computed_nonce <== Poseidon(6)([temp_pubkey[0], temp_pubkey[1], temp_pubkey[2], temp_pubkey_len, exp_date, jwt_randomness]);
+    // The ephemeral pubkey, as 3 elements of up to 31 bytes each, to allow for pubkeys of up to 64 bytes each.
+    signal input epk[3];
+    // The ephemeral pubkey length in bytes.
+    signal input epk_len;
+    signal input epk_blinder;
+    signal computed_nonce <== Poseidon(6)([epk[0], epk[1], epk[2], epk_len, exp_date, epk_blinder]);
     log("computed nonce is: ", computed_nonce);
 
     // Check nonce is correct
@@ -460,7 +462,7 @@ template identity(
     signal hashed_pubkey_modulus <== Hash64BitLimbsToFieldWithLen(SIGNATURE_NUM_LIMBS)(pubkey_modulus, 256); // 256 bytes per signature
     signal hashed_iss_value <== HashBytesToFieldWithLen(maxIssValueLen)(iss_value, iss_value_len);
     signal hashed_extra_field <== HashBytesToFieldWithLen(maxEFKVPairLen)(extra_field, extra_field_len);
-    signal computed_public_inputs_hash <== Poseidon(14)([temp_pubkey[0], temp_pubkey[1], temp_pubkey[2], temp_pubkey_len, idc, exp_date, exp_delta, hashed_iss_value, use_extra_field, hashed_extra_field, hashed_jwt_header, hashed_pubkey_modulus, override_aud_val_hashed, use_aud_override]);
+    signal computed_public_inputs_hash <== Poseidon(14)([epk[0], epk[1], epk[2], epk_len, idc, exp_date, exp_delta, hashed_iss_value, use_extra_field, hashed_extra_field, hashed_jwt_header, hashed_pubkey_modulus, override_aud_val_hashed, use_aud_override]);
 
     log("override aud val hash is: ", override_aud_val_hashed);
     log("JWT header hash is: ", hashed_jwt_header);
