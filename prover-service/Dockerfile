@@ -26,7 +26,7 @@ RUN ./scripts/task.sh trusted-setup:download-latest-setup \
 # The image that is actually deployed
 FROM debian:bookworm
  
-# need libyaml and gmp 
+# need libyaml, gmp, and openssl dylibs to run prover service
 RUN apt-get update \
  && apt-get install -y libyaml-dev libgmp-dev libssl-dev
 
