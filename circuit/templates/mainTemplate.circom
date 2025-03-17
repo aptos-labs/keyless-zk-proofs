@@ -9,6 +9,11 @@
  *   https://alinush.org/keyless
  *
  * (Of course, circom expertise is a must: https://alinush.org/circom)
+ *
+ * Conventions:
+ *  - When we say JWT, we typically mean base64url-decoded JWT data
+ *     + When the JWT is base64url encoded, we specifically refer to it as base64url-encoded JWT
+ *       and name circom variables / signals appropriately; e.g., b64u_jwt_payload
  */
 pragma circom 2.1.3;
 
@@ -221,7 +226,7 @@ template identity(
     signal input aud_field[maxAudKVPairLen]; // ASCII
     signal input aud_field_string_bodies[maxAudKVPairLen]; // ASCII
     signal input aud_field_len; // ASCII
-    signal input aud_index; // index of aud field in ASCII b64u_jwt_no_sig_sha2_padded
+    signal input aud_index; // index of aud field in JWT payload
     CheckSubstrInclusionPoly(MAX_JWT_PAYLOAD_LEN, maxAudKVPairLen)(jwt_payload, jwt_payload_hash, aud_field, aud_field_len, aud_index);
     CheckSubstrInclusionPoly(MAX_JWT_PAYLOAD_LEN, maxAudKVPairLen)(string_bodies, jwt_payload_hash, aud_field_string_bodies, aud_field_len, aud_index);
     EnforceNotNested(MAX_JWT_PAYLOAD_LEN)(aud_index, aud_field_len, unquoted_brackets_depth_map);
