@@ -462,7 +462,19 @@ template identity(
     signal hashed_pubkey_modulus <== Hash64BitLimbsToFieldWithLen(SIGNATURE_NUM_LIMBS)(pubkey_modulus, 256); // 256 bytes per signature
     signal hashed_iss_value <== HashBytesToFieldWithLen(maxIssValueLen)(iss_value, iss_value_len);
     signal hashed_extra_field <== HashBytesToFieldWithLen(maxEFKVPairLen)(extra_field, extra_field_len);
-    signal computed_public_inputs_hash <== Poseidon(14)([epk[0], epk[1], epk[2], epk_len, idc, exp_date, exp_delta, hashed_iss_value, use_extra_field, hashed_extra_field, hashed_jwt_header, hashed_pubkey_modulus, override_aud_val_hashed, use_aud_override]);
+    signal computed_public_inputs_hash <== Poseidon(14)([
+        epk[0], epk[1], epk[2], epk_len,
+        idc,
+        exp_date,
+        exp_delta,
+        hashed_iss_value,
+        use_extra_field,
+        hashed_extra_field,
+        hashed_jwt_header,
+        hashed_pubkey_modulus,
+        override_aud_val_hashed,
+        use_aud_override
+    ]);
 
     log("override aud val hash is: ", override_aud_val_hashed);
     log("JWT header hash is: ", hashed_jwt_header);
