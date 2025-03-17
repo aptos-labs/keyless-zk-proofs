@@ -313,34 +313,26 @@ template BigLessThan(n, k){
         eq[i].in[1] <== b[i];
     }
 
-    // ors[i] holds (lt[k - 1] || (eq[k - 1] && lt[k - 2]) .. || (eq[k - 1] && .. && lt[i]))
-    // ands[i] holds (eq[k - 1] && .. && lt[i])
-    // eq_ands[i] holds (eq[k - 1] && .. && eq[i])
-    component ors[k - 1];
-    component ands[k - 1];
-    component eq_ands[k - 1];
-    for (var i = k - 2; i >= 0; i--) {
-        ands[i] = AND();
-        eq_ands[i] = AND();
-        ors[i] = OR();
+    // Define `f[i]` to be whether `a[..=i]` is less than `b[..=i]`, for `i` in [0,k).
+    // Recall that a[] and b[] are little-endian.
+    // Observation: f[i] = lt[i] || (eq[i] && f[i-1]) for i >= 1.
+    // Below `eq[i] && f[i-1]` is implemented as `g[i]`.
+    component f[k];
+    component g[k];
 
-        if (i == k - 2) {
-           ands[i].a <== eq[k - 1].out;
-           ands[i].b <== lt[k - 2].out;
-           eq_ands[i].a <== eq[k - 1].out;
-           eq_ands[i].b <== eq[k - 2].out;
-           ors[i].a <== lt[k - 1].out;
-           ors[i].b <== ands[i].out;
+    for (var i = 0; i < k; i++) {
+        g[i] = AND();
+        f[i] = OR();
+        g[i].a <== eq[i].out;
+        if (i == 0) {
+            g[i].b <== 1 - eq[i].out; // to ensure g[0] outputs 0.
         } else {
-           ands[i].a <== eq_ands[i + 1].out;
-           ands[i].b <== lt[i].out;
-           eq_ands[i].a <== eq_ands[i + 1].out;
-           eq_ands[i].b <== eq[i].out;
-           ors[i].a <== ors[i + 1].out;
-           ors[i].b <== ands[i].out;
+            g[i].b <== f[i-1].out;
         }
-     }
-     out <== ors[0].out;
+        f[i].a <== lt[i].out;
+        f[i].b <== g[i].out;
+    }
+    out <== f[k-1].out;
 }
 
 template BigIsEqual(k){
