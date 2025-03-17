@@ -182,9 +182,9 @@ template identity(
         b64u_jwt_payload
     );
 
-    signal ascii_payload_len <== Base64UrlDecodedLength(maxJWTPayloadLen)(b64u_jwt_payload_sha2_padded_len);
+    signal ascii_jwt_payload_len <== Base64UrlDecodedLength(maxJWTPayloadLen)(b64u_jwt_payload_sha2_padded_len);
 
-    signal ascii_jwt_payload_hash <== HashBytesToFieldWithLen(MAX_ASCII_JWT_PAYLOAD_LEN)(ascii_jwt_payload, ascii_payload_len);
+    signal ascii_jwt_payload_hash <== HashBytesToFieldWithLen(MAX_ASCII_JWT_PAYLOAD_LEN)(ascii_jwt_payload, ascii_jwt_payload_len);
 
     // Contains 1s between unescaped quotes, and 0s everywhere else. Used to prevent a fake field inside quotes from
     // being accepted as valid
