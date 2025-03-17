@@ -167,6 +167,7 @@ template SingleNegOneArray(len) {
 // - `substr` is 0-padded after `substr_len` characters
 // Enforces that:
 // - `str[start_index:substr_len]` = `substr[0:substr_len]`
+// TODO: Rename to AssertIsSubstrFromPos()
 template CheckSubstrInclusionPoly(maxStrLen, maxSubstrLen) {
     signal input str[maxStrLen];
     signal input str_hash;
@@ -190,6 +191,7 @@ template CheckSubstrInclusionPoly(maxStrLen, maxSubstrLen) {
 // Assumes that:
 // - `str_hash` is the hash of `str`
 // - `substr` is 0-padded after `substr_len` characters
+// TODO: Rename to IsSubstrFromPos()
 template CheckSubstrInclusionPolyBoolean(maxStrLen, maxSubstrLen) {
     signal input str[maxStrLen];
     signal input str_hash;
