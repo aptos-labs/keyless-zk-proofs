@@ -28,7 +28,7 @@ include "circomlib/circuits/bitify.circom";
 // in bytes, for the...
 template identity(
     maxJWTLen,          // ...full base64url JWT with SHA2 padding
-    maxJWTHeaderLen,    // ...full base64url JWT header with separator
+    MAX_B64U_JWT_HEADER_LEN,    // ...full base64url JWT header with a dot at the end
     MAX_B64U_JWT_PAYLOAD_LEN,   // ...full base64url JWT payload with SHA2 padding
     maxAudKVPairLen,    // ...ASCII aud field
     maxAudNameLen,      // ...ASCII aud name
@@ -72,10 +72,10 @@ template identity(
     signal input b64u_jwt_no_sig_sha2_padded[maxJWTLen]; // base64url format
 
     // base64url-encoded JWT header + the ASCII dot following it
-    // TODO: We need to check 0-padding for the last `maxJWTHeaderLen - b64u_jwt_header_w_dot_len` bytes
+    // TODO: We need to check 0-padding for the last `MAX_B64U_JWT_HEADER_LEN - b64u_jwt_header_w_dot_len` bytes
     //   But right now this is done implicitly in ConcatenationCheck (a bit dangerous)
     // TODO: Can we leverage tags / buses here to propagate information about having checked the padding?
-    signal input b64u_jwt_header_w_dot[maxJWTHeaderLen];
+    signal input b64u_jwt_header_w_dot[MAX_B64U_JWT_HEADER_LEN];
     signal input b64u_jwt_header_w_dot_len;
 
     // base64url-encoded JWT payload with SHA2 padding
@@ -86,7 +86,7 @@ template identity(
 
     // Checks that the base64-encoded JWT payload & header are correctly concatenated:
     //   i.e., that `b64u_jwt_no_sig_sha2_padded` is the concatenation of `b64u_jwt_header_w_dot` with` b64u_jwt_payload_sha2_padded`
-    ConcatenationCheck(maxJWTLen, maxJWTHeaderLen, MAX_B64U_JWT_PAYLOAD_LEN)(
+    ConcatenationCheck(maxJWTLen, MAX_B64U_JWT_HEADER_LEN, MAX_B64U_JWT_PAYLOAD_LEN)(
         b64u_jwt_no_sig_sha2_padded,
         b64u_jwt_header_w_dot,
         b64u_jwt_payload_sha2_padded,
@@ -437,7 +437,7 @@ template identity(
 
     // Check public inputs are correct 
     signal override_aud_val_hashed <== HashBytesToFieldWithLen(maxAudValueLen)(override_aud_value, override_aud_value_len);
-    signal hashed_jwt_header <== HashBytesToFieldWithLen(maxJWTHeaderLen)(b64u_jwt_header_w_dot, b64u_jwt_header_w_dot_len);
+    signal hashed_jwt_header <== HashBytesToFieldWithLen(MAX_B64U_JWT_HEADER_LEN)(b64u_jwt_header_w_dot, b64u_jwt_header_w_dot_len);
     signal hashed_pubkey_modulus <== Hash64BitLimbsToFieldWithLen(SIGNATURE_NUM_LIMBS)(pubkey_modulus, 256); // 256 bytes per signature
     signal hashed_iss_value <== HashBytesToFieldWithLen(maxIssValueLen)(iss_value, iss_value_len);
     signal hashed_extra_field <== HashBytesToFieldWithLen(maxEFKVPairLen)(extra_field, extra_field_len);
