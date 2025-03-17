@@ -10,6 +10,13 @@ To install, please run the following from the repo root:
 ./scripts/task.sh circuit:install-deps
 ```
 
+Optionally, you can also install a git pre-commit hook which checks that
+the main circuit compiles before committing, as follows:
+
+```
+./scripts/task.sh circuit:install-deps misc:install-circom-precommit-hook
+```
+
 ## Running circuit unit tests
 
 ```bash
