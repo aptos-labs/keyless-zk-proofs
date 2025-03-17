@@ -4,8 +4,8 @@ include "mainTemplate.circom";
 
 component main { public [public_inputs_hash] } = identity(
     /* JWT */
-    192*8,      // maxJWTLen
-    300,        // maxJWTHeaderLen
+    192*8,      // MAX_B64U_JWT_NO_SIG_LEN
+    300,        // MAX_B64U_JWT_HEADER_W_DOT_LEN
     192*8-64,   // MAX_B64U_JWT_PAYLOAD_LEN
     /* aud field */
     140,        // maxAudKVPairLen

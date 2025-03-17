@@ -33,8 +33,8 @@ include "circomlib/circuits/bitify.circom";
 // in bytes, for the...
 template identity(
     MAX_B64U_JWT_NO_SIG_LEN,    // ...full base64url JWT without the signature, but with SHA2 padding
-    MAX_B64U_JWT_HEADER_LEN,    // ...full base64url JWT header with a dot at the end
-    MAX_B64U_JWT_PAYLOAD_LEN,   // ...full base64url JWT payload with SHA2 padding
+    MAX_B64U_JWT_HEADER_W_DOT_LEN,  // ...full base64url JWT header with a dot at the end
+    MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN,   // ...full base64url JWT payload with SHA2 padding
     maxAudKVPairLen,    // ...ASCII aud field
     maxAudNameLen,      // ...ASCII aud name
     maxAudValueLen,     // ...ASCII aud value
@@ -64,7 +64,7 @@ template identity(
 
     // The maximum length of a base64url-decoded JWT payload.
     // Note: Recall that base64url encoding adds about 33% overhead.
-    var MAX_JWT_PAYLOAD_LEN = (3 * MAX_B64U_JWT_PAYLOAD_LEN) \ 4;
+    var MAX_JWT_PAYLOAD_LEN = (3 * MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN) \ 4;
 
     //
     // JWT splitting into header and payload
@@ -77,21 +77,21 @@ template identity(
     signal input b64u_jwt_no_sig_sha2_padded[MAX_B64U_JWT_NO_SIG_LEN]; // base64url format
 
     // base64url-encoded JWT header + the ASCII dot following it
-    // TODO: We need to check 0-padding for the last `MAX_B64U_JWT_HEADER_LEN - b64u_jwt_header_w_dot_len` bytes
+    // TODO: We need to check 0-padding for the last `MAX_B64U_JWT_HEADER_W_DOT_LEN - b64u_jwt_header_w_dot_len` bytes
     //   But right now this is done implicitly in ConcatenationCheck (a bit dangerous)
     // TODO: Can we leverage tags / buses here to propagate information about having checked the padding?
-    signal input b64u_jwt_header_w_dot[MAX_B64U_JWT_HEADER_LEN];
+    signal input b64u_jwt_header_w_dot[MAX_B64U_JWT_HEADER_W_DOT_LEN];
     signal input b64u_jwt_header_w_dot_len;
 
     // base64url-encoded JWT payload with SHA2 padding
-    // TODO: We need to check 0-padding for the last `MAX_B64U_JWT_PAYLOAD_LEN - b64u_jwt_payload_sha2_padded_len` bytes?
+    // TODO: We need to check 0-padding for the last `MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN - b64u_jwt_payload_sha2_padded_len` bytes?
     //   But right now this is done implicitly in ConcatenationCheck (a bit dangerous)
-    signal input b64u_jwt_payload_sha2_padded[MAX_B64U_JWT_PAYLOAD_LEN];
+    signal input b64u_jwt_payload_sha2_padded[MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN];
     signal input b64u_jwt_payload_sha2_padded_len;
 
     // Checks that the base64url-encoded JWT payload & header are correctly concatenated:
     //   i.e., that `b64u_jwt_no_sig_sha2_padded` is the concatenation of `b64u_jwt_header_w_dot` with` b64u_jwt_payload_sha2_padded`
-    ConcatenationCheck(MAX_B64U_JWT_NO_SIG_LEN, MAX_B64U_JWT_HEADER_LEN, MAX_B64U_JWT_PAYLOAD_LEN)(
+    ConcatenationCheck(MAX_B64U_JWT_NO_SIG_LEN, MAX_B64U_JWT_HEADER_W_DOT_LEN, MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN)(
         b64u_jwt_no_sig_sha2_padded,
         b64u_jwt_header_w_dot,
         b64u_jwt_payload_sha2_padded,
@@ -116,13 +116,13 @@ template identity(
     dot === 46; // '.'
 
     // Removes the padding from the base64url-encoded JWT payload
-    signal input b64u_jwt_payload[MAX_B64U_JWT_PAYLOAD_LEN];
+    signal input b64u_jwt_payload[MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN];
     log("b64u_jwt_payload: ");
 
-    CheckSubstrInclusionPoly(MAX_B64U_JWT_PAYLOAD_LEN, MAX_B64U_JWT_PAYLOAD_LEN)(
+    CheckSubstrInclusionPoly(MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN, MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN)(
         str <== b64u_jwt_payload_sha2_padded,
         // TODO(Perf): Unnecessarily hashing this a 2nd time here (already hashed for ConcatenationCheck)
-        str_hash <== HashBytesToFieldWithLen(MAX_B64U_JWT_PAYLOAD_LEN)(
+        str_hash <== HashBytesToFieldWithLen(MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN)(
             b64u_jwt_payload_sha2_padded,
             b64u_jwt_payload_sha2_padded_len
         ),
@@ -188,7 +188,7 @@ template identity(
         b64u_jwt_payload
     );
 
-    signal jwt_payload_len <== Base64UrlDecodedLength(MAX_B64U_JWT_PAYLOAD_LEN)(
+    signal jwt_payload_len <== Base64UrlDecodedLength(MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN)(
         b64u_jwt_payload_sha2_padded_len
     );
 
@@ -468,7 +468,7 @@ template identity(
     //
 
     signal override_aud_val_hashed <== HashBytesToFieldWithLen(maxAudValueLen)(override_aud_value, override_aud_value_len);
-    signal hashed_jwt_header <== HashBytesToFieldWithLen(MAX_B64U_JWT_HEADER_LEN)(b64u_jwt_header_w_dot, b64u_jwt_header_w_dot_len);
+    signal hashed_jwt_header <== HashBytesToFieldWithLen(MAX_B64U_JWT_HEADER_W_DOT_LEN)(b64u_jwt_header_w_dot, b64u_jwt_header_w_dot_len);
     signal hashed_pubkey_modulus <== Hash64BitLimbsToFieldWithLen(SIGNATURE_NUM_LIMBS)(pubkey_modulus, 256); // 256 bytes per signature
     signal hashed_iss_value <== HashBytesToFieldWithLen(maxIssValueLen)(iss_value, iss_value_len);
     signal hashed_extra_field <== HashBytesToFieldWithLen(maxEFKVPairLen)(extra_field, extra_field_len);
