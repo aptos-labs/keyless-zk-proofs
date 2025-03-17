@@ -446,7 +446,12 @@ template identity(
     signal private_aud_val_hashed <== HashBytesToFieldWithLen(maxAudValueLen)(hashable_private_aud_value, private_aud_value_len);
     signal uid_value_hashed <== HashBytesToFieldWithLen(maxUIDValueLen)(uid_value, uid_value_len);
     signal uid_name_hashed <== HashBytesToFieldWithLen(maxUIDNameLen)(uid_name, uid_name_len);
-    signal idc <== Poseidon(4)([pepper, private_aud_val_hashed, uid_value_hashed, uid_name_hashed]);
+    signal idc <== Poseidon(4)([
+        pepper,
+        private_aud_val_hashed,
+        uid_value_hashed,
+        uid_name_hashed
+    ]);
 
     log("private aud val hash is: ", private_aud_val_hashed);
     log("uid val hash is: ", uid_value_hashed);
