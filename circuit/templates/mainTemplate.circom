@@ -237,7 +237,7 @@ template identity(
     signal input aud_colon_index;
     signal input aud_name[maxAudNameLen];
     signal input use_aud_override;
-    use_aud_override * (1-use_aud_override) === 0;
+    use_aud_override * (1 - use_aud_override) === 0;
 
     signal aud_value[maxAudValueLen];
     signal input private_aud_value[maxAudValueLen];
@@ -251,12 +251,12 @@ template identity(
     signal skip_aud_checks_and_use_aud_override <== AND()(skip_aud_checks, use_aud_override);
     skip_aud_checks_and_use_aud_override === 0;
 
-    skip_aud_checks * (skip_aud_checks-1) === 0; // Ensure equal to 0 or 1
+    skip_aud_checks * (skip_aud_checks - 1) === 0; // Ensure equal to 0 or 1
     for (var i = 0; i < maxAudValueLen; i++) {
-        aud_value[i] <== (override_aud_value[i]-private_aud_value[i]) * use_aud_override + private_aud_value[i];
+        aud_value[i] <== (override_aud_value[i] - private_aud_value[i]) * use_aud_override + private_aud_value[i];
     }
-    signal aud_value_len;
-    aud_value_len <== (override_aud_value_len-private_aud_value_len) * use_aud_override + private_aud_value_len;
+
+    signal aud_value_len <== (override_aud_value_len - private_aud_value_len) * use_aud_override + private_aud_value_len;
 
     ParseJWTFieldWithQuotedValue(maxAudKVPairLen, maxAudNameLen, maxAudValueLen)(aud_field, aud_name, aud_value, aud_field_string_bodies, aud_field_len, aud_name_len, aud_value_index, aud_value_len, aud_colon_index, skip_aud_checks);
 
@@ -292,7 +292,7 @@ template identity(
     signal input extra_field_len;
     signal input extra_index;
     signal input use_extra_field;
-    use_extra_field * (use_extra_field-1) === 0; // Ensure 0 or 1
+    use_extra_field * (use_extra_field - 1) === 0; // Ensure 0 or 1
 
     signal ef_passes <== CheckSubstrInclusionPolyBoolean(MAX_JWT_PAYLOAD_LEN, maxEFKVPairLen)(jwt_payload, jwt_payload_hash, extra_field, extra_field_len, extra_index);
     EnforceNotNested(MAX_JWT_PAYLOAD_LEN)(extra_index, extra_field_len, unquoted_brackets_depth_map);
@@ -514,7 +514,7 @@ template RSA_2048_e_65537_PKCS1_V1_5_Verify(SIGNATURE_LIMB_BIT_WIDTH, SIGNATURE_
 
     var message_limbs_le[4];
     for (var i = 0; i < 4; i++) {
-        message_limbs_le[i] = message_limbs[3-i];
+        message_limbs_le[i] = message_limbs[3 - i];
     }
 
     RsaVerifyPkcs1v15(SIGNATURE_LIMB_BIT_WIDTH, SIGNATURE_NUM_LIMBS)(
