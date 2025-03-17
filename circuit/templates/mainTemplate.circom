@@ -94,12 +94,18 @@ template identity(
     );
 
     // TODO: Can this var be a signal also? What's the difference? Can the variable just be removed?
+    // TODO: Why not perform this check on `b64u_jwt_header_w_dot`, which is shorter & should save
+    //   some constraints? (Since the concatenation check makes it irrelevant where we check this.)
+    //
     // Note: We need this to ensure the circuit cannot be tricked in terms of where the base64-encoded
     //   JWT payload starts. Even though the circuit does not care about what's in the header, it 
     //   needs to ensure it's looking at the right payload (e.g., if it misinterprets the header
     //   as part of the payload *and* the header is adversarially-controlled, the circuit could be
     //   tricked into parsing an `email` field maliciously placed in the header).
-    var dot = SelectArrayValue(maxJWTLen)(b64u_jwt_no_sig_sha2_padded, b64u_jwt_header_w_dot_len - 1);
+    var dot = SelectArrayValue(maxJWTLen)(
+        b64u_jwt_no_sig_sha2_padded,
+        b64u_jwt_header_w_dot_len - 1
+    );
 
     dot === 46; // '.'
 
