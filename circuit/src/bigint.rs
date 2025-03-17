@@ -8,8 +8,10 @@ use aptos_keyless_common::input_processing::{
 use aptos_logger::info;
 use rand::{thread_rng, Rng};
 
-/// Given a non-negative integer `x`, generate a non-negative integer `y` that satisfies `y < x`.
+/// Given a positive integer `x`, generate a non-negative integer `y` that satisfies `y < x`.
 /// `x` and `y` are both encoded to byte array with the most significant byte first.
+///
+/// The caller needs to ensure `x` is positive.
 fn rand_big<R: Rng>(rng: &mut R, x_bytes_be: &[u8]) -> Vec<u8> {
     let n = x_bytes_be.len();
     let non_zero_idxs: Vec<usize> = x_bytes_be
