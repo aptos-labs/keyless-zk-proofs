@@ -20,6 +20,14 @@ the following command:
 ./scripts/task.sh setup-dev-environment
 ```
 
+Optionally, it is possible to install a precommit hook that checks whether
+the circuit compiles before committing. To do this, run the following
+command:
+
+```
+./scripts/task.sh setup-dev-environment misc:install-circom-precommit-hook
+```
+
 ## TODOs
 
 ### Prover service

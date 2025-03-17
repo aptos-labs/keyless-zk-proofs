@@ -19,8 +19,8 @@ Usage:
 
    (if no actions are provided, default is "setup-dev-environment")
 
-   Any of the actions below should be referenced as <parent> <child>. So for example, to install
-   the prover service deps, "prover-service install-deps".
+   Any of the actions below should be referenced as <parent>:<child>. So for example, to install
+   the prover service deps, "prover-service:install-deps".
 
    Current actions:
    --------------
