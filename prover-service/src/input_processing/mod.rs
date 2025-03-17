@@ -74,7 +74,7 @@ pub fn derive_circuit_input_signals(
         .limbs_input("signature", &signature.as_64bit_limbs())
         .limbs_input("pubkey_modulus", &input.jwk.as_64bit_limbs())
         .u64_input("exp_date", input.exp_date_secs)
-        .u64_input("exp_delta", input.exp_horizon_secs)
+        .u64_input("exp_horizon", input.exp_horizon_secs)
         .frs_input("epk", &temp_pubkey_frs)
         .fr_input("epk_len", temp_pubkey_len)
         .fr_input("epk_blinder", epk_blinder_fr)

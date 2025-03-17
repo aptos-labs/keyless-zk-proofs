@@ -388,8 +388,8 @@ template identity(
     signal iat_field_elem <== ASCIIDigitsToField(maxIatValueLen)(iat_value, iat_value_len);
     
     signal input exp_date;
-    signal input exp_delta;
-    signal jwt_not_expired <== LessThan(252)([exp_date, iat_field_elem + exp_delta]);
+    signal input exp_horizon;
+    signal jwt_not_expired <== LessThan(252)([exp_date, iat_field_elem + exp_horizon]);
     jwt_not_expired === 1;
 
     // Check nonce field is in the JWT
@@ -466,7 +466,7 @@ template identity(
         epk[0], epk[1], epk[2], epk_len,
         idc,
         exp_date,
-        exp_delta,
+        exp_horizon,
         hashed_iss_value,
         use_extra_field,
         hashed_extra_field,
