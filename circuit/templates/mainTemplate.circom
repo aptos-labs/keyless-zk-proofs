@@ -194,6 +194,10 @@ template identity(
         jwt_payload_len
     );
 
+    //
+    // Computing hints for securing our JWT parsing
+    //
+
     // Contains 1s between unescaped quotes, and 0s everywhere else. Used to prevent a fake field inside quotes from
     // being accepted as valid
     signal string_bodies[MAX_JWT_PAYLOAD_LEN] <== StringBodies(MAX_JWT_PAYLOAD_LEN)(jwt_payload);
@@ -208,6 +212,10 @@ template identity(
     signal brackets_map[MAX_JWT_PAYLOAD_LEN] <== BracketsMap(MAX_JWT_PAYLOAD_LEN)(jwt_payload);
     signal unquoted_brackets_map[MAX_JWT_PAYLOAD_LEN] <== ElementwiseMul(MAX_JWT_PAYLOAD_LEN)(inverted_string_bodies, brackets_map);
     signal unquoted_brackets_depth_map[MAX_JWT_PAYLOAD_LEN] <== BracketsDepthMap(MAX_JWT_PAYLOAD_LEN)(unquoted_brackets_map);
+
+    //
+    // JWT field matching
+    //
 
     // Check aud field is in the JWT
     signal input aud_field[maxAudKVPairLen]; // ASCII
@@ -409,7 +417,10 @@ template identity(
         nonce_name[i] === required_nonce_name[i];
     }
 
+    //
     // Calculate nonce
+    //
+
     signal input temp_pubkey[3]; // Represented as 3 elements of up to 31 bytes each to allow for pubkeys of up to 64 bytes each
     signal input temp_pubkey_len; // This is public and checked by the verifier. Included in nonce hash to prevent collisions
     signal input jwt_randomness;
@@ -421,7 +432,10 @@ template identity(
     
     nonce_field_elem === computed_nonce;
 
+    //
     // Compute the identity commitment (IDC)
+    //
+
     signal input pepper;
     signal hashable_private_aud_value[maxAudValueLen];
     for (var i = 0; i < maxAudValueLen; i++) {
@@ -437,7 +451,10 @@ template identity(
     log("uid name hash is: ", uid_name_hashed);
     log("IDC is: ", idc);
 
-    // Check public inputs are correct 
+    //
+    // Check public inputs are correct
+    //
+
     signal override_aud_val_hashed <== HashBytesToFieldWithLen(maxAudValueLen)(override_aud_value, override_aud_value_len);
     signal hashed_jwt_header <== HashBytesToFieldWithLen(MAX_B64U_JWT_HEADER_LEN)(b64u_jwt_header_w_dot, b64u_jwt_header_w_dot_len);
     signal hashed_pubkey_modulus <== Hash64BitLimbsToFieldWithLen(SIGNATURE_NUM_LIMBS)(pubkey_modulus, 256); // 256 bytes per signature
