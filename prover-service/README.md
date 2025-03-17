@@ -2,24 +2,24 @@
 
 This repository contains the code for the Aptos Keyless Prover Service.
 
-## Unit testing
+## Development environment setup
 
-To run unit tests, run 
+To setup your development environment, run the following command in the
+repo root:
 
 ```bash
-source ./dev_setup.sh
+./scripts/setup_environment.sh
 ```
 
-then `cargo test`. 
+## Unit testing
+
+After your environment is setup, run tests using `cargo test`. 
 
 ## Local e2e testing guide (beside UTs)
 
 NOTE: all the commands below assume the working directory is the repo root.
 
-First, initialize the environment.
-```bash
-source ./dev_setup.sh
-```
+First, initialize the environment. Instructions are above.
 
 The prover now works with a default training wheel key pair (already prepared at `private_key_for_testing.txt`)
 and optionally a "next" one (already prepared at `private_key_for_testing_another.txt`).
