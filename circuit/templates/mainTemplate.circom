@@ -84,7 +84,7 @@ template identity(
     signal input b64u_jwt_payload_sha2_padded[MAX_B64U_JWT_PAYLOAD_LEN];
     signal input b64u_jwt_payload_sha2_padded_len;
 
-    // Checks that the base64-encoded JWT payload & header are correctly concatenated:
+    // Checks that the base64url-encoded JWT payload & header are correctly concatenated:
     //   i.e., that `b64u_jwt_no_sig_sha2_padded` is the concatenation of `b64u_jwt_header_w_dot` with` b64u_jwt_payload_sha2_padded`
     ConcatenationCheck(MAX_B64U_JWT_NO_SIG_LEN, MAX_B64U_JWT_HEADER_LEN, MAX_B64U_JWT_PAYLOAD_LEN)(
         b64u_jwt_no_sig_sha2_padded,
@@ -95,10 +95,10 @@ template identity(
     );
 
     // TODO: Can this var be a signal also? What's the difference? Can the variable just be removed?
-    // TODO: Why not perform this check on `b64u_jwt_header_w_dot`, which is shorter & should save
+    // TODO(Perf): Why not perform this check on `b64u_jwt_header_w_dot`, which is shorter & should save
     //   some constraints? (Since the concatenation check makes it irrelevant where we check this.)
     //
-    // Note: We need this to ensure the circuit cannot be tricked in terms of where the base64-encoded
+    // Note: We need this to ensure the circuit cannot be tricked in terms of where the base64url-encoded
     //   JWT payload starts. Even though the circuit does not care about what's in the header, it 
     //   needs to ensure it's looking at the right payload (e.g., if it misinterprets the header
     //   as part of the payload *and* the header is adversarially-controlled, the circuit could be
@@ -110,13 +110,13 @@ template identity(
 
     dot === 46; // '.'
 
-    // Removes the padding from the base64-encoded JWT payload
+    // Removes the padding from the base64url-encoded JWT payload
     signal input b64u_jwt_payload[MAX_B64U_JWT_PAYLOAD_LEN];
     log("b64u_jwt_payload: ");
 
     CheckSubstrInclusionPoly(MAX_B64U_JWT_PAYLOAD_LEN, MAX_B64U_JWT_PAYLOAD_LEN)(
         str <== b64u_jwt_payload_sha2_padded,
-        // TODO: Unnecessarily hashing this a 2nd time here (already hashed for ConcatenationCheck)
+        // TODO(Perf): Unnecessarily hashing this a 2nd time here (already hashed for ConcatenationCheck)
         str_hash <== HashBytesToFieldWithLen(MAX_B64U_JWT_PAYLOAD_LEN)(
             b64u_jwt_payload_sha2_padded,
             b64u_jwt_payload_sha2_padded_len
@@ -187,6 +187,8 @@ template identity(
         b64u_jwt_payload_sha2_padded_len
     );
 
+    // TODO(Perf): If we are hashing a (collision-resistant) base64url-encoding of the payload above for the
+    // cocatenation check, we could avoid this extra hashing here, perhaps?
     signal jwt_payload_hash <== HashBytesToFieldWithLen(MAX_JWT_PAYLOAD_LEN)(
         jwt_payload,
         jwt_payload_len
