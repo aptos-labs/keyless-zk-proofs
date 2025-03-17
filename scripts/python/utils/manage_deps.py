@@ -29,7 +29,7 @@ def install_circomlib():
 
 def install_snarkjs():
     eprint("Installing snarkjs")
-    install_npm_package("snarkjs")
+    install_npm_package("snarkjs@0.7.5")
     eprint("Installation of snarkjs succeeded")
 
 def install_rust():
