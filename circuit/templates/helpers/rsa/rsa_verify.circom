@@ -4,6 +4,7 @@ pragma circom 2.0.0;
 
 include "./fp.circom";
 
+// TODO: This is part of circomlib, why is it redeclared? Fix.
 template NumToBits(n) {
     signal input in;
     signal output out[n];

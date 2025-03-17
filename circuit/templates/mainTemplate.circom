@@ -170,7 +170,7 @@ template identity(
     signal input pubkey_modulus[SIGNATURE_NUM_LIMBS];
 
     var SIGNATURE_LIMB_BIT_WIDTH = 64;
-    RSA_2048_e_3_PKCS1_V1_5_Verify(SIGNATURE_LIMB_BIT_WIDTH, SIGNATURE_NUM_LIMBS)(
+    RSA_2048_e_65537_PKCS1_V1_5_Verify(SIGNATURE_LIMB_BIT_WIDTH, SIGNATURE_NUM_LIMBS)(
         signature, pubkey_modulus, jwt_hash
     );
 
@@ -448,9 +448,9 @@ template identity(
     public_inputs_hash === computed_public_inputs_hash;
 }
 
-// Assumes the public key `e = 3`
+// Assumes the public key `e = 65537`
 // Assumes messages are 256-sized bit arrays
-template RSA_2048_e_3_PKCS1_V1_5_Verify(SIGNATURE_LIMB_BIT_WIDTH, SIGNATURE_NUM_LIMBS) {
+template RSA_2048_e_65537_PKCS1_V1_5_Verify(SIGNATURE_LIMB_BIT_WIDTH, SIGNATURE_NUM_LIMBS) {
     signal input signature[SIGNATURE_NUM_LIMBS];
     signal input pubkey_modulus[SIGNATURE_NUM_LIMBS];
     signal input message_bits[256];   // typicall, this is a hash of a larger message (in our case a SHA2-256 hash)
