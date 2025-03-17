@@ -57,6 +57,9 @@ template identity(
     // RSA signatures and pubkeys are stored as 64-bit (8-byte) limbs
     var SIGNATURE_NUM_LIMBS = 32;
 
+    // Note: Recall that base64url encoding adds about 33% overhead.
+    var MAX_ASCII_JWT_PAYLOAD_LEN = (3 * maxJWTPayloadLen) \ 4;
+
     //
     // JWT splitting into header and payload
     //
@@ -169,9 +172,6 @@ template identity(
     // Decoding the base64url-encoded JWT
     //
 
-    // TODO(Michael): Describe constraints this puts on max payload size.
-    // Note: Recall that base64url encoding is about 33% larger than the originally encoded data
-    var MAX_ASCII_JWT_PAYLOAD_LEN = (3 * maxJWTPayloadLen) \ 4;
     signal ascii_jwt_payload[MAX_ASCII_JWT_PAYLOAD_LEN] <== Base64UrlDecode(MAX_ASCII_JWT_PAYLOAD_LEN)(
         b64u_jwt_payload
     );
