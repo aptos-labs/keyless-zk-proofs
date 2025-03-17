@@ -3,23 +3,7 @@ pragma circom 2.0.0;
 // File copied and modified from https://github.com/zkp-application/circom-rsa-verify/blob/main/circuits/rsa_verify.circom, except for the `FpPow65537Mod` template. The only difference is using `FpPow65537Mod` for exponentiation instead of the tempalte provided in the original repo, as it is more efficient
 
 include "./fp.circom";
-
-// TODO: This is part of circomlib, why is it redeclared? Fix.
-template NumToBits(n) {
-    signal input in;
-    signal output out[n];
-    var lc1=0;
-
-    var e2=1;
-    for (var i = 0; i<n; i++) {
-        out[i] <-- (in >> i) & 1;
-        out[i] * (out[i] -1 ) === 0;
-        lc1 += out[i] * e2;
-        e2 = e2+e2;
-    }
-
-    lc1 === in;
-}
+include "circomlib/circuits/bitify.circom";
 
 // Template copied from https://github.com/doubleblind-xyz/circom-rsa/blob/master/circuits/rsa.circom
 template FpPow65537Mod(n, k) {
@@ -59,8 +43,6 @@ template FpPow65537Mod(n, k) {
     }
 }
 
-
-
 // Pkcs1v15 + Sha256
 // exp 65537
 template RsaVerifyPkcs1v15(w, nb) {
@@ -90,7 +72,7 @@ template RsaVerifyPkcs1v15(w, nb) {
     pm.out[4] === 217300885422736416;
     pm.out[5] === 938447882527703397;
     // // remain 24 bit
-    component num2bits_6 = NumToBits(w);
+    component num2bits_6 = Num2Bits(w);
     num2bits_6.in <== pm.out[6];
     var remainsBits[32] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0];
     for (var i = 0; i < 32; i++) {
