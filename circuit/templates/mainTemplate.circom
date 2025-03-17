@@ -27,7 +27,7 @@ include "circomlib/circuits/bitify.circom";
 // The main Aptos Keyless circuit. The parameters below are max lengths, 
 // in bytes, for the...
 template identity(
-    maxJWTLen,          // ...full base64url JWT with SHA2 padding
+    MAX_B64U_JWT_NO_SIG_LEN,    // ...full base64url JWT without the signature, but with SHA2 padding
     MAX_B64U_JWT_HEADER_LEN,    // ...full base64url JWT header with a dot at the end
     MAX_B64U_JWT_PAYLOAD_LEN,   // ...full base64url JWT payload with SHA2 padding
     maxAudKVPairLen,    // ...ASCII aud field
@@ -69,7 +69,7 @@ template identity(
     //   i.e., SHA2Pad( base64Url(JWT header) + "." + base64Url(JWT payload) )
     // TODO: Why does this need to be an input signal?
     //   Can't it be an intermediate signal produced as an output from some kind of `Concatenate` template?
-    signal input b64u_jwt_no_sig_sha2_padded[maxJWTLen]; // base64url format
+    signal input b64u_jwt_no_sig_sha2_padded[MAX_B64U_JWT_NO_SIG_LEN]; // base64url format
 
     // base64url-encoded JWT header + the ASCII dot following it
     // TODO: We need to check 0-padding for the last `MAX_B64U_JWT_HEADER_LEN - b64u_jwt_header_w_dot_len` bytes
@@ -86,7 +86,7 @@ template identity(
 
     // Checks that the base64-encoded JWT payload & header are correctly concatenated:
     //   i.e., that `b64u_jwt_no_sig_sha2_padded` is the concatenation of `b64u_jwt_header_w_dot` with` b64u_jwt_payload_sha2_padded`
-    ConcatenationCheck(maxJWTLen, MAX_B64U_JWT_HEADER_LEN, MAX_B64U_JWT_PAYLOAD_LEN)(
+    ConcatenationCheck(MAX_B64U_JWT_NO_SIG_LEN, MAX_B64U_JWT_HEADER_LEN, MAX_B64U_JWT_PAYLOAD_LEN)(
         b64u_jwt_no_sig_sha2_padded,
         b64u_jwt_header_w_dot,
         b64u_jwt_payload_sha2_padded,
@@ -103,7 +103,7 @@ template identity(
     //   needs to ensure it's looking at the right payload (e.g., if it misinterprets the header
     //   as part of the payload *and* the header is adversarially-controlled, the circuit could be
     //   tricked into parsing an `email` field maliciously placed in the header).
-    var dot = SelectArrayValue(maxJWTLen)(
+    var dot = SelectArrayValue(MAX_B64U_JWT_NO_SIG_LEN)(
         b64u_jwt_no_sig_sha2_padded,
         b64u_jwt_header_w_dot_len - 1
     );
@@ -144,7 +144,7 @@ template identity(
     // Note: By "padding" here we just mean the "10000..." bits *without* the length L appended to them
     signal input sha2_padding[64];
 
-    Sha2PaddingVerify(maxJWTLen)(
+    Sha2PaddingVerify(MAX_B64U_JWT_NO_SIG_LEN)(
         b64u_jwt_no_sig_sha2_padded,
         sha2_num_blocks,
         b64u_jwt_header_w_dot_len + b64u_jwt_payload_sha2_padded_len,
@@ -156,9 +156,9 @@ template identity(
     // Recall that:
     //  - A SHA2 block is 512 bits
     //  - '\' performs division rounded up to an integer
-    var SHA2_MAX_NUM_BLOCKS = (maxJWTLen * 8) \ 512;
+    var SHA2_MAX_NUM_BLOCKS = (MAX_B64U_JWT_NO_SIG_LEN * 8) \ 512;
     signal jwt_hash[256] <== Sha2_256_prepadded_varlen(SHA2_MAX_NUM_BLOCKS)(
-        in <== BytesToBits(maxJWTLen)(b64u_jwt_no_sig_sha2_padded),
+        in <== BytesToBits(MAX_B64U_JWT_NO_SIG_LEN)(b64u_jwt_no_sig_sha2_padded),
         tBlock <== sha2_num_blocks - 1
     );
 
@@ -183,13 +183,13 @@ template identity(
         b64u_jwt_payload
     );
 
-    signal ascii_jwt_payload_len <== Base64UrlDecodedLength(MAX_B64U_JWT_PAYLOAD_LEN)(
+    signal jwt_payload_len <== Base64UrlDecodedLength(MAX_B64U_JWT_PAYLOAD_LEN)(
         b64u_jwt_payload_sha2_padded_len
     );
 
     signal ascii_jwt_payload_hash <== HashBytesToFieldWithLen(MAX_JWT_PAYLOAD_LEN)(
         ascii_jwt_payload,
-        ascii_jwt_payload_len
+        jwt_payload_len
     );
 
     // Contains 1s between unescaped quotes, and 0s everywhere else. Used to prevent a fake field inside quotes from
