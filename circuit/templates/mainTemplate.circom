@@ -29,7 +29,7 @@ include "circomlib/circuits/bitify.circom";
 template identity(
     maxJWTLen,          // ...full base64url JWT with SHA2 padding
     maxJWTHeaderLen,    // ...full base64url JWT header with separator
-    maxJWTPayloadLen,   // ...full base64url JWT payload with SHA2 padding
+    MAX_B64U_JWT_PAYLOAD_LEN,   // ...full base64url JWT payload with SHA2 padding
     maxAudKVPairLen,    // ...ASCII aud field
     maxAudNameLen,      // ...ASCII aud name
     maxAudValueLen,     // ...ASCII aud value
@@ -57,8 +57,9 @@ template identity(
     // RSA signatures and pubkeys are stored as 64-bit (8-byte) limbs
     var SIGNATURE_NUM_LIMBS = 32;
 
+    // The maximum length of a base64url-decoded JWT payload.
     // Note: Recall that base64url encoding adds about 33% overhead.
-    var MAX_ASCII_JWT_PAYLOAD_LEN = (3 * maxJWTPayloadLen) \ 4;
+    var MAX_JWT_PAYLOAD_LEN = (3 * MAX_B64U_JWT_PAYLOAD_LEN) \ 4;
 
     //
     // JWT splitting into header and payload
@@ -78,14 +79,14 @@ template identity(
     signal input b64u_jwt_header_w_dot_len;
 
     // base64url-encoded JWT payload with SHA2 padding
-    // TODO: We need to check 0-padding for the last `maxJWTPayloadLen - b64u_jwt_payload_sha2_padded_len` bytes?
+    // TODO: We need to check 0-padding for the last `MAX_B64U_JWT_PAYLOAD_LEN - b64u_jwt_payload_sha2_padded_len` bytes?
     //   But right now this is done implicitly in ConcatenationCheck (a bit dangerous)
-    signal input b64u_jwt_payload_sha2_padded[maxJWTPayloadLen];
+    signal input b64u_jwt_payload_sha2_padded[MAX_B64U_JWT_PAYLOAD_LEN];
     signal input b64u_jwt_payload_sha2_padded_len;
 
     // Checks that the base64-encoded JWT payload & header are correctly concatenated:
     //   i.e., that `b64u_jwt_no_sig_sha2_padded` is the concatenation of `b64u_jwt_header_w_dot` with` b64u_jwt_payload_sha2_padded`
-    ConcatenationCheck(maxJWTLen, maxJWTHeaderLen, maxJWTPayloadLen)(
+    ConcatenationCheck(maxJWTLen, maxJWTHeaderLen, MAX_B64U_JWT_PAYLOAD_LEN)(
         b64u_jwt_no_sig_sha2_padded,
         b64u_jwt_header_w_dot,
         b64u_jwt_payload_sha2_padded,
@@ -110,13 +111,13 @@ template identity(
     dot === 46; // '.'
 
     // Removes the padding from the base64-encoded JWT payload
-    signal input b64u_jwt_payload[maxJWTPayloadLen];
+    signal input b64u_jwt_payload[MAX_B64U_JWT_PAYLOAD_LEN];
     log("b64u_jwt_payload: ");
 
-    CheckSubstrInclusionPoly(maxJWTPayloadLen, maxJWTPayloadLen)(
+    CheckSubstrInclusionPoly(MAX_B64U_JWT_PAYLOAD_LEN, MAX_B64U_JWT_PAYLOAD_LEN)(
         str <== b64u_jwt_payload_sha2_padded,
         // TODO: Unnecessarily hashing this a 2nd time here (already hashed for ConcatenationCheck)
-        str_hash <== HashBytesToFieldWithLen(maxJWTPayloadLen)(
+        str_hash <== HashBytesToFieldWithLen(MAX_B64U_JWT_PAYLOAD_LEN)(
             b64u_jwt_payload_sha2_padded,
             b64u_jwt_payload_sha2_padded_len
         ),
@@ -178,17 +179,22 @@ template identity(
     // Decoding the base64url-encoded JWT
     //
 
-    signal ascii_jwt_payload[MAX_ASCII_JWT_PAYLOAD_LEN] <== Base64UrlDecode(MAX_ASCII_JWT_PAYLOAD_LEN)(
+    signal ascii_jwt_payload[MAX_JWT_PAYLOAD_LEN] <== Base64UrlDecode(MAX_JWT_PAYLOAD_LEN)(
         b64u_jwt_payload
     );
 
-    signal ascii_jwt_payload_len <== Base64UrlDecodedLength(maxJWTPayloadLen)(b64u_jwt_payload_sha2_padded_len);
+    signal ascii_jwt_payload_len <== Base64UrlDecodedLength(MAX_B64U_JWT_PAYLOAD_LEN)(
+        b64u_jwt_payload_sha2_padded_len
+    );
 
-    signal ascii_jwt_payload_hash <== HashBytesToFieldWithLen(MAX_ASCII_JWT_PAYLOAD_LEN)(ascii_jwt_payload, ascii_jwt_payload_len);
+    signal ascii_jwt_payload_hash <== HashBytesToFieldWithLen(MAX_JWT_PAYLOAD_LEN)(
+        ascii_jwt_payload,
+        ascii_jwt_payload_len
+    );
 
     // Contains 1s between unescaped quotes, and 0s everywhere else. Used to prevent a fake field inside quotes from
     // being accepted as valid
-    signal string_bodies[MAX_ASCII_JWT_PAYLOAD_LEN] <== StringBodies(MAX_ASCII_JWT_PAYLOAD_LEN)(ascii_jwt_payload);
+    signal string_bodies[MAX_JWT_PAYLOAD_LEN] <== StringBodies(MAX_JWT_PAYLOAD_LEN)(ascii_jwt_payload);
 
     // To prevent attacks involving fields inside nested brackets, we perform the following steps:
     // 1. Take the inverse of the string bodies array, turning each `1` into `0`, and each `0` into `1`
@@ -196,19 +202,19 @@ template identity(
     // 3. Use the array from 1 to eliminate quoted brackets in 2 with element-wise multiplication
     // 4. Use the array from 3 to make an array with 1+ inside brackets and 0 everywhere else, not including the outermost brackets of the JWT payload
     // 5. Use the array from 4 to check there are no characters of a given field (such as aud) inside of nested brackets. This is done per field
-    signal inverted_string_bodies[MAX_ASCII_JWT_PAYLOAD_LEN] <== InvertBinaryArray(MAX_ASCII_JWT_PAYLOAD_LEN)(string_bodies);
-    signal brackets_map[MAX_ASCII_JWT_PAYLOAD_LEN] <== BracketsMap(MAX_ASCII_JWT_PAYLOAD_LEN)(ascii_jwt_payload);
-    signal unquoted_brackets_map[MAX_ASCII_JWT_PAYLOAD_LEN] <== ElementwiseMul(MAX_ASCII_JWT_PAYLOAD_LEN)(inverted_string_bodies, brackets_map);
-    signal unquoted_brackets_depth_map[MAX_ASCII_JWT_PAYLOAD_LEN] <== BracketsDepthMap(MAX_ASCII_JWT_PAYLOAD_LEN)(unquoted_brackets_map);
+    signal inverted_string_bodies[MAX_JWT_PAYLOAD_LEN] <== InvertBinaryArray(MAX_JWT_PAYLOAD_LEN)(string_bodies);
+    signal brackets_map[MAX_JWT_PAYLOAD_LEN] <== BracketsMap(MAX_JWT_PAYLOAD_LEN)(ascii_jwt_payload);
+    signal unquoted_brackets_map[MAX_JWT_PAYLOAD_LEN] <== ElementwiseMul(MAX_JWT_PAYLOAD_LEN)(inverted_string_bodies, brackets_map);
+    signal unquoted_brackets_depth_map[MAX_JWT_PAYLOAD_LEN] <== BracketsDepthMap(MAX_JWT_PAYLOAD_LEN)(unquoted_brackets_map);
 
     // Check aud field is in the JWT
     signal input aud_field[maxAudKVPairLen]; // ASCII
     signal input aud_field_string_bodies[maxAudKVPairLen]; // ASCII
     signal input aud_field_len; // ASCII
     signal input aud_index; // index of aud field in ASCII b64u_jwt_no_sig_sha2_padded
-    CheckSubstrInclusionPoly(MAX_ASCII_JWT_PAYLOAD_LEN, maxAudKVPairLen)(ascii_jwt_payload, ascii_jwt_payload_hash, aud_field, aud_field_len, aud_index); 
-    CheckSubstrInclusionPoly(MAX_ASCII_JWT_PAYLOAD_LEN, maxAudKVPairLen)(string_bodies, ascii_jwt_payload_hash, aud_field_string_bodies, aud_field_len, aud_index);
-    EnforceNotNested(MAX_ASCII_JWT_PAYLOAD_LEN)(aud_index, aud_field_len, unquoted_brackets_depth_map);
+    CheckSubstrInclusionPoly(MAX_JWT_PAYLOAD_LEN, maxAudKVPairLen)(ascii_jwt_payload, ascii_jwt_payload_hash, aud_field, aud_field_len, aud_index);
+    CheckSubstrInclusionPoly(MAX_JWT_PAYLOAD_LEN, maxAudKVPairLen)(string_bodies, ascii_jwt_payload_hash, aud_field_string_bodies, aud_field_len, aud_index);
+    EnforceNotNested(MAX_JWT_PAYLOAD_LEN)(aud_index, aud_field_len, unquoted_brackets_depth_map);
 
     // Perform necessary checks on aud field
     var aud_name_len = 3;
@@ -252,9 +258,9 @@ template identity(
     signal input uid_field_string_bodies[maxUIDKVPairLen];
     signal input uid_field_len;
     signal input uid_index;
-    CheckSubstrInclusionPoly(MAX_ASCII_JWT_PAYLOAD_LEN, maxUIDKVPairLen)(ascii_jwt_payload, ascii_jwt_payload_hash, uid_field, uid_field_len, uid_index);
-    CheckSubstrInclusionPoly(MAX_ASCII_JWT_PAYLOAD_LEN, maxUIDKVPairLen)(string_bodies, ascii_jwt_payload_hash, uid_field_string_bodies, uid_field_len, uid_index);
-    EnforceNotNested(MAX_ASCII_JWT_PAYLOAD_LEN)(uid_index, uid_field_len, unquoted_brackets_depth_map);
+    CheckSubstrInclusionPoly(MAX_JWT_PAYLOAD_LEN, maxUIDKVPairLen)(ascii_jwt_payload, ascii_jwt_payload_hash, uid_field, uid_field_len, uid_index);
+    CheckSubstrInclusionPoly(MAX_JWT_PAYLOAD_LEN, maxUIDKVPairLen)(string_bodies, ascii_jwt_payload_hash, uid_field_string_bodies, uid_field_len, uid_index);
+    EnforceNotNested(MAX_JWT_PAYLOAD_LEN)(uid_index, uid_field_len, unquoted_brackets_depth_map);
 
     // Perform necessary checks on user id field. Some fields this might be in practice are "sub" or "email"
     signal input uid_name_len;
@@ -273,8 +279,8 @@ template identity(
     signal input use_extra_field;
     use_extra_field * (use_extra_field-1) === 0; // Ensure 0 or 1
 
-    signal ef_passes <== CheckSubstrInclusionPolyBoolean(MAX_ASCII_JWT_PAYLOAD_LEN, maxEFKVPairLen)(ascii_jwt_payload, ascii_jwt_payload_hash, extra_field, extra_field_len, extra_index);
-    EnforceNotNested(MAX_ASCII_JWT_PAYLOAD_LEN)(extra_index, extra_field_len, unquoted_brackets_depth_map);
+    signal ef_passes <== CheckSubstrInclusionPolyBoolean(MAX_JWT_PAYLOAD_LEN, maxEFKVPairLen)(ascii_jwt_payload, ascii_jwt_payload_hash, extra_field, extra_field_len, extra_index);
+    EnforceNotNested(MAX_JWT_PAYLOAD_LEN)(extra_index, extra_field_len, unquoted_brackets_depth_map);
 
     // Fail if use_extra_field = 1 and ef_passes = 0
     signal not_ef_passes <== NOT()(ef_passes);
@@ -282,7 +288,7 @@ template identity(
     ef_fail === 0;
 
     // Check that ef is not inside a string body
-    signal ef_start_char <== SelectArrayValue(MAX_ASCII_JWT_PAYLOAD_LEN)(string_bodies, extra_index);
+    signal ef_start_char <== SelectArrayValue(MAX_JWT_PAYLOAD_LEN)(string_bodies, extra_index);
     ef_start_char === 0;
 
     // Check email verified field
@@ -306,12 +312,12 @@ template identity(
     //     0        |     1     |   1
     //     0        |     0     |   1
     signal uid_is_email <== EmailVerifiedCheck(maxEVNameLen, maxEVValueLen, maxUIDNameLen)(ev_name, ev_value, ev_value_len, uid_name, uid_name_len);
-    signal ev_in_jwt <== CheckSubstrInclusionPolyBoolean(MAX_ASCII_JWT_PAYLOAD_LEN, maxEVKVPairLen)(ascii_jwt_payload, ascii_jwt_payload_hash, ev_field, ev_field_len, ev_index);
+    signal ev_in_jwt <== CheckSubstrInclusionPolyBoolean(MAX_JWT_PAYLOAD_LEN, maxEVKVPairLen)(ascii_jwt_payload, ascii_jwt_payload_hash, ev_field, ev_field_len, ev_index);
     signal not_ev_in_jwt <== NOT()(ev_in_jwt);
     signal ev_fail <== AND()(uid_is_email, not_ev_in_jwt);
     ev_fail === 0;
 
-    EnforceNotNested(MAX_ASCII_JWT_PAYLOAD_LEN)(ev_index, ev_field_len, unquoted_brackets_depth_map);
+    EnforceNotNested(MAX_JWT_PAYLOAD_LEN)(ev_index, ev_field_len, unquoted_brackets_depth_map);
 
     // Need custom logic here because some providers apparently do not follow the OIDC spec and put the email_verified value in quotes
     ParseEmailVerifiedField(maxEVKVPairLen, maxEVNameLen, maxEVValueLen)(ev_field, ev_name, ev_value, ev_field_len, ev_name_len, ev_value_index, ev_value_len, ev_colon_index);
@@ -322,9 +328,9 @@ template identity(
     signal input iss_field_string_bodies[maxIssKVPairLen];
     signal input iss_field_len;
     signal input iss_index;
-    CheckSubstrInclusionPoly(MAX_ASCII_JWT_PAYLOAD_LEN, maxIssKVPairLen)(ascii_jwt_payload, ascii_jwt_payload_hash, iss_field, iss_field_len, iss_index);
-    CheckSubstrInclusionPoly(MAX_ASCII_JWT_PAYLOAD_LEN, maxIssKVPairLen)(string_bodies, ascii_jwt_payload_hash, iss_field_string_bodies, iss_field_len, iss_index);
-    EnforceNotNested(MAX_ASCII_JWT_PAYLOAD_LEN)(iss_index, iss_field_len, unquoted_brackets_depth_map);
+    CheckSubstrInclusionPoly(MAX_JWT_PAYLOAD_LEN, maxIssKVPairLen)(ascii_jwt_payload, ascii_jwt_payload_hash, iss_field, iss_field_len, iss_index);
+    CheckSubstrInclusionPoly(MAX_JWT_PAYLOAD_LEN, maxIssKVPairLen)(string_bodies, ascii_jwt_payload_hash, iss_field_string_bodies, iss_field_len, iss_index);
+    EnforceNotNested(MAX_JWT_PAYLOAD_LEN)(iss_index, iss_field_len, unquoted_brackets_depth_map);
 
     // Perform necessary checks on iss field
     var iss_name_len = 3; // iss
@@ -346,7 +352,7 @@ template identity(
     signal input iat_field[maxIatKVPairLen];
     signal input iat_field_len;
     signal input iat_index;
-    CheckSubstrInclusionPoly(MAX_ASCII_JWT_PAYLOAD_LEN, maxIatKVPairLen)(ascii_jwt_payload, ascii_jwt_payload_hash, iat_field, iat_field_len, iat_index);
+    CheckSubstrInclusionPoly(MAX_JWT_PAYLOAD_LEN, maxIatKVPairLen)(ascii_jwt_payload, ascii_jwt_payload_hash, iat_field, iat_field_len, iat_index);
 
     // Perform necessary checks on iat field
     var iat_name_len = 3; // iat
@@ -357,10 +363,10 @@ template identity(
     signal input iat_value[maxIatValueLen];
 
     ParseJWTFieldWithUnquotedValue(maxIatKVPairLen, maxIatNameLen, maxIatValueLen)(iat_field, iat_name, iat_value, iat_field_len, iat_name_len, iat_value_index, iat_value_len, iat_colon_index, 0);
-    EnforceNotNested(MAX_ASCII_JWT_PAYLOAD_LEN)(iss_index, iss_field_len, unquoted_brackets_depth_map);
+    EnforceNotNested(MAX_JWT_PAYLOAD_LEN)(iss_index, iss_field_len, unquoted_brackets_depth_map);
 
     // Check that iat is not inside a string body
-    signal iat_start_char <== SelectArrayValue(MAX_ASCII_JWT_PAYLOAD_LEN)(string_bodies, iat_index);
+    signal iat_start_char <== SelectArrayValue(MAX_JWT_PAYLOAD_LEN)(string_bodies, iat_index);
     iat_start_char === 0;
 
     // Check name of the iat field is correct
@@ -381,9 +387,9 @@ template identity(
     signal input nonce_field_string_bodies[maxNonceKVPairLen];
     signal input nonce_field_len;
     signal input nonce_index;
-    CheckSubstrInclusionPoly(MAX_ASCII_JWT_PAYLOAD_LEN, maxNonceKVPairLen)(ascii_jwt_payload, ascii_jwt_payload_hash, nonce_field, nonce_field_len, nonce_index);
-    CheckSubstrInclusionPoly(MAX_ASCII_JWT_PAYLOAD_LEN, maxNonceKVPairLen)(string_bodies, ascii_jwt_payload_hash, nonce_field_string_bodies, nonce_field_len, nonce_index);
-    EnforceNotNested(MAX_ASCII_JWT_PAYLOAD_LEN)(nonce_index, nonce_field_len, unquoted_brackets_depth_map);
+    CheckSubstrInclusionPoly(MAX_JWT_PAYLOAD_LEN, maxNonceKVPairLen)(ascii_jwt_payload, ascii_jwt_payload_hash, nonce_field, nonce_field_len, nonce_index);
+    CheckSubstrInclusionPoly(MAX_JWT_PAYLOAD_LEN, maxNonceKVPairLen)(string_bodies, ascii_jwt_payload_hash, nonce_field_string_bodies, nonce_field_len, nonce_index);
+    EnforceNotNested(MAX_JWT_PAYLOAD_LEN)(nonce_index, nonce_field_len, unquoted_brackets_depth_map);
 
     // Perform necessary checks on nonce field
     var nonce_name_len = 5; // nonce

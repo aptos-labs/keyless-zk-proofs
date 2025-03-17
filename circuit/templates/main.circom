@@ -6,7 +6,7 @@ component main { public [public_inputs_hash] } = identity(
     /* JWT */
     192*8,      // maxJWTLen
     300,        // maxJWTHeaderLen
-    192*8-64,   // maxJWTPayloadLen
+    192*8-64,   // MAX_B64U_JWT_PAYLOAD_LEN
     /* aud field */
     140,        // maxAudKVPairLen
     40,         // maxAudNameLen
