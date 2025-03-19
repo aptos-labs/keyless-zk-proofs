@@ -55,7 +55,11 @@ install_deps() {
 
 install_deps
 
+python3 -m venv .venv
 
-python3 $SCRIPT_DIR/python/main.py "$@"
+if ! .venv/bin/pip3 show google-cloud-storage > /dev/null; then
+  .venv/bin/pip3 install google-cloud-storage > /dev/null
+fi
+.venv/bin/python3 $SCRIPT_DIR/python/main.py "$@"
 
 

@@ -55,7 +55,7 @@ pub fn init_test_full_prover(use_new_setup: bool) -> FullProver {
 }
 
 pub fn get_test_circuit_config() -> CircuitConfig {
-    serde_yaml::from_str(&fs::read_to_string("conversion_config.yml").expect("Unable to read file"))
+    serde_yaml::from_str(&fs::read_to_string("circuit_config.yml").expect("Unable to read file"))
         .expect("should parse correctly")
 }
 
