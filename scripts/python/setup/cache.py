@@ -4,9 +4,10 @@ from pathlib import Path
 from google.cloud.storage import Client, transfer_manager
 from google.cloud import storage
 import google
-from setup import testing_setup
+from setup import testing_setup, Setup
 import tempfile
 from pathlib import Path
+
 
 def cache_bucket():
     credentials, project = default()

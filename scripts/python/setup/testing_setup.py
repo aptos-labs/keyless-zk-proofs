@@ -3,11 +3,13 @@ from datetime import datetime
 import time
 import shutil
 import utils
+from utils import eprint
 import os
 from pathlib import Path
 import tempfile
 import contextlib
 import platform
+from setup import Setup
 
 PTAU_PATH=utils.resources_dir_root() / "powersOfTau28_hez_final_21.ptau"
 PTAU_URL="https://storage.googleapis.com/zkevm/ptau/powersOfTau28_hez_final_21.ptau"
@@ -27,29 +29,29 @@ def prepare_setups_dir():
 
 def download_ptau_file_if_needed():
     if PTAU_PATH.is_file():
-        print("Powers-of-tau file found, skipping download.")
+        eprint("Powers-of-tau file found, skipping download.")
     else:
-        print("Downloading powers-of-tau file...")
+        eprint("Downloading powers-of-tau file...")
         utils.download_file(PTAU_URL, PTAU_PATH)
 
-    print("Checking sha256sum of ptau file...")
+    eprint("Checking sha256sum of ptau file...")
     if utils.file_checksum(PTAU_PATH) != PTAU_CHECKSUM:
-        print("WARNING: ptau file doesn't match expected sha256sum. Aborting.")
+        eprint("WARNING: ptau file doesn't match expected sha256sum. Aborting.")
         exit(2)
 
 
 def generate_c_witness_gen_binaries():
-    print("Generating c witness gen binaries...")
+    eprint("Generating c witness gen binaries...")
     with tempfile.TemporaryDirectory() as temp_dir:
         with contextlib.chdir(temp_dir):
-            print(temp_dir)
+            eprint(temp_dir)
             shutil.copytree(utils.repo_root() / "circuit/templates", "./templates")
             with contextlib.chdir("templates"):
-                print("Compiling circuit...")
+                eprint("Compiling circuit...")
                 utils.manage_deps.add_cargo_to_path()
                 start_time = time.time()
                 utils.run_shell_command('circom -l . -l $(npm root -g) main.circom --r1cs --c')
-                print("Compilation took %s seconds" % (time.time() - start_time))
+                eprint("Compilation took %s seconds" % (time.time() - start_time))
 
                 with contextlib.chdir("main_c_cpp"):
                     utils.run_shell_command("make")
@@ -63,9 +65,16 @@ def c_witness_gen_present():
 
 
 def procure_testing_setup(ignore_cache):
-    if current_circuit_setup_path().is_dir():
-        print("Setup for the current circuit found. Skipping.")
+    current_circuit_setup = Setup(current_circuit_setup_path())
+    if current_circuit_setup.is_complete():
+        eprint("Setup for the current circuit found. Skipping.")
         return
+    else:
+        eprint("prover key: " + str(current_circuit_setup.prover_key()))
+        eprint("verification key: " + str(current_circuit_setup.verification_key()))
+        eprint("circuit config: " + str(current_circuit_setup.circuit_config()))
+        eprint("witness gen c: " + str(current_circuit_setup.witness_gen_c()))
+        eprint("witness gen wasm: " + str(current_circuit_setup.witness_gen_wasm()))
 
     prepare_setups_dir()
 
@@ -74,46 +83,51 @@ def procure_testing_setup(ignore_cache):
     if not ignore_cache:
         if cache.download_testing_setup_if_present():
             if platform.machine() == 'x86_64' and not c_witness_gen_present():
-                print("You're on an x86_64 machine, but the cached setup doesn't contain c witness gen binaries. Going to generate now.")
+                eprint("You're on an x86_64 machine, but the cached setup doesn't contain c witness gen binaries. Going to generate now.")
                 generate_c_witness_gen_binaries()
                 cache.upload_current_circuit_setup()
-            utils.force_symlink_dir(current_circuit_setup_path(), SETUP_DIR / "default")
+            utils.force_symlink_dir(current_circuit_setup.path(), SETUP_DIR / "default")
             return
 
-    shutil.copy(utils.repo_root() / "prover-service" / "circuit_config.yml", current_circuit_setup_path())
+    current_circuit_setup.mkdir()
+    shutil.copy(utils.repo_root() / "prover-service" / "circuit_config.yml", current_circuit_setup.path())
 
     with tempfile.TemporaryDirectory() as temp_dir:
         with contextlib.chdir(temp_dir):
-            print(temp_dir)
+            eprint(temp_dir)
             shutil.copytree(utils.repo_root() / "circuit/templates", "./templates")
             with contextlib.chdir("templates"):
-                print("Compiling circuit...")
+                eprint("Compiling circuit...")
                 utils.manage_deps.add_cargo_to_path()
                 start_time = time.time()
                 utils.run_shell_command('circom -l . -l $(npm root -g) main.circom --r1cs --wasm --sym')
-                print("Compilation took %s seconds" % (time.time() - start_time))
-                print("Starting setup now: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+                eprint("Compilation took %s seconds" % (time.time() - start_time))
+                eprint("Starting setup now: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
                 start_time = time.time()
                 utils.run_shell_command(f'. ~/.nvm/nvm.sh; snarkjs groth16 setup main.r1cs {PTAU_PATH} prover_key.zkey')
-                print("Running setup took %s seconds" % (time.time() - start_time))
-                print("Exporting verification key...")
+                eprint("Running setup took %s seconds" % (time.time() - start_time))
+                eprint("Exporting verification key...")
                 utils.run_shell_command(f'snarkjs zkey export verificationkey prover_key.zkey verification_key.json')
-                shutil.move("prover_key.zkey", current_circuit_setup_path())
-                shutil.move("verification_key.zkey", current_circuit_setup_path())
-                shutil.move("main_js/generate_witness.js", current_circuit_setup_path())
-                shutil.move("main_js/witness_calculator.js", current_circuit_setup_path())
-                shutil.move("main_js/main.wasm", current_circuit_setup_path())
+
+                
+                shutil.move("prover_key.zkey", current_circuit_setup.path())
+                shutil.move("verification_key.json", current_circuit_setup.path())
+                shutil.move("main_js/generate_witness.js", current_circuit_setup.path())
+                shutil.move("main_js/witness_calculator.js", current_circuit_setup.path())
+                shutil.move("main_js/main.wasm", current_circuit_setup.path())
 
                 if platform.machine() == 'x86_64':
                     generate_c_witness_gen_binaries()
                 else:
-                    print("Not on x86_64, so skipping generating c witness gen binaries.")
+                     eprint("Not on x86_64, so skipping generating c witness gen binaries.")
+
+    if not current_circuit_setup.is_complete():
+         eprint("ERROR: Circuit setup is not complete. Check the path below for problems.")
+         eprint(current_circuit_setup.path())
+         return
 
 
-
-    utils.force_symlink_dir(current_circuit_setup_path(), SETUP_DIR / "default")
-    
-
+    utils.force_symlink_dir(current_circuit_setup.path(), SETUP_DIR / "default")
     cache.upload_current_circuit_setup()
 
     

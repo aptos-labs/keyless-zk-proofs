@@ -161,6 +161,11 @@ deps_by_platform = {
             "brew": None,
             "pacman": "openssl",
             "apt-get": "libssl-dev",
+            },
+        "nlohmann-json": {
+            "brew": "nlohmann-json",
+            "pacman": "nlohmann-json",
+            "apt-get": "nlohmann-json3-dev",
             }
         }
 
