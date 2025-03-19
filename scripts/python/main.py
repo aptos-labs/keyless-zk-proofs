@@ -5,7 +5,8 @@ import utils
 from utils import eprint
 import prover_service
 import circuit
-import trusted_setup
+import setup
+import setup.testing_setup
 import misc
 
 
@@ -38,22 +39,14 @@ Usage:
         witness-generation binaries.
 
 
-   - trusted-setup:
+   - setup:
 
       - download-latest-setup: downloads latest trusted setup and installs it in RESOURCES_DIR. If
         RESOURCES_DIR is not set, uses the default location "~/.local/share/aptos-prover-service".
 
-      - download-latest-witness-gen-c: downloads the C witness generation binaries for the latest 
-        trusted setup and installs it in RESOURCES_DIR. If RESOURCES_DIR is not set, uses the default 
-        location "~/.local/share/aptos-prover-service".
-
-      - download-latest-witness-gen-wasm: downloads the wasm witness generation binaries for the 
-        latest trusted setup and installs it in RESOURCES_DIR. If RESOURCES_DIR is not set, uses 
-        the default location "~/.local/share/aptos-prover-service".
-
       - run-dummy-setup: UNIMPLEMENTED Compiles the circuit in this repo and runs a dummy *untrusted* 
         setup based on the result of that compilation. Installs it in RESOURCES_DIR? Is it bad that 
-        it will overwrite any existing setup downloaded using trusted-setup:download-latest-setup?
+        it will overwrite any existing setup downloaded using setup:download-latest-setup?
 
    - misc:
 
@@ -66,9 +59,9 @@ Usage:
       - prover-service:install-deps
       - prover-service:add-envvars-to-profile
       - circuit:install-deps
-      - trusted-setup:download-latest-setup
-      - trusted-setup:download-latest-witness-gen-c
-      - trusted-setup:download-latest-witness-gen-wasm
+      - setup:download-latest-setup
+      - setup:download-latest-witness-gen-c
+      - setup:download-latest-witness-gen-wasm
 
 """)
 
@@ -77,9 +70,9 @@ def setup_dev_environment():
     handle_action("prover-service:install-deps")
     handle_action("prover-service:add-envvars-to-profile")
     handle_action("circuit:install-deps")
-    handle_action("trusted-setup:download-latest-setup")
-    handle_action("trusted-setup:download-latest-witness-gen-c")
-    handle_action("trusted-setup:download-latest-witness-gen-wasm")
+    handle_action("setup:download-latest-setup")
+    handle_action("setup:download-latest-witness-gen-c")
+    handle_action("setup:download-latest-witness-gen-wasm")
 
 
 def action_not_recognized(action):
@@ -110,15 +103,15 @@ def handle_action(action):
             action_not_recognized(action)
 
 
-    elif action_category == "trusted-setup":
+    elif action_category == "setup":
         if action_body == "download-latest-setup":
-            trusted_setup.download_latest_setup()
-        elif action_body == "download-latest-witness-gen-c":
-            trusted_setup.download_latest_witness_gen_c()
-        elif action_body == "download-latest-witness-gen-wasm":
-            trusted_setup.download_latest_witness_gen_wasm()
-        elif action_body == "run-dummy-setup":
-            trusted_setup.run_dummy_setup()
+            release_old = os.environ.get('RELEASE_OLD')
+            release_new = os.environ.get('RELEASE_NEW')
+            witness_gen = os.environ.get('WITNESS_GEN')
+            setup.download_ceremonies_for_releases(release_old, release_new, witness_gen)
+        elif action_body == "procure-testing-setup":
+            ignore_cache = os.environ.get('IGNORE_CACHE')
+            setup.testing_setup.procure_testing_setup(ignore_cache)
         else:
             action_not_recognized(action)
 

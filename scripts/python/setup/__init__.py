@@ -1,8 +1,8 @@
 from utils import eprint
 import utils
-from trusted_setup.prepare_setups import *
+from setup.prepare_setups import *
 
-class TrustedSetup:
+class SetupCeremony:
     def __init__(self, setup_root, url_prover_key, url_main_c, url_main_c_dat, url_vk, url_circuit_config, url_generate_witness_js, url_main_wasm, url_witness_calculator_js):
         self.setup_root=setup_root
         self.url_prover_key=url_prover_key
@@ -15,10 +15,10 @@ class TrustedSetup:
         self.url_witness_calculator_js=url_witness_calculator_js
 
 
-res_root = utils.resources_dir_root()
+ceremonies_dir = utils.resources_dir_root() / 'ceremonies'
 
-default_setup = TrustedSetup(
-        setup_root=f'{res_root}/setup_2024_05',
+default_setup = SetupCeremony(
+        setup_root=f'{ceremonies_dir}/setup_2024_05',
         url_prover_key='https://github.com/aptos-labs/aptos-keyless-trusted-setup-contributions-may-2024/raw/main/contributions/main_39f9c44b4342ed5e6941fae36cf6c87c52b1e17f_final.zkey',
         url_main_c='https://github.com/aptos-labs/devnet-groth16-keys/raw/master/main_c_cpp/main_c',
         url_main_c_dat='https://github.com/aptos-labs/devnet-groth16-keys/raw/master/main_c_cpp/main_c.dat',
@@ -30,8 +30,8 @@ default_setup = TrustedSetup(
         )
 
 
-new_setup = TrustedSetup(
-        setup_root=f'{res_root}/setup_2025_01',
+new_setup = SetupCeremony(
+        setup_root=f'{ceremonies_dir}/setup_2025_01',
         url_prover_key='https://github.com/aptos-labs/aptos-keyless-trusted-setup-contributions-jan-2025/raw/107bc39ea0bdf8c76e63d189157d8bb6b8ff04da/contributions/main_final.zkey',
         url_main_c='https://github.com/aptos-labs/aptos-keyless-trusted-setup-contributions-jan-2025/raw/107bc39ea0bdf8c76e63d189157d8bb6b8ff04da/main_c_cpp_c60ae945e577295ac1a712391af1bcb337c584d2/main_c',
         url_main_c_dat='https://github.com/aptos-labs/aptos-keyless-trusted-setup-contributions-jan-2025/raw/107bc39ea0bdf8c76e63d189157d8bb6b8ff04da/main_c_cpp_c60ae945e577295ac1a712391af1bcb337c584d2/main_c.dat',
@@ -43,15 +43,23 @@ new_setup = TrustedSetup(
         )
 
 
-def download_latest_setup():
+def download_ceremonies_for_releases(old_setup, new_setup, witness_gen):
     eprint("Downloading latest trusted setup...")
 
     download_setup(default_setup)
     download_setup(new_setup)
 
     eprint("Download finished. Creating symlinks...")
-    force_symlink_dir(default_setup.setup_root, f'{res_root}/default')
-    force_symlink_dir(new_setup.setup_root, f'{res_root}/new')
+    force_symlink_dir(default_setup.setup_root, f'{ceremonies_dir}/default')
+    force_symlink_dir(new_setup.setup_root, f'{ceremonies_dir}/new')
+
+    if witness_gen == 'both':
+        download_latest_witness_gen_wasm()
+        download_latest_witness_gen_c()
+    if witness_gen == 'wasm':
+        download_latest_witness_gen_wasm()
+    elif witness_gen == 'c':
+        download_latest_witness_gen_c()
 
     eprint("Done.")
 
@@ -63,8 +71,8 @@ def download_latest_witness_gen_c():
     download_witness_gen_binaries_c(new_setup)
 
     eprint("Download finished. Creating symlinks...")
-    force_symlink_dir(default_setup.setup_root, f'{res_root}/default')
-    force_symlink_dir(new_setup.setup_root, f'{res_root}/new')
+    force_symlink_dir(default_setup.setup_root, f'{ceremonies_dir}/default')
+    force_symlink_dir(new_setup.setup_root, f'{ceremonies_dir}/new')
 
     eprint("Done.")
 
@@ -76,12 +84,10 @@ def download_latest_witness_gen_wasm():
     download_witness_gen_binaries_wasm(new_setup)
 
     eprint("Download finished. Creating symlinks...")
-    force_symlink_dir(default_setup.setup_root, f'{res_root}/default')
-    force_symlink_dir(new_setup.setup_root, f'{res_root}/new')
+    force_symlink_dir(default_setup.setup_root, f'{ceremonies_dir}/default')
+    force_symlink_dir(new_setup.setup_root, f'{ceremonies_dir}/new')
 
     eprint("Done.")
 
-def run_dummy_setup():
-    eprint("run_dummy_setup")
-    eprint("Not yet implemented")
-    exit(2)
+
+

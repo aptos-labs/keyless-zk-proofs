@@ -230,7 +230,7 @@ mod tests {
         .unwrap();
 
         let config: CircuitConfig = serde_yaml::from_str(
-            &fs::read_to_string("conversion_config.yml").expect("Unable to read file"),
+            &fs::read_to_string("circuit_config.yml").expect("Unable to read file"),
         )
         .expect("should parse correctly");
 
