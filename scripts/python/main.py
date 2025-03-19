@@ -8,6 +8,17 @@ import circuit
 import setup
 import setup.testing_setup
 import misc
+#from invoke import Program, Executor, Context, Collection, task
+#
+#class CustomExecutor(Executor):
+#    def execute(self, *args, **kwargs):
+#        super().execute(*args, **kwargs)
+#        # Post-task logic
+#        print("Global post-task logic executed.")
+#
+#program = Program(namespace=Collection())
+#program.executor_class = CustomExecutor
+#
 
 
 
@@ -104,7 +115,7 @@ def handle_action(action):
 
 
     elif action_category == "setup":
-        if action_body == "download-latest-setup":
+        if action_body == "download-ceremonies-for-releases":
             release_old = os.environ.get('RELEASE_OLD')
             release_new = os.environ.get('RELEASE_NEW')
             witness_gen = os.environ.get('WITNESS_GEN')

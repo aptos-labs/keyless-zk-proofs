@@ -2,6 +2,70 @@ from utils import eprint
 import utils
 from setup.prepare_setups import *
 
+
+class Setup:
+    def __init__(self, root_dir):
+        self.root_dir = root_dir
+
+    def path(self):
+        return self.root_dir
+
+    def rm(self):
+        shutil.rmtree(self.root_dir)
+
+    def mkdir(self):
+        self.root_dir.mkdir(parents=True, exist_ok=True)
+
+    def prover_key(self):
+        path = self.root_dir / "prover_key.zkey"
+        if path.is_file():
+            return path
+        else:
+            return None
+
+    def verification_key(self):
+        path = self.root_dir / "verification_key.json"
+        if path.is_file():
+            return path
+        else:
+            return None
+
+    def circuit_config(self):
+        path = self.root_dir / "circuit_config.yml"
+        if path.is_file():
+            return path
+        else:
+            return None
+
+    def witness_gen_c(self):
+        paths = [
+                self.root_dir / "main_c",
+                self.root_dir / "main_c.dat"
+                ]
+        for path in paths:
+            if not path.is_file():
+                return None
+        return paths
+
+    def witness_gen_wasm(self):
+        paths = [
+                self.root_dir / "generate_witness.js",
+                self.root_dir / "witness_calculator.js",
+                self.root_dir / "main.wasm"
+                ]
+        for path in paths:
+            if not path.is_file():
+                return None
+        return paths
+
+
+    def is_complete(self):
+        return self.prover_key() and  \
+               self.verification_key() and \
+               self.circuit_config() and \
+               ( self.witness_gen_c() or self.witness_gen_wasm() )
+
+
 class SetupCeremony:
     def __init__(self, setup_root, url_prover_key, url_main_c, url_main_c_dat, url_vk, url_circuit_config, url_generate_witness_js, url_main_wasm, url_witness_calculator_js):
         self.setup_root=setup_root
