@@ -26,7 +26,7 @@ def download_testing_setup_if_present():
         return False
 
 
-    blob_name = testing_setup.currentasdf() + ".tar.gz"
+    blob_name = testing_setup.repo_circuit_checksum() + ".tar.gz"
     blob = bucket.blob(blob_name)
 
     eprint("Checking cache...")
@@ -53,7 +53,7 @@ def current_circuit_blob_exists():
         return False
 
 
-    blob_name = testing_setup.currentasdf() + ".tar.gz"
+    blob_name = testing_setup.repo_circuit_checksum() + ".tar.gz"
     blob = bucket.blob(blob_name)
 
     return blob.exists()
@@ -67,7 +67,7 @@ def upload_current_circuit_setup():
         return False
 
     with tempfile.TemporaryDirectory() as temp_dir:
-        blob_name = testing_setup.currentasdf() + ".tar.gz"
+        blob_name = testing_setup.repo_circuit_checksum() + ".tar.gz"
         eprint("Creating tarfile with setup result...")
         tarfile_path = Path(temp_dir) / blob_name
         folder_path = testing_setup.repo_circuit_setup_path()
