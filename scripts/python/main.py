@@ -8,17 +8,7 @@ import circuit
 import setup
 import setup.testing_setup
 import misc
-#from invoke import Program, Executor, Context, Collection, task
-#
-#class CustomExecutor(Executor):
-#    def execute(self, *args, **kwargs):
-#        super().execute(*args, **kwargs)
-#        # Post-task logic
-#        print("Global post-task logic executed.")
-#
-#program = Program(namespace=Collection())
-#program.executor_class = CustomExecutor
-#
+from invoke import Program, Executor, Context, Collection, task
 
 
 
@@ -77,13 +67,14 @@ Usage:
 """)
 
 
-def setup_dev_environment():
-    handle_action("prover-service:install-deps")
-    handle_action("prover-service:add-envvars-to-profile")
-    handle_action("circuit:install-deps")
-    handle_action("setup:download-latest-setup")
-    handle_action("setup:download-latest-witness-gen-c")
-    handle_action("setup:download-latest-witness-gen-wasm")
+@task
+def setup_dev_environment(c):
+    """Runs the following tasks: prover-service:install-deps, prover-service:add-envvars-to-profile, circuit:install-deps, and setup:procure-testing-setup.
+    """
+    prover_service.install_deps()
+    prover_service.add_envvars_to_profile()
+    circuit.install_deps()
+    setup.testing_setup.procure_testing_setup(ignore_cache=False)
 
 
 def action_not_recognized(action):
@@ -144,11 +135,28 @@ def handle_action(action):
 
 
 
-if len(sys.argv) == 1:
-    setup_dev_environment()
+#if len(sys.argv) == 1:
+#    setup_dev_environment()
+#
+#for action in sys.argv[1:]:
+#    handle_action(action)
+#
+#utils.remind_to_restart_shell_if_needed()
 
-for action in sys.argv[1:]:
-    handle_action(action)
+ns = Collection.from_module(sys.modules[__name__])
+ns.add_collection(Collection.from_module(prover_service))
+ns.add_collection(Collection.from_module(circuit))
+ns.add_collection(Collection.from_module(setup))
 
-utils.remind_to_restart_shell_if_needed()
+ns.add_task(setup_dev_environment)
 
+class CustomExecutor(Executor):
+    def execute(self, *args, **kwargs):
+        super().execute(*args, **kwargs)
+        # Post-task logic
+        print("Global post-task logic executed.")
+        utils.remind_to_restart_shell_if_needed()
+
+program = Program(namespace=ns)
+program.executor_class = CustomExecutor
+program.run()

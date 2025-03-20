@@ -16,11 +16,11 @@ PTAU_URL="https://storage.googleapis.com/zkevm/ptau/powersOfTau28_hez_final_21.p
 PTAU_CHECKSUM="cdc7c94a6635bc91466d8c7d96faefe1d17ecc98a3596a748ca1e6c895f8c2b4"
 SETUPS_DIR=utils.resources_dir_root() / "testing_setups"
 
-def current_circuit_checksum():
+def repo_circuit_checksum():
     return utils.directory_checksum(utils.repo_root() / "circuit/templates")
 
 def repo_circuit_setup_path():
-    return SETUPS_DIR / current_circuit_checksum()
+    return SETUPS_DIR / repo_circuit_checksum()
 
 def prepare_setups_dir():
     if not SETUPS_DIR.is_dir():

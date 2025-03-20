@@ -2,9 +2,10 @@ from utils import eprint
 import utils
 from setup.prepare_setups import *
 import shutil
+from invoke import task
 
-def current_setup_dir():
-    utils.resources_dir_root() / "current_setups"
+def current_setups_dir():
+    return utils.resources_dir_root() / "current_setups"
 
 class Setup:
     def __init__(self, root_dir):
@@ -17,9 +18,9 @@ class Setup:
         shutil.rmtree(self.root_dir)
 
     def set_current(self):
-        current_setup_dir().mkdir(parents=True, exist_ok=True)
-        utils.force_symlink_dir(self.root_dir, current_setup_dir() / "default")
-        utils.force_symlink_dir(self.root_dir, current_setup_dir() / "new")
+        current_setups_dir().mkdir(parents=True, exist_ok=True)
+        utils.force_symlink_dir(self.root_dir, current_setups_dir() / "default")
+        utils.force_symlink_dir(self.root_dir, current_setups_dir() / "new")
 
     def mkdir(self):
         self.root_dir.mkdir(parents=True, exist_ok=True)
@@ -116,7 +117,9 @@ new_setup = SetupCeremony(
         )
 
 
-def download_ceremonies_for_releases(old_setup, new_setup, witness_gen):
+
+@task
+def download_ceremonies_for_releases(c, old_setup_release, new_setup_release, witness_gen_type='none'):
 
     eprint("Downloading latest trusted setup...")
 
@@ -124,16 +127,16 @@ def download_ceremonies_for_releases(old_setup, new_setup, witness_gen):
     download_setup(new_setup)
 
     eprint("Download finished. Creating symlinks...")
-    current_setup_dir = current_setup_dir()
-    force_symlink_dir(default_setup.setup_root, f'{current_setup_dir}/default')
-    force_symlink_dir(new_setup.setup_root, f'{current_setup_dir}/new')
+    setups_dir = current_setups_dir()
+    force_symlink_dir(default_setup.setup_root, f'{setups_dir}/default')
+    force_symlink_dir(new_setup.setup_root, f'{setups_dir}/new')
 
-    if witness_gen == 'both':
+    if witness_gen_variant == 'both':
         download_latest_witness_gen_wasm()
         download_latest_witness_gen_c()
-    if witness_gen == 'wasm':
+    if witness_gen_variant == 'wasm':
         download_latest_witness_gen_wasm()
-    elif witness_gen == 'c':
+    elif witness_gen_variant == 'c':
         download_latest_witness_gen_c()
 
     eprint("Done.")
@@ -145,11 +148,8 @@ def download_latest_witness_gen_c():
     download_witness_gen_binaries_c(default_setup)
     download_witness_gen_binaries_c(new_setup)
 
-    eprint("Download finished. Creating symlinks...")
-    force_symlink_dir(default_setup.setup_root, f'{current_setup_dir}/default')
-    force_symlink_dir(new_setup.setup_root, f'{current_setup_dir}/new')
+    eprint("Download finished.")
 
-    eprint("Done.")
 
 
 def download_latest_witness_gen_wasm():
@@ -158,11 +158,10 @@ def download_latest_witness_gen_wasm():
     download_witness_gen_binaries_wasm(default_setup)
     download_witness_gen_binaries_wasm(new_setup)
 
-    eprint("Download finished. Creating symlinks...")
-    force_symlink_dir(default_setup.setup_root, f'{current_setup_dir}/default')
-    force_symlink_dir(new_setup.setup_root, f'{current_setup_dir}/new')
-
-    eprint("Done.")
+    eprint("Download finished. ")
 
 
 
+@task
+def procure_testing_setup(c, ignore_cache=False):
+    testing_setup.procure_testing_setup(ignore_cache)
