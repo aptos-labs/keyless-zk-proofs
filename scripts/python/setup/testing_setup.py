@@ -54,20 +54,30 @@ def generate_c_witness_gen_binaries():
                 eprint("Compilation took %s seconds" % (time.time() - start_time))
 
                 with contextlib.chdir("main_c_cpp"):
+                    eprint("Compiling c witness generation binaries now: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+                    start_time = time.time()
                     utils.run_shell_command("make")
-                    shutil.move("main_c", current_circuit_setup_path())
-                    shutil.move("main_c.dat", current_circuit_setup_path())
+                    shutil.move("main_c", current_circuit_setup_path() / "main_c" )
+                    shutil.move("main_c.dat", current_circuit_setup_path() / "main_c.dat" )
+                    eprint("Witness gen compilation took %s seconds" % (time.time() - start_time))
 
-
-
-def c_witness_gen_present():
-    (current_circuit_setup_path() / "main_c").is_file() and (current_circuit_setup_path() / "main_c.dat").is_file() 
-
+# idea: break into tasks that are "checkable"
+# i.e., compile produces artifacts, just check if artifacts are already there in target dir
+# every task happens in new tempdir
 
 def procure_testing_setup(ignore_cache):
+    # TODO should upload setup if it's not in gcs, even if it already exists locally
     current_circuit_setup = Setup(current_circuit_setup_path())
     if current_circuit_setup.is_complete():
-        eprint("Setup for the current circuit found. Skipping.")
+        eprint("Setup for the current circuit found.")
+        if platform.machine() == 'x86_64' and not current_circuit_setup.witness_gen_c():
+            eprint("You're on an x86_64 machine, but the cached setup doesn't contain c witness gen binaries. Going to generate now.")
+            generate_c_witness_gen_binaries()
+            cache.upload_current_circuit_setup()
+        elif not cache.current_circuit_blob_exists():
+            eprint("Setup is not in cache, going to upload.")
+            cache.upload_current_circuit_setup()
+        utils.force_symlink_dir(current_circuit_setup.path(), SETUPS_DIR / "default")
         return
     else:
         eprint("prover key: " + str(current_circuit_setup.prover_key()))
@@ -78,16 +88,20 @@ def procure_testing_setup(ignore_cache):
 
     prepare_setups_dir()
 
-    download_ptau_file_if_needed()
 
     if not ignore_cache:
         if cache.download_testing_setup_if_present():
-            if platform.machine() == 'x86_64' and not c_witness_gen_present():
+            if not current_circuit_setup.is_complete():
+                eprint("ERROR: setup downloaded from cloud has missing files. Aborting.")
+                exit(2)
+            if platform.machine() == 'x86_64' and not current_circuit_setup.witness_gen_c():
                 eprint("You're on an x86_64 machine, but the cached setup doesn't contain c witness gen binaries. Going to generate now.")
                 generate_c_witness_gen_binaries()
                 cache.upload_current_circuit_setup()
-            utils.force_symlink_dir(current_circuit_setup.path(), SETUP_DIR / "default")
+            utils.force_symlink_dir(current_circuit_setup.path(), SETUPS_DIR / "default")
             return
+
+    download_ptau_file_if_needed()
 
     current_circuit_setup.mkdir()
     shutil.copy(utils.repo_root() / "prover-service" / "circuit_config.yml", current_circuit_setup.path())
@@ -127,7 +141,7 @@ def procure_testing_setup(ignore_cache):
          return
 
 
-    utils.force_symlink_dir(current_circuit_setup.path(), SETUP_DIR / "default")
+    utils.force_symlink_dir(current_circuit_setup.path(), SETUPS_DIR / "default")
     cache.upload_current_circuit_setup()
 
     
