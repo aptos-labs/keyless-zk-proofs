@@ -51,14 +51,13 @@ install_deps() {
 
 install_deps
 
-python3 -m venv .venv
+if ! ls .venv > /dev/null; then
+  python3 -m venv .venv
+fi
+if ! .venv/bin/pip3 show google-cloud-storage typer > /dev/null;  then
+  .venv/bin/pip3 install google-cloud-storage typer > /dev/null
+fi
 
-if ! .venv/bin/pip3 show google-cloud-storage > /dev/null;  then
-  .venv/bin/pip3 install google-cloud-storage > /dev/null
-fi
-if ! .venv/bin/pip3 show invoke > /dev/null;  then
-  .venv/bin/pip3 install invoke > /dev/null
-fi
 .venv/bin/python3 $SCRIPT_DIR/python/main.py "$@"
 
 

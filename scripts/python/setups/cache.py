@@ -4,7 +4,7 @@ from pathlib import Path
 from google.cloud.storage import Client, transfer_manager
 from google.cloud import storage
 import google
-from setup import testing_setup, Setup
+from setups.testing_setup import TestingSetup
 import tempfile
 from utils import eprint
 from pathlib import Path
@@ -18,7 +18,7 @@ def cache_bucket():
     return client.get_bucket("aptos-keyless-testing")
 
 
-def download_testing_setup_if_present():
+def download_blob_if_present(name, dest):
     try:
         bucket = cache_bucket()
     except google.api_core.exceptions.Forbidden:
@@ -26,7 +26,7 @@ def download_testing_setup_if_present():
         return False
 
 
-    blob_name = testing_setup.repo_circuit_checksum() + ".tar.gz"
+    blob_name = name + ".tar.gz"
     blob = bucket.blob(blob_name)
 
     eprint("Checking cache...")
@@ -35,9 +35,8 @@ def download_testing_setup_if_present():
         with tempfile.TemporaryDirectory() as temp_dir:
             tarfile_path = Path(temp_dir) / blob_name
             blob.download_to_filename(tarfile_path)
-            testing_setup.repo_circuit_setup_path().mkdir(parents=True, exist_ok=True)
             with tarfile.open(tarfile_path, 'r:gz') as tar:
-                tar.extractall(path=testing_setup.SETUPS_DIR)
+                tar.extractall(path=dest)
         eprint("Finished downloading.")
         return True
     else:
@@ -45,21 +44,19 @@ def download_testing_setup_if_present():
         return False
 
 
-def current_circuit_blob_exists():
+def blob_exists(name):
     try:
         bucket = cache_bucket()
     except google.api_core.exceptions.Forbidden:
         eprint("You aren't authenticated to google cloud; can't check cache for setups.")
         return False
 
-
-    blob_name = testing_setup.repo_circuit_checksum() + ".tar.gz"
+    blob_name = name + ".tar.gz"
     blob = bucket.blob(blob_name)
-
     return blob.exists()
 
 
-def upload_current_circuit_setup():
+def upload_to_blob(name, folder):
     try:
         bucket = cache_bucket()
     except google.api_core.exceptions.Forbidden:
@@ -67,13 +64,12 @@ def upload_current_circuit_setup():
         return False
 
     with tempfile.TemporaryDirectory() as temp_dir:
-        blob_name = testing_setup.repo_circuit_checksum() + ".tar.gz"
+        blob_name = name.checksum() + ".tar.gz"
         eprint("Creating tarfile with setup result...")
         tarfile_path = Path(temp_dir) / blob_name
-        folder_path = testing_setup.repo_circuit_setup_path()
         
         with tarfile.open(tarfile_path, "w:gz") as tar:
-            tar.add(folder_path, arcname=os.path.basename(folder_path))
+            tar.add(folder, arcname=os.path.basename(folder))
         
         eprint("Uploading to cache...")
         blob = bucket.blob(blob_name)

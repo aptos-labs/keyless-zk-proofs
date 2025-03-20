@@ -38,26 +38,29 @@ class Releases:
 
         raise ReleaseNotFound(release_name)
 
-    def check_release_contains_assets(self, release_name, required_assets):
-        """Check if release `release_name` contains all assets in `required_assets`,
-        matching by filename. Throw an exception if an asset is not found."""
-
+    def get_assets(self, release_name, asset_names):
         release = self.release_with_name(release_name)
 
-        for required_asset in required_assets:
-            if required_asset not in [ asset['name'] for asset in release.assets ]:
-                throw ReleaseMissingRequiredAsset(release_name, required_asset)
+        result = []
+
+        for asset_name in asset_names:
+            found = False
+            for asset in release.assets:
+                if asset.name == asset_name:
+                    result.append(asset)
+                    found = True
+                    break
+            if not found:
+                raise ReleaseMissingRequiredAsset(release_name, required_asset)
 
 
-    def download_and_install_release(self, release_name, install_dir, assets):
+    def download_and_install_release(self, release_name, install_dir, asset_names):
         """Download a release named `release_name` and install into dir
            `release_dir`.
         """
 
-        self.check_release_contains_assets(release_name, assets)
-        release = self.release_with_name(release_name)
-
-
-        
+        assets = self.get_assets(release_name, asset_names)
+        for asset in assets:
+            utils.download_file(asset.browser_url, install_dir / asset.name)
 
 
