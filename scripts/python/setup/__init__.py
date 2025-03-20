@@ -1,7 +1,10 @@
 from utils import eprint
 import utils
 from setup.prepare_setups import *
+import shutil
 
+def current_setup_dir():
+    utils.resources_dir_root() / "current_setups"
 
 class Setup:
     def __init__(self, root_dir):
@@ -12,6 +15,11 @@ class Setup:
 
     def rm(self):
         shutil.rmtree(self.root_dir)
+
+    def set_current(self):
+        current_setup_dir().mkdir(parents=True, exist_ok=True)
+        utils.force_symlink_dir(self.root_dir, current_setup_dir() / "default")
+        utils.force_symlink_dir(self.root_dir, current_setup_dir() / "new")
 
     def mkdir(self):
         self.root_dir.mkdir(parents=True, exist_ok=True)
@@ -66,6 +74,7 @@ class Setup:
                ( self.witness_gen_c() or self.witness_gen_wasm() )
 
 
+
 class SetupCeremony:
     def __init__(self, setup_root, url_prover_key, url_main_c, url_main_c_dat, url_vk, url_circuit_config, url_generate_witness_js, url_main_wasm, url_witness_calculator_js):
         self.setup_root=setup_root
@@ -108,14 +117,16 @@ new_setup = SetupCeremony(
 
 
 def download_ceremonies_for_releases(old_setup, new_setup, witness_gen):
+
     eprint("Downloading latest trusted setup...")
 
     download_setup(default_setup)
     download_setup(new_setup)
 
     eprint("Download finished. Creating symlinks...")
-    force_symlink_dir(default_setup.setup_root, f'{ceremonies_dir}/default')
-    force_symlink_dir(new_setup.setup_root, f'{ceremonies_dir}/new')
+    current_setup_dir = current_setup_dir()
+    force_symlink_dir(default_setup.setup_root, f'{current_setup_dir}/default')
+    force_symlink_dir(new_setup.setup_root, f'{current_setup_dir}/new')
 
     if witness_gen == 'both':
         download_latest_witness_gen_wasm()
@@ -135,8 +146,8 @@ def download_latest_witness_gen_c():
     download_witness_gen_binaries_c(new_setup)
 
     eprint("Download finished. Creating symlinks...")
-    force_symlink_dir(default_setup.setup_root, f'{ceremonies_dir}/default')
-    force_symlink_dir(new_setup.setup_root, f'{ceremonies_dir}/new')
+    force_symlink_dir(default_setup.setup_root, f'{current_setup_dir}/default')
+    force_symlink_dir(new_setup.setup_root, f'{current_setup_dir}/new')
 
     eprint("Done.")
 
@@ -148,8 +159,8 @@ def download_latest_witness_gen_wasm():
     download_witness_gen_binaries_wasm(new_setup)
 
     eprint("Download finished. Creating symlinks...")
-    force_symlink_dir(default_setup.setup_root, f'{ceremonies_dir}/default')
-    force_symlink_dir(new_setup.setup_root, f'{ceremonies_dir}/new')
+    force_symlink_dir(default_setup.setup_root, f'{current_setup_dir}/default')
+    force_symlink_dir(new_setup.setup_root, f'{current_setup_dir}/new')
 
     eprint("Done.")
 
