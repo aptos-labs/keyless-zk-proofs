@@ -124,6 +124,8 @@ def delete_contents_of_dir(path):
         path = path / file
         if path.is_dir():
             shutil.rmtree(path)
+        elif path.is_symlink():
+            os.unlink(path)
         else:
             os.remove(path)
 
