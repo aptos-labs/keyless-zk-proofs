@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
-      - run: ./scripts/task.sh prover-service:install-deps 
+      - run: ./scripts/task.sh prover-service install-deps 
       - run: cargo fmt --check && cargo xclippy
   rust:
     name: Run cargo test
