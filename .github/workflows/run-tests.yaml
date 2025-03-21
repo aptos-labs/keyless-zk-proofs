@@ -37,7 +37,7 @@ jobs:
       - run: chmod -R 777 ~/.local/share/aptos-prover-service/
       - run: LD_LIBRARY_PATH=$(pwd)/rust-rapidsnark/rapidsnark/build/subprojects/oneTBB-2022.0.0 cargo test
   rust-macos:
-    name: Run cargo test
+    name: Run cargo test on macos
     runs-on: macos-latest
     env:
       CARGO_TERM_COLOR: always
