@@ -37,13 +37,15 @@ jobs:
       - run: LD_LIBRARY_PATH=$(pwd)/rust-rapidsnark/rapidsnark/build/subprojects/oneTBB-2022.0.0 cargo test
   rust-macos:
     name: Run cargo test on macos
-    runs-on: macos-latest-large
+    runs-on: macos-latest
     env:
       CARGO_TERM_COLOR: always
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
       - run: ./scripts/task.sh prover-service install-deps
       - run: ./scripts/task.sh circuit install-deps
       - run: ./scripts/task.sh setup download-ceremonies-for-releases "test_releases/test-ceremony-20250224" "test_releases/test-ceremony-20250224" --witness-gen-type "both"
