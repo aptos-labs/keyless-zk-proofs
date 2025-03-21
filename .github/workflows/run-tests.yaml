@@ -31,7 +31,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
-      - run: ./scripts/task.sh prover-service install-deps circuit:install-deps trusted-setup:download-latest-setup trusted-setup:download-latest-witness-gen-wasm 
+      - run: ./scripts/task.sh prover-service install-deps
       - run: ./scripts/task.sh circuit install-deps
       - run: ./scripts/task.sh setup download-ceremonies-for-releases "test_releases/test-ceremony-20250224" "test_releases/test-ceremony-20250224" --witness-gen-type "both"
       - run: chmod -R 777 ~/.local/share/aptos-prover-service/
@@ -45,7 +45,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
-      - run: ./scripts/task.sh prover-service install-deps circuit:install-deps trusted-setup:download-latest-setup trusted-setup:download-latest-witness-gen-wasm 
+      - run: ./scripts/task.sh prover-service install-deps
       - run: ./scripts/task.sh circuit install-deps
       - run: ./scripts/task.sh setup download-ceremonies-for-releases "test_releases/test-ceremony-20250224" "test_releases/test-ceremony-20250224" --witness-gen-type "both"
       - run: chmod -R 777 ~/.local/share/aptos-prover-service/
