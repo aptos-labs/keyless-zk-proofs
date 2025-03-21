@@ -44,8 +44,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@v1
       - run: ./scripts/task.sh prover-service install-deps
       - run: ./scripts/task.sh circuit install-deps
       - run: ./scripts/task.sh setup download-ceremonies-for-releases "test_releases/test-ceremony-20250224" "test_releases/test-ceremony-20250224" --witness-gen-type "both"
