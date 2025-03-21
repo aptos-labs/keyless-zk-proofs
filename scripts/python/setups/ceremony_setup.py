@@ -45,5 +45,5 @@ class CeremonySetup(setups.Setup):
         if witness_gen_type == "wasm" or witness_gen_type == "both":
             with zipfile.ZipFile(self.path() / 'wgen_js.zip', 'r') as zip_ref:
                 zip_ref.extractall(self.path())
-            shutil.move(self.path / "main_c.wasm", self.path / "main.wasm")
+            shutil.move(self.path() / "main_c.wasm", self.path() / "main.wasm")
             os.remove(self.path() / "wgen_js.zip")
