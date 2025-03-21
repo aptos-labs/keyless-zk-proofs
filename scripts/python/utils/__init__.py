@@ -73,9 +73,9 @@ def add_envvar_to_profile(name, value):
     global envvars_were_added
 
     if "SHELL" in os.environ:
-        if os.environ["SHELL"] == "/bin/bash":
+        if "bash" in os.environ["SHELL"]:
             profile_file_path = os.path.expanduser("~/.bashrc")
-        elif os.environ["SHELL"] == "/bin/zsh":
+        elif "zsh" in os.environ["SHELL"]:
             profile_file_path = os.path.expanduser("~/.zshrc")
         else:
             eprint("Cannot detect the user's shell to add envvars. Only supports bash and zsh right now. Exiting.")
