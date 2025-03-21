@@ -37,7 +37,7 @@ jobs:
       - run: LD_LIBRARY_PATH=$(pwd)/rust-rapidsnark/rapidsnark/build/subprojects/oneTBB-2022.0.0 cargo test
   rust-macos:
     name: Run cargo test on macos
-    runs-on: macos-latest-16-core
+    runs-on: macos-latest-large
     env:
       CARGO_TERM_COLOR: always
     steps:
