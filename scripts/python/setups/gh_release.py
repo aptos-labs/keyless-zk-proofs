@@ -9,7 +9,7 @@ class ReleaseNotFound(Exception):
         self.release_name = release_name
 
 class ReleaseMissingRequiredAsset(Exception):
-    def __init(self, release_name, required_asset):
+    def __init__(self, release_name, required_asset):
         super().__init__("Release \"" + release_name + "\" is missing required asset \"" + required_asset + "\".")
         self.release_name = release_name
         self.required_asset = required_asset
@@ -45,13 +45,15 @@ class Releases:
 
         for asset_name in asset_names:
             found = False
-            for asset in release.assets:
-                if asset.name == asset_name:
+            for asset in release['assets']:
+                if asset['name'] == asset_name:
                     result.append(asset)
                     found = True
                     break
             if not found:
-                raise ReleaseMissingRequiredAsset(release_name, required_asset)
+                raise ReleaseMissingRequiredAsset(release_name, asset_name)
+
+        return result
 
 
     def download_and_install_release(self, release_name, install_dir, asset_names):
@@ -61,6 +63,6 @@ class Releases:
 
         assets = self.get_assets(release_name, asset_names)
         for asset in assets:
-            utils.download_file(asset.browser_url, install_dir / asset.name)
+            utils.download_file(asset['browser_download_url'], install_dir / asset['name'])
 
 

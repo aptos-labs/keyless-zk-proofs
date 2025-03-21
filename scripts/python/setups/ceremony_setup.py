@@ -1,7 +1,9 @@
 import os
 import utils
+import shutil
 import setups
 from setups.gh_release import Releases
+import zipfile
 
 CEREMONIES_DIR = utils.resources_dir_root() / "ceremonies"
 
@@ -17,22 +19,38 @@ class CeremonySetup(setups.Setup):
         assets = [
                 "prover_key.zkey",
                 "verification_key.json",
-                "circuit_config.yml"
+                "circuit_config.yaml"
                 ]
         if witness_gen_type == "c" or witness_gen_type == "both":
             assets += [
-                    "main_c",
-                    "main_c.dat"
+                    "wgen_c.zip"
                     ]
 
         if witness_gen_type == "wasm" or witness_gen_type == "both":
             assets += [
-                    "generate_witness.js",
-                    "witness_calculator.js",
-                    "main.wasm"
+                    "wgen_js.zip"
                     ]
 
         releases = Releases()
-        releases.download_and_install_release(release_name, self.path(), assets)
+        releases.download_and_install_release(self.release_name, self.path(), assets)
+
+        shutil.move(self.path() / "circuit_config.yaml", self.path() / "circuit_config.yml")
+    
+        if witness_gen_type == "c" or witness_gen_type == "both":
+            with zipfile.ZipFile(self.path() / 'wgen_c.zip', 'r') as zip_ref:
+                zip_ref.extractall(self.path())
+            os.remove(self.path() / "wgen_c.zip")
+            os.chmod(self.path() / "main_c", 0o744)
+            #shutil.move(self.path() / "wgen_c/main_c", self.path() / "main_c")
+            #shutil.move(self.path() / "wgen_c/main_c.dat", self.path() / "main_c.dat")
+
+
+        if witness_gen_type == "wasm" or witness_gen_type == "both":
+            with zipfile.ZipFile(self.path() / 'wgen_js.zip', 'r') as zip_ref:
+                zip_ref.extractall(self.path())
+            os.remove(self.path() / "wgen_js.zip")
+            #shutil.move(self.path() / "wgen_js/main.wasm", self.path() / "main.js")
+            #shutil.move(self.path() / "wgen_js/generate_witness.js", self.path() / "generate_witness.js")
+            #shutil.move(self.path() / "wgen_js/witness_calculator.js", self.path() / "witness_calculator.js")
 
 

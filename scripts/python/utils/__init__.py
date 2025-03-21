@@ -120,6 +120,7 @@ def read_json_from_url(url):
 
 
 def delete_contents_of_dir(path):
+    Path(path).mkdir(parents=True, exist_ok=True)
     for file in os.listdir(path):
         path = path / file
         if path.is_dir():
