@@ -4,7 +4,6 @@ from pathlib import Path
 from google.cloud.storage import Client, transfer_manager
 from google.cloud import storage
 import google
-from setups.testing_setup import TestingSetup
 import tempfile
 from utils import eprint
 from pathlib import Path
@@ -23,6 +22,9 @@ def download_blob_if_present(name, dest):
         bucket = cache_bucket()
     except google.api_core.exceptions.Forbidden:
         eprint("You aren't authenticated to google cloud; can't check cache for setups.")
+        return False
+    except google.auth.exceptions.RefreshError:
+        eprint("Your google cloud credentials have expired. Please run `gcloud auth login --update-adc` to re-authenticate.")
         return False
 
 
@@ -49,7 +51,12 @@ def blob_exists(name):
         bucket = cache_bucket()
     except google.api_core.exceptions.Forbidden:
         eprint("You aren't authenticated to google cloud; can't check cache for setups.")
-        return False
+        # Hacky to return true here
+        return True
+    except google.auth.exceptions.RefreshError:
+        eprint("Your google cloud credentials have expired. Please run `gcloud auth login --update-adc` to re-authenticate.")
+        # Hacky to return true here
+        return True
 
     blob_name = name + ".tar.gz"
     blob = bucket.blob(blob_name)
@@ -61,6 +68,9 @@ def upload_to_blob(name, folder):
         bucket = cache_bucket()
     except google.api_core.exceptions.Forbidden:
         eprint("You aren't authenticated to google cloud; can't upload setup to cache.")
+        return False
+    except google.auth.exceptions.RefreshError:
+        eprint("Your google cloud credentials have expired. Please run `gcloud auth login --update-adc` to re-authenticate.")
         return False
 
     with tempfile.TemporaryDirectory() as temp_dir:

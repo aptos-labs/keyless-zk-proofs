@@ -18,9 +18,12 @@ class Setup:
     def rm(self):
         shutil.rmtree(self.root_dir)
 
-    def set_current(self):
+    def set_default(self):
         current_setups_dir().mkdir(parents=True, exist_ok=True)
         utils.force_symlink_dir(self.root_dir, current_setups_dir() / "default")
+
+    def set_new(self):
+        current_setups_dir().mkdir(parents=True, exist_ok=True)
         utils.force_symlink_dir(self.root_dir, current_setups_dir() / "new")
 
     def mkdir(self):
@@ -99,6 +102,9 @@ def download_ceremonies_for_releases(default_release, new_release, witness_gen_t
         eprint("Downloading new ceremony...")
         new_ceremony.download(witness_gen_type)
         eprint("Finished downloading ceremonies.")
+
+        default_ceremony.set_default()
+        new_ceremony.set_new()
     except gh_release.ReleaseNotFound as rnf:
         eprint("ERROR: Release \"" + rnf.release_name + "\" not found.")
     except gh_release.ReleaseMissingRequiredAsset as ma:

@@ -42,11 +42,11 @@ def require_ptau_file():
 class TestingSetup(setups.Setup):
     def __init__(self):
         super().__init__(repo_circuit_setup_path())
-        self.checksum = repo_circuit_checksum()
+        self._checksum = repo_circuit_checksum()
 
 
-    def checksum():
-        return self.checksum()
+    def checksum(self):
+        return self._checksum
 
 
     def compile_circuit(self):
@@ -126,10 +126,11 @@ class TestingSetup(setups.Setup):
 
         
         if self.is_complete():
-            self.set_current()
+            self.set_default()
+            self.set_new()
             if not cache.blob_exists(self.checksum()):
                 eprint("Setup is not in cache, going to upload.")
-                cache.upload_blob(self.checksum(), self.path())
+                cache.upload_to_blob(self.checksum(), self.path())
         else:
             eprint("ERROR: Setup is missing required files. Something must have gone wrong. Check " + self.path() + ".")
 
