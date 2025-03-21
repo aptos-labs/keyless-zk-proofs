@@ -28,6 +28,9 @@ command:
 ./scripts/task.sh setup-dev-environment misc:install-circom-precommit-hook
 ```
 
+For more information on the actions defined for this repo, see [the scripts
+README](./scripts/README.md).
+
 ## TODOs
 
 ### Prover service
