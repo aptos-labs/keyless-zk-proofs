@@ -41,16 +41,8 @@ class CeremonySetup(setups.Setup):
                 zip_ref.extractall(self.path())
             os.remove(self.path() / "wgen_c.zip")
             os.chmod(self.path() / "main_c", 0o744)
-            #shutil.move(self.path() / "wgen_c/main_c", self.path() / "main_c")
-            #shutil.move(self.path() / "wgen_c/main_c.dat", self.path() / "main_c.dat")
-
 
         if witness_gen_type == "wasm" or witness_gen_type == "both":
             with zipfile.ZipFile(self.path() / 'wgen_js.zip', 'r') as zip_ref:
                 zip_ref.extractall(self.path())
             os.remove(self.path() / "wgen_js.zip")
-            #shutil.move(self.path() / "wgen_js/main.wasm", self.path() / "main.js")
-            #shutil.move(self.path() / "wgen_js/generate_witness.js", self.path() / "generate_witness.js")
-            #shutil.move(self.path() / "wgen_js/witness_calculator.js", self.path() / "witness_calculator.js")
-
-
