@@ -52,10 +52,13 @@ impl TestCircuitHandle {
         let mut tmp_circuit_file = File::create(&tmp_circuit_path)?;
         //let global_node_modules_path =
         //    String::from_utf8(Command::new("npm").args(["root", "-g"]).output()?.stdout).unwrap();
-        let global_node_modules_path = String::from_utf8(Command::new("bash")
-        .arg("-c")
-        .arg(format!("source {} && {}", "~/.nvm/nvm.sh", "npm root -g"))
-        .output()?.stdout)
+        let global_node_modules_path = String::from_utf8(
+            Command::new("bash")
+                .arg("-c")
+                .arg(format!("source {} && {}", "~/.nvm/nvm.sh", "npm root -g"))
+                .output()?
+                .stdout,
+        )
         .unwrap();
         tmp_circuit_file.write_all(circuit_src.as_bytes())?;
 
