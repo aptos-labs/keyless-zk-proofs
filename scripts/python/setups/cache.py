@@ -22,6 +22,8 @@ def download_blob_if_present(name, dest):
         bucket = cache_bucket()
     except google.api_core.exceptions.Forbidden:
         eprint("You aren't authenticated to google cloud; can't check cache for setups.")
+        eprint("Please download the google cloud-cli (on macos: `brew install google-cloud-sdk`)")
+        eprint("and then run `gcloud auth login --update-adc` to authenticate yourself.")
         return False
     except google.auth.exceptions.RefreshError:
         eprint("Your google cloud credentials have expired. Please run `gcloud auth login --update-adc` to re-authenticate.")
@@ -51,6 +53,8 @@ def blob_exists(name):
         bucket = cache_bucket()
     except google.api_core.exceptions.Forbidden:
         eprint("You aren't authenticated to google cloud; can't check cache for setups.")
+        eprint("Please download the google cloud-cli (on macos: `brew install google-cloud-sdk`)")
+        eprint("and then run `gcloud auth login --update-adc` to authenticate yourself.")
         # Hacky to return true here
         return True
     except google.auth.exceptions.RefreshError:
@@ -68,13 +72,15 @@ def upload_to_blob(name, folder):
         bucket = cache_bucket()
     except google.api_core.exceptions.Forbidden:
         eprint("You aren't authenticated to google cloud; can't upload setup to cache.")
+        eprint("Please download the google cloud-cli (on macos: `brew install google-cloud-sdk`)")
+        eprint("and then run `gcloud auth login --update-adc` to authenticate yourself.")
         return False
     except google.auth.exceptions.RefreshError:
         eprint("Your google cloud credentials have expired. Please run `gcloud auth login --update-adc` to re-authenticate.")
         return False
 
     with tempfile.TemporaryDirectory() as temp_dir:
-        blob_name = name.checksum() + ".tar.gz"
+        blob_name = name + ".tar.gz"
         eprint("Creating tarfile with setup result...")
         tarfile_path = Path(temp_dir) / blob_name
         

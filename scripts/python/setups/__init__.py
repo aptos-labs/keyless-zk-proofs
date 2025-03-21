@@ -2,6 +2,7 @@ from utils import eprint
 import utils
 import shutil
 import typer
+from typing_extensions import Annotated
 
 app = typer.Typer(no_args_is_help=True)
 
@@ -86,8 +87,17 @@ from setups.testing_setup import TestingSetup
 
 
 @app.command()
-def download_ceremonies_for_releases(default_release, new_release, witness_gen_type='none'):
-    """Download two ceremonies corresponding to `default` and `new` in the prover service, installing in RESOURCES_DIR. If RESOURCES_DIR is not set, uses the default location `~/.local/share/aptos-keyless`."""
+def download_ceremonies_for_releases(default_release, new_release, witness_gen_type: Annotated[str, typer.Option(help="If set to 'wasm', 'c', or 'both', downloads the corresponding witness gen binaries.")]='none'):
+    """Download two ceremonies corresponding to `default` and `new` in the prover service, installing in RESOURCES_DIR. If RESOURCES_DIR is not set, uses the default location `~/.local/share/aptos-keyless`.
+
+    Specifically, does the following:
+
+    - Use `https://api.github.com/repos/aptos-labs/keyless-zk-proofs/releases` to get a list of releases for `keyless-zk-proofs`
+
+    - Verify that `<default-release>` and `<new-release>` exist, and they have the required assets. Depending on the value of `--witness-gen-type`, this could include c or wasm witness gen binaries, or both
+
+    - Download these assets and install them in the correct place so that running `cargo test -p prover-service` will use this setup.
+    """
 
     eprint("Deleting old ceremonies...")
     utils.delete_contents_of_dir(ceremony_setup.CEREMONIES_DIR)
@@ -115,8 +125,32 @@ def download_ceremonies_for_releases(default_release, new_release, witness_gen_t
 
 
 @app.command()
-def procure_testing_setup(ignore_cache=False):
-    """Get a (untrusted) setup corresponding to the current circuit in this repo for testing purposes. Assuming you are authenticated with gcloud cli, will attempt to load from the cache in google cloud storage. If you are not authenticated, or if a relevant setup doesn't yet exist, will generate a setup locally and attempt to upload to the cache."""
+def procure_testing_setup(ignore_cache=typer.Option(False, help="Build the setup from scratch regardless of whether it exists in the GCS cache.")):
+    """
+    Procure a (untrusted) setup corresponding to the current circuit in this repo for testing purposes. 
+
+    Specifically, does the following:
+
+    - Computes a hash of the circuit currently in the repo.
+
+      - Note that currently this hash is computed from the circuit *source code*, not the R1CS file. This is because compiling the circuit itself takes a minute, and I don't want to wait one minute just to obtain an identifier for the circuit
+
+    - Checks a google cloud storage GCS bucket (refer to this as the "cache" from now on) whether there is already a setup for this circuit.
+
+    - If present in the cache, downloads it.
+
+      - If the downloaded setup was built on an arm machine, it won't contain the C witness gen binaries. If the local machine is an x86-64 machine and the downloaded setup does not contain them, the script will build these C binaries and re-upload the setup.
+
+    - If not present, compiles the circuit and witness gen binaries and runs a local (1-person) setup.
+
+    - Installs the setup in the correct location, so that running `cargo test -p prover-service` will use this setup.
+    
+    - Uploads the setup to the cloud.
+
+    ## Note:
+
+    Right now, the GCS bucket requires being authenticated to GC with an Aptos account to use, since Stelian has not yet provided us with a bucket that allows for unauthenticated read access. So if you try to run this action without running `gcloud auth login --update-adc`, the script builds the setup locally and does not upload to the cache.
+    """
 
 
     testing_setup = TestingSetup()

@@ -19,7 +19,7 @@ ENV RESOURCES_DIR=/resources
 RUN ./scripts/task.sh setup download-ceremonies-for-releases \
         "test_releases/test-ceremony-20250224"               \
         "test_releases/test-ceremony-20250224"               \
-        --witness-gen "c"
+        --witness-gen-type "c"
 
 
 

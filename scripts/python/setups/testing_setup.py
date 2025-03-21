@@ -51,7 +51,7 @@ class TestingSetup(setups.Setup):
 
     def compile_circuit(self):
         eprint("Compiling circuit...")
-        shutil.copytree(utils.repo_root() / "circuit/templates", "./")
+        shutil.copytree(utils.repo_root() / "circuit/templates", "./", dirs_exist_ok=True)
         utils.manage_deps.add_cargo_to_path()
         start_time = time.time()
         utils.run_shell_command('circom -l . -l $(npm root -g) main.circom --r1cs --wasm --c --sym')
@@ -61,7 +61,7 @@ class TestingSetup(setups.Setup):
     def run_setup(self):
         eprint("Starting setup now: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         start_time = time.time()
-        utils.run_shell_command(f'. ~/.nvm/nvm.sh; snarkjs groth16 setup main.r1cs {PTAU_PATH} prover_key.zkey')
+        utils.run_shell_command(f'. ~/.nvm/nvm.sh; snarkjs groth16 setup main_c.r1cs {PTAU_PATH} prover_key.zkey')
         eprint("Running setup took %s seconds" % (time.time() - start_time))
         eprint("Exporting verification key...")
         utils.run_shell_command(f'snarkjs zkey export verificationkey prover_key.zkey verification_key.json')
@@ -109,7 +109,7 @@ class TestingSetup(setups.Setup):
                     self.c_witness_gen_from_scratch()
             else:
                 eprint("Deleting old testing setups...")
-                utils.delete_contents_of_dir(testing_setups.TESTING_SETUPS_DIR)
+                utils.delete_contents_of_dir(TESTING_SETUPS_DIR)
                 require_ptau_file()
                 self.mkdir()
 

@@ -51,7 +51,7 @@ install_deps() {
 
 install_deps
 
-if ! ls .venv > /dev/null; then
+if ! ls .venv 2>&1 > /dev/null; then
   python3 -m venv .venv
 fi
 if ! .venv/bin/pip3 show google-cloud-storage typer > /dev/null;  then
