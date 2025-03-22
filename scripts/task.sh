@@ -6,7 +6,7 @@ SCRIPT_DIR=$(dirname "$0")
 
 install_deps() {
   echo "Bootstrap: checking for python, pipx, curl and invoke..."
-  if ! command -v python3 > /dev/null || ! command -v curl > /dev/null || ! ( command -v invoke > /dev/null || /bin/ls ~/.local/bin/invoke > /dev/null ); then
+  if ! command -v python3 > /dev/null || ! command -v curl > /dev/null; then
     echo "Dependencies not all found, installing..."
     OS=$(uname -s)
     case $OS in
@@ -15,11 +15,9 @@ install_deps() {
           if command -v sudo > /dev/null; then
             sudo apt-get update
             sudo apt-get install -y python3 python3-pip pipx curl
-            pipx install invoke
           else
             apt-get update
             apt-get install -y python3 python3-pip pipx curl
-            pipx install invoke
           fi
         elif command -v pacman > /dev/null; then
           if command -v sudo > /dev/null; then
@@ -29,7 +27,6 @@ install_deps() {
           else
             pacman -Syu --noconfirm
             pacman -S --needed --noconfirm python python-pip python-pipx curl
-            pipx install invoke
           fi
         else
           echo "No suitable package manager found for Linux."
@@ -38,7 +35,6 @@ install_deps() {
       Darwin*)
         if command -v brew > /dev/null; then
           brew install python
-          pipx install invoke
         else
           echo "Homebrew is not installed. Install Homebrew to use this."
         fi
@@ -55,7 +51,13 @@ install_deps() {
 
 install_deps
 
+if ! ls .venv 2>&1 > /dev/null; then
+  python3 -m venv .venv
+fi
+if ! .venv/bin/pip3 show google-cloud-storage typer > /dev/null;  then
+  .venv/bin/pip3 install google-cloud-storage typer > /dev/null
+fi
 
-python3 $SCRIPT_DIR/python/main.py "$@"
+.venv/bin/python3 $SCRIPT_DIR/python/main.py "$@"
 
 

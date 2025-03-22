@@ -44,13 +44,18 @@ def install_rust():
                 )
         eprint("Installation of rustup succeeded. Setting path environment variable...")
 
-        if "CARGO_HOME" in os.environ:
-            utils.add_envvar_to_profile("PATH", "$PATH:" + os.environ["CARGO_HOME"] + "/bin")
-        else:
-            utils.add_envvar_to_profile("PATH", "$PATH:" + os.path.expanduser("~/.cargo/bin"))
+        add_cargo_to_path()
 
         eprint("Done.")
 
+
+def add_cargo_to_path():
+    if "CARGO_HOME" in os.environ:
+        utils.add_envvar_to_profile("PATH", "$PATH:" + os.environ["CARGO_HOME"] + "/bin")
+        os.environ['PATH'] += ":" + os.environ["CARGO_HOME"] + "/bin"
+    else:
+        utils.add_envvar_to_profile("PATH", "$PATH:" + os.path.expanduser("~/.cargo/bin"))
+        os.environ['PATH'] += ":" + os.path.expanduser("~/.cargo/bin")
 
 def install_npm_package(package):
     utils.run_shell_command(". ~/.nvm/nvm.sh; npm install -g " + package)
@@ -135,27 +140,36 @@ deps_by_platform = {
         "pkg-config": "pkg-config",
         "cmake": "cmake",
         "make": "make",
-        "clang": "clang",
+        "clang": {
+            "brew": None,
+            "pacman": "clang",
+            "apt-get": "clang"
+            },
         "nasm": "nasm",
         "lld": {
             "brew": None,
             "pacman": "lld",
-            "apt-get": "lld",
+            "apt-get": "lld"
             },
         "libyaml": {
             "brew": "libyaml",
             "pacman": "libyaml",
-            "apt-get": "libyaml-dev",
+            "apt-get": "libyaml-dev"
             },
         "gmp": {
             "brew": "gmp",
             "pacman": "gmp",
-            "apt-get": "libgmp-dev",
+            "apt-get": "libgmp-dev"
             },
         "openssl": {
             "brew": None,
             "pacman": "openssl",
-            "apt-get": "libssl-dev",
+            "apt-get": "libssl-dev"
+            },
+        "nlohmann-json": {
+            "brew": "nlohmann-json",
+            "pacman": "nlohmann-json",
+            "apt-get": "nlohmann-json3-dev"
             }
         }
 

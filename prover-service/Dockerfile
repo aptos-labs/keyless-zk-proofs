@@ -8,7 +8,7 @@ ARG TARGETARCH
 COPY --link . .
 
 # Install deps for building prover service
-RUN ./scripts/task.sh prover-service:install-deps
+RUN ./scripts/task.sh prover-service install-deps
 
 # Build prover service
 RUN /root/.cargo/bin/cargo build --release -p prover-service \
@@ -16,8 +16,10 @@ RUN /root/.cargo/bin/cargo build --release -p prover-service \
 
 # Download trusted setup and witness gen binaries
 ENV RESOURCES_DIR=/resources
-RUN ./scripts/task.sh trusted-setup:download-latest-setup \
-                                   trusted-setup:download-latest-witness-gen-c
+RUN ./scripts/task.sh setup download-ceremonies-for-releases \
+        "test_releases/test-ceremony-20250224"               \
+        "test_releases/test-ceremony-20250224"               \
+        --witness-gen-type "c"
 
 
 

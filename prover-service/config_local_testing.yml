@@ -1,5 +1,5 @@
 ---
-resources_dir: "~/.local/share/aptos-prover-service"
+resources_dir: "~/.local/share/aptos-keyless/current_setups"
 default_setup_dir: "default"
 new_setup_dir: "new"
 zkey_filename: "prover_key.zkey"

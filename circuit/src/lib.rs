@@ -50,8 +50,16 @@ impl TestCircuitHandle {
         let include_root_dir = cargo_manifest_dir.join("templates");
         let tmp_circuit_path = dir.path().to_owned().join("circuit.circom");
         let mut tmp_circuit_file = File::create(&tmp_circuit_path)?;
-        let global_node_modules_path =
-            String::from_utf8(Command::new("npm").args(["root", "-g"]).output()?.stdout).unwrap();
+        //let global_node_modules_path =
+        //    String::from_utf8(Command::new("npm").args(["root", "-g"]).output()?.stdout).unwrap();
+        let global_node_modules_path = String::from_utf8(
+            Command::new("bash")
+                .arg("-c")
+                .arg(format!("source {} && {}", "~/.nvm/nvm.sh", "npm root -g"))
+                .output()?
+                .stdout,
+        )
+        .unwrap();
         tmp_circuit_file.write_all(circuit_src.as_bytes())?;
 
         let circom_path = PathBuf::from(env::var("CARGO_HOME").unwrap()).join("bin/circom");

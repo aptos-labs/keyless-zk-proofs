@@ -8,7 +8,7 @@ To setup your development environment, run the following command in the
 repo root:
 
 ```bash
-./scripts/setup_environment.sh
+./scripts/task.sh setup-dev-environment
 ```
 
 ## Unit testing

@@ -1,3 +1,6 @@
+import tarfile
+import hashlib
+import io
 import os
 import urllib.request
 import sys
@@ -8,18 +11,19 @@ from os import environ
 from pathlib import Path
 import tempfile
 import contextlib
+import json
 
 envvars_were_added = False
 
 def repo_root():
     """Return the repo root. Assumes this script is two subdirectories in."""
-    return str(Path(os.path.realpath(__file__)).parents[3])
+    return Path(os.path.realpath(__file__)).parents[3]
 
 def resources_dir_root():
     if 'RESOURCES_DIR' in os.environ:
-        return os.environ['RESOURCES_DIR']
+        return Path(os.environ['RESOURCES_DIR'])
     else:
-        return os.path.expanduser("~/.local/share/aptos-prover-service")
+        return Path(os.path.expanduser("~/.local/share/aptos-keyless"))
 
 
 def download_and_run_shell_script(url):
@@ -61,16 +65,17 @@ def cargo_install_from_git(repo, ref=None):
 
 def add_envvar_to_profile(name, value):
     """
-    Adds an 'export name=value' line to the user's .bashrc or .zshrc file, if this line doesn't
-    already exist. Chose these files instead of .profile and .zprofile because the latter are 
-    only loaded on login shells (i.e., not when using ssh)
+    Adds an 'export name=value' line to the user's .bashrc or .zshrc file, if 
+    this line doesn't already exist. Chose these files instead of .profile 
+    and .zprofile because the latter are only loaded on login shells 
+    (i.e., not when using ssh)
     """
     global envvars_were_added
 
     if "SHELL" in os.environ:
-        if os.environ["SHELL"] == "/bin/bash":
+        if "bash" in os.environ["SHELL"]:
             profile_file_path = os.path.expanduser("~/.bashrc")
-        elif os.environ["SHELL"] == "/bin/zsh":
+        elif "zsh" in os.environ["SHELL"]:
             profile_file_path = os.path.expanduser("~/.zshrc")
         else:
             eprint("Cannot detect the user's shell to add envvars. Only supports bash and zsh right now. Exiting.")
@@ -108,8 +113,60 @@ def download_file(url, dest):
         out_file.write(response.read())
 
 
+def read_json_from_url(url, auth_token=None):
+    """Read JSON from a URL and return a corresponding python dict"""
+    if auth_token:
+        headers = { 'Authorization': f'Bearer {auth_token}' }
+    else:
+        headers = {}
+    request = urllib.request.Request(url, headers=headers)
+    with urllib.request.urlopen(request) as response:
+        return json.loads(response.read())
+
+
+def delete_contents_of_dir(path):
+    Path(path).mkdir(parents=True, exist_ok=True)
+    for file in os.listdir(path):
+        path = path / file
+        if path.is_dir():
+            shutil.rmtree(path)
+        elif path.is_symlink():
+            os.unlink(path)
+        else:
+            os.remove(path)
+
+def file_checksum(path):
+    """Return a SHA256 checksum of a file. Compatible with `sha256sum`."""
+    with open(path, "rb") as f:
+        return hashlib.file_digest(f, "sha256").hexdigest()
+
+def directory_checksum(directory):
+    """Return a SHA256 checksum of (a tar file of) a directory and all its contents."""
+    # Create a BytesIO buffer to hold the tar archive in memory
+    tar_buffer = io.BytesIO()
+    
+    # Create the tar archive in the buffer
+    with tarfile.open(fileobj=tar_buffer, mode="w") as tar:
+        tar.add(directory, arcname=os.path.basename(directory))
+    
+    # Get the tar archive data from the buffer
+    tar_data = tar_buffer.getvalue()
+    
+    # Compute the SHA-256 checksum
+    sha256_hash = hashlib.sha256(tar_data).hexdigest()
+    
+    return sha256_hash
+
+def force_symlink_dir(target, link_path):
+    if os.path.exists(link_path):
+        assert os.path.islink(link_path)
+        os.remove(link_path)
+    os.symlink(target, link_path, target_is_directory=True)
+
+
 def eprint(s):
     print(s, file=sys.stderr)
+
 
 
 
