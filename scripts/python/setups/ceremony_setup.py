@@ -13,7 +13,7 @@ class CeremonySetup(setups.Setup):
         self.release_name = release_name
 
 
-    def download(self, witness_gen_type):
+    def download(self, witness_gen_type, auth_token):
         self.mkdir()
 
         assets = [
@@ -31,7 +31,7 @@ class CeremonySetup(setups.Setup):
                     "wgen_js.zip"
                     ]
 
-        releases = Releases()
+        releases = Releases(auth_token)
         releases.download_and_install_release(self.release_name, self.path(), assets)
 
         shutil.move(self.path() / "circuit_config.yaml", self.path() / "circuit_config.yml")

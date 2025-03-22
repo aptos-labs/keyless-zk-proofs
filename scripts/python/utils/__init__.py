@@ -113,9 +113,14 @@ def download_file(url, dest):
         out_file.write(response.read())
 
 
-def read_json_from_url(url):
+def read_json_from_url(url, auth_token=None):
     """Read JSON from a URL and return a corresponding python dict"""
-    with urllib.request.urlopen(url) as response:
+    if auth_token:
+        headers = { 'Authorization': f'Bearer {auth_token}' }
+    else:
+        headers = {}
+    request = urllib.request.Request(url, headers=headers)
+    with urllib.request.urlopen(request) as response:
         return json.loads(response.read())
 
 

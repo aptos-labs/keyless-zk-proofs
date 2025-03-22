@@ -87,7 +87,10 @@ from setups.testing_setup import TestingSetup
 
 
 @app.command()
-def download_ceremonies_for_releases(default_release, new_release, witness_gen_type: Annotated[str, typer.Option(help="If set to 'wasm', 'c', or 'both', downloads the corresponding witness gen binaries.")]='none'):
+def download_ceremonies_for_releases(default_release, 
+                                     new_release, 
+                                     witness_gen_type: Annotated[str, typer.Option(help="If set to 'wasm', 'c', or 'both', downloads the corresponding witness gen binaries.")]='none',
+                                     auth_token: Annotated[str, typer.Option(help="Auth token to provide for the github API. Not necessary for normal use, but used during GH actions to avoid rate-limiting.")]=None):
     """Download two ceremonies corresponding to `default` and `new` in the prover service, installing in RESOURCES_DIR. If RESOURCES_DIR is not set, uses the default location `~/.local/share/aptos-keyless`.
 
     Specifically, does the following:
@@ -108,9 +111,9 @@ def download_ceremonies_for_releases(default_release, new_release, witness_gen_t
 
     try:
         eprint("Downloading default ceremony...")
-        default_ceremony.download(witness_gen_type)
+        default_ceremony.download(witness_gen_type, auth_token)
         eprint("Downloading new ceremony...")
-        new_ceremony.download(witness_gen_type)
+        new_ceremony.download(witness_gen_type, auth_token)
         eprint("Finished downloading ceremonies.")
 
         default_ceremony.set_default()

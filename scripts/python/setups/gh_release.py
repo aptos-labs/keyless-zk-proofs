@@ -4,7 +4,7 @@ from datetime import datetime
 GH_RELEASES_URL = "https://api.github.com/repos/aptos-labs/keyless-zk-proofs/releases"
 
 class ReleaseNotFound(Exception):
-    def __init(self, release_name):
+    def __init__(self, release_name):
         super().__init__("Release \"" + release_name + "\" not found.")
         self.release_name = release_name
 
@@ -18,8 +18,8 @@ class ReleaseMissingRequiredAsset(Exception):
 
 class Releases:
 
-    def __init__(self):
-        self.data = utils.read_json_from_url(GH_RELEASES_URL)
+    def __init__(self, auth_token=None):
+        self.data = utils.read_json_from_url(GH_RELEASES_URL, auth_token)
         # Convert the 'created_at' field to a datetime so that we can
         # sort based on it
         for release in self.data:
