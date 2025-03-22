@@ -38,7 +38,7 @@ jobs:
       - run: ./scripts/task.sh setup download-ceremonies-for-releases "test_releases/test-ceremony-20250224" "test_releases/test-ceremony-20250224" --witness-gen-type "both" --auth-token "${{ secrets.GITHUB_TOKEN }}"
       - run: |
         source ~/.bashrc
-        cargo test
+        cargo test 
   rust-macos:
     name: Run cargo test on macos
     runs-on: macos-latest
