@@ -37,7 +37,7 @@ jobs:
       - run: cat ~/.bashrc
       - run: ./scripts/task.sh circuit install-deps
       - run: ./scripts/task.sh setup download-ceremonies-for-releases "test_releases/test-ceremony-20250224" "test_releases/test-ceremony-20250224" --witness-gen-type "both" --auth-token "${{ secrets.GITHUB_TOKEN }}"
-      - run: LD_LIBRARY_PATH=$(pwd)/rust-rapidsnark/rapidsnark/build/subprojects/oneTBB-2022.0.0 cargo test
+      - run: cargo test
   rust-macos:
     name: Run cargo test on macos
     runs-on: macos-latest
@@ -53,4 +53,4 @@ jobs:
       - run: cat ~/.bashrc
       - run: ./scripts/task.sh circuit install-deps
       - run: ./scripts/task.sh setup download-ceremonies-for-releases "test_releases/test-ceremony-20250224" "test_releases/test-ceremony-20250224" --witness-gen-type "both" --auth-token "${{ secrets.GITHUB_TOKEN }}"
-      - run: DYLD_LIBRARY_PATH=$(pwd)/rust-rapidsnark/rapidsnark/build/subprojects/oneTBB-2022.0.0 cargo test
+      - run: cargo test
