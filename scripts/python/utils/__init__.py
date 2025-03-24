@@ -158,9 +158,10 @@ def directory_checksum(directory):
     return sha256_hash
 
 def force_symlink_dir(target, link_path):
-    if os.path.exists(link_path):
-        assert os.path.islink(link_path)
-        os.remove(link_path)
+    if link_path.is_symlink():
+        link_path.unlink()
+    elif link_path.is_file() or link_path.is_dir():
+        eprint("ERROR: expected to replace symlink " + str(link_path) + ", but it is not a symlink.")
     os.symlink(target, link_path, target_is_directory=True)
 
 
