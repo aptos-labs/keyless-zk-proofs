@@ -22,7 +22,7 @@ TESTING_SETUPS_DIR=utils.resources_dir_root() / "testing_setups"
 
 
 def repo_circuit_checksum():
-    return utils.directory_checksum(utils.repo_root() / "circuit/templates")
+    return utils.directory_checksum(utils.repo_root() / "circuit/templates", ".circom")
 
 def repo_circuit_setup_path():
     return TESTING_SETUPS_DIR / repo_circuit_checksum()

@@ -140,21 +140,18 @@ def file_checksum(path):
     with open(path, "rb") as f:
         return hashlib.file_digest(f, "sha256").hexdigest()
 
-def directory_checksum(directory):
-    """Return a SHA256 checksum of (a tar file of) a directory and all its contents."""
-    # Create a BytesIO buffer to hold the tar archive in memory
-    tar_buffer = io.BytesIO()
-    
-    # Create the tar archive in the buffer
-    with tarfile.open(fileobj=tar_buffer, mode="w") as tar:
-        tar.add(directory, arcname=os.path.basename(directory))
-    
-    # Get the tar archive data from the buffer
-    tar_data = tar_buffer.getvalue()
-    
+def directory_checksum(directory, extension):
+    """Return a sha256 checkum for all files of a certain extension in a given directory"""
+
+    all_contents = b"" 
+
+    for child in directory.rglob("*"+extension):
+        with open(child, mode='rb') as file:
+            all_contents += file.read()
+
     # Compute the SHA-256 checksum
-    sha256_hash = hashlib.sha256(tar_data).hexdigest()
-    
+    sha256_hash = hashlib.sha256(all_contents).hexdigest()
+
     return sha256_hash
 
 def force_symlink_dir(target, link_path):
