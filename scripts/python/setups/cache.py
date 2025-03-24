@@ -21,12 +21,18 @@ def download_blob_if_present(name, dest):
     try:
         bucket = cache_bucket()
     except google.api_core.exceptions.Forbidden:
-        eprint("You aren't authenticated to google cloud; can't check cache for setups.")
+        eprint("You aren't authenticated to google cloud; can't upload setup to cache.")
         eprint("Please download the google cloud-cli (on macos: `brew install google-cloud-sdk`)")
         eprint("and then run `gcloud auth login --update-adc` to authenticate yourself.")
         return False
     except google.auth.exceptions.RefreshError:
-        eprint("Your google cloud credentials have expired. Please run `gcloud auth login --update-adc` to re-authenticate.")
+        eprint("Your google cloud credentials have expired; can't upload setup to cache.")
+        eprint("Please run `gcloud auth login --update-adc` to reauthenticate yourself.")
+        return False
+    except google.auth.exceptions.DefaultCredentialsError:
+        eprint("You aren't authenticated to google cloud; can't upload setup to cache.")
+        eprint("Please download the google cloud-cli (on macos: `brew install google-cloud-sdk`)")
+        eprint("and then run `gcloud auth login --update-adc` to authenticate yourself.")
         return False
 
 
@@ -61,6 +67,12 @@ def blob_exists(name):
         eprint("Your google cloud credentials have expired. Please run `gcloud auth login --update-adc` to re-authenticate.")
         # Hacky to return true here
         return True
+    except google.auth.exceptions.DefaultCredentialsError:
+        eprint("You aren't authenticated to google cloud; can't upload setup to cache.")
+        eprint("Please download the google cloud-cli (on macos: `brew install google-cloud-sdk`)")
+        eprint("and then run `gcloud auth login --update-adc` to authenticate yourself.")
+        # Hacky to return true here
+        return True
 
     blob_name = name + ".tar.gz"
     blob = bucket.blob(blob_name)
@@ -76,7 +88,13 @@ def upload_to_blob(name, folder):
         eprint("and then run `gcloud auth login --update-adc` to authenticate yourself.")
         return False
     except google.auth.exceptions.RefreshError:
-        eprint("Your google cloud credentials have expired. Please run `gcloud auth login --update-adc` to re-authenticate.")
+        eprint("Your google cloud credentials have expired; can't upload setup to cache.")
+        eprint("Please run `gcloud auth login --update-adc` to reauthenticate yourself.")
+        return False
+    except google.auth.exceptions.DefaultCredentialsError:
+        eprint("You aren't authenticated to google cloud; can't upload setup to cache.")
+        eprint("Please download the google cloud-cli (on macos: `brew install google-cloud-sdk`)")
+        eprint("and then run `gcloud auth login --update-adc` to authenticate yourself.")
         return False
 
     with tempfile.TemporaryDirectory() as temp_dir:
