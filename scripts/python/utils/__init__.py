@@ -145,9 +145,13 @@ def directory_checksum(directory, extension):
 
     all_contents = b"" 
 
-    for child in directory.rglob("*"+extension):
+    for child in sorted(directory.rglob("*"+extension)):
         with open(child, mode='rb') as file:
+            all_contents += (str(child.relative_to(repo_root())) + "\n").encode("utf-8")
             all_contents += file.read()
+
+    with open("test.txt", mode='wb') as file:
+        file.write(all_contents)
 
     # Compute the SHA-256 checksum
     sha256_hash = hashlib.sha256(all_contents).hexdigest()
