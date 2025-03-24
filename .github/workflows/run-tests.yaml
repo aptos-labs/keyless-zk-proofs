@@ -32,10 +32,7 @@ jobs:
         with:
           submodules: 'recursive'
       - run: echo "" > ~/.bashrc
-      - run: ./scripts/task.sh prover-service install-deps
-      - run: ./scripts/task.sh prover-service add-envvars-to-profile
-      - run: ./scripts/task.sh circuit install-deps
-      - run: ./scripts/task.sh setup download-ceremonies-for-releases "test_releases/test-ceremony-20250224" "test_releases/test-ceremony-20250224" --witness-gen-type "both" --auth-token "${{ secrets.GITHUB_TOKEN }}"
+      - run: ./scripts/task.sh setup-dev-environment
       - run: source ~/.bashrc && cargo test 
   rust-macos:
     name: Run cargo test on macos
@@ -47,8 +44,5 @@ jobs:
         with:
           submodules: 'recursive'
       - run: echo "" > ~/.bashrc
-      - run: ./scripts/task.sh prover-service install-deps
-      - run: ./scripts/task.sh prover-service add-envvars-to-profile
-      - run: ./scripts/task.sh circuit install-deps
-      - run: ./scripts/task.sh setup download-ceremonies-for-releases "test_releases/test-ceremony-20250224" "test_releases/test-ceremony-20250224" --witness-gen-type "both" --auth-token "${{ secrets.GITHUB_TOKEN }}"
+      - run: ./scripts/task.sh setup-dev-environment
       - run: source ~/.bashrc && cargo test
