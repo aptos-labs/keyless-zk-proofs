@@ -14,7 +14,8 @@ import typer
 # Scripts now use the typer library, which automatically builds usage strings for 
 # each command using the corresponding python function's docstring.
 
-app = typer.Typer(no_args_is_help=True, rich_markup_mode="markdown")
+
+app = typer.Typer(name="task.sh", no_args_is_help=True, rich_markup_mode="markdown")
 app.add_typer(prover_service.app, name="prover-service", help="Commands related to the prover service.")
 app.add_typer(setups.app, name="setup", help="Commands related to managing the circuit setup.")
 app.add_typer(circuit.app, name="circuit", help="Commands related to managing the circuit setup.")
@@ -48,7 +49,7 @@ def setup_dev_environment():
 
 
 
-app()
+app(prog_name='task.sh')
 
 utils.remind_to_restart_shell_if_needed()
 
