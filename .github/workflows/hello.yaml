@@ -13,4 +13,4 @@ jobs:
     runs-on: macos-latest-xlarge
     steps:
       - run: |
-          free -m
+          sysctl hw.memsize
