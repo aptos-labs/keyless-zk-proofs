@@ -10,27 +10,30 @@ from pathlib import Path
 import tarfile
 import os
 
-
-def cache_bucket():
+def cache_bucket_for_upload():
     credentials, project = default()
     client = storage.Client(credentials=credentials, project="aptos-keyless-prod")
     return client.get_bucket("aptos-circuit-testing-setups")
+
+def cache_bucket():
+    anonymous_client = storage.Client.create_anonymous_client()
+    return anonymous_client.bucket("aptos-circuit-testing-setups")
 
 
 def download_blob_if_present(name, dest):
     try:
         bucket = cache_bucket()
     except google.api_core.exceptions.Forbidden:
-        eprint("You aren't authenticated to google cloud; can't upload setup to cache.")
+        eprint("Forbidden: you aren't authenticated to google cloud; can't download setup.")
         eprint("Please download the google cloud-cli (on macos: `brew install google-cloud-sdk`)")
         eprint("and then run `gcloud auth login --update-adc` to authenticate yourself.")
         return False
     except google.auth.exceptions.RefreshError:
-        eprint("Your google cloud credentials have expired; can't upload setup to cache.")
+        eprint("Your google cloud credentials have expired; can't download setup.")
         eprint("Please run `gcloud auth login --update-adc` to reauthenticate yourself.")
         return False
     except google.auth.exceptions.DefaultCredentialsError:
-        eprint("You aren't authenticated to google cloud; can't upload setup to cache.")
+        eprint("You aren't authenticated to google cloud; can't download setup.")
         eprint("Please download the google cloud-cli (on macos: `brew install google-cloud-sdk`)")
         eprint("and then run `gcloud auth login --update-adc` to authenticate yourself.")
         return False
@@ -81,7 +84,7 @@ def blob_exists(name):
 
 def upload_to_blob(name, folder):
     try:
-        bucket = cache_bucket()
+        bucket = cache_bucket_for_upload()
     except google.api_core.exceptions.Forbidden:
         eprint("You aren't authenticated to google cloud; can't upload setup to cache.")
         eprint("Please download the google cloud-cli (on macos: `brew install google-cloud-sdk`)")
