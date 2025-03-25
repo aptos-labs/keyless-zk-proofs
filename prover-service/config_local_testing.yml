@@ -1,7 +1,6 @@
 ---
 resources_dir: "~/.local/share/aptos-keyless/current_setups"
-default_setup_dir: "default"
-new_setup_dir: "new"
+setup_dir: "default"
 zkey_filename: "prover_key.zkey"
 witness_gen_binary_filename: "main_c"
 test_verification_key_filename: "verification_key.json"

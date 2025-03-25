@@ -19,7 +19,6 @@ impl PathStr for NamedTempFile {
 
 pub fn witness_gen(
     config: &ProverServiceConfig,
-    use_new_setup: bool,
     body: &str,
 ) -> Result<NamedTempFile> {
     let span = info_span!("Generating witness");
@@ -32,7 +31,6 @@ pub fn witness_gen(
 
     let output = get_witness_command(
         config,
-        use_new_setup,
         input_file.path_str()?,
         witness_file.path_str()?,
     )
@@ -57,14 +55,13 @@ pub fn witness_gen(
 #[cfg(not(target_arch = "x86_64"))]
 fn get_witness_command(
     config: &ProverServiceConfig,
-    use_new_setup: bool,
     input_file_path: &str,
     witness_file_path: &str,
 ) -> Command {
     let mut c = Command::new("node");
     c.args(&[
-        config.witness_gen_js_path(use_new_setup),
-        config.witness_gen_wasm_path(use_new_setup),
+        config.witness_gen_js_path(),
+        config.witness_gen_wasm_path(),
         String::from(input_file_path),
         String::from(witness_file_path),
     ]);
@@ -74,11 +71,10 @@ fn get_witness_command(
 #[cfg(target_arch = "x86_64")]
 fn get_witness_command(
     config: &ProverServiceConfig,
-    use_new_setup: bool,
     input_file_path: &str,
     witness_file_path: &str,
 ) -> Command {
-    let mut c = Command::new(config.witness_gen_binary_path(use_new_setup));
+    let mut c = Command::new(config.witness_gen_binary_path());
     c.args([input_file_path, witness_file_path]); // Example arguments
     c
 }

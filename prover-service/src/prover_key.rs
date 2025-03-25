@@ -6,11 +6,9 @@ use crate::config::ProverServiceConfig;
 use crate::watcher::ExternalResource;
 use aptos_crypto::ed25519::{Ed25519PrivateKey, Ed25519PublicKey};
 use aptos_crypto::ValidCryptoMaterialStringExt;
-use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 #[cfg(test)]
 use std::io::Write;
-use std::sync::{Arc, RwLock};
 
 pub async fn cached_prover_key(config: &ProverServiceConfig) -> String {
     String::from(&config.resources_dir) + &config.zkey_filename
@@ -92,9 +90,6 @@ impl TrainingWheelsKeyPair {
         }
     }
 }
-
-pub static ON_CHAIN_KEYLESS_CONFIG: Lazy<Arc<RwLock<Option<OnChainKeylessConfiguration>>>> =
-    Lazy::new(|| Arc::new(RwLock::new(None)));
 
 /// This is not a UT, but a tool to convert a .vkey to its on-chain representation and save in a file.
 #[test]

@@ -14,7 +14,7 @@ use serial_test::serial;
 #[serial]
 async fn default_request() {
     let testcase = ProofTestCase::default_with_payload(TestJWTPayload::default())
-        .compute_nonce(&get_test_circuit_config());
+        .compute_nonce();
 
     convert_prove_and_verify(&testcase).await.unwrap();
 }
@@ -30,7 +30,7 @@ async fn request_with_email() {
         uid_key: String::from("email"),
         ..ProofTestCase::default_with_payload(jwt_payload)
     }
-    .compute_nonce(&get_test_circuit_config());
+    .compute_nonce();
     convert_prove_and_verify(&testcase).await.unwrap();
 }
 
@@ -45,7 +45,7 @@ async fn request_with_no_extra_field() {
         extra_field: None,
         ..ProofTestCase::default_with_payload(jwt_payload)
     }
-    .compute_nonce(&get_test_circuit_config());
+    .compute_nonce();
     convert_prove_and_verify(&testcase).await.unwrap();
 }
 
@@ -60,7 +60,7 @@ async fn request_with_aud_recovery() {
         idc_aud: Some(String::from("original")),
         ..ProofTestCase::default_with_payload(jwt_payload)
     }
-    .compute_nonce(&get_test_circuit_config());
+    .compute_nonce();
     convert_prove_and_verify(&testcase).await.unwrap();
 }
 
@@ -77,7 +77,7 @@ async fn request_sub_is_required_in_jwt() {
         uid_key: String::from("email"),
         ..ProofTestCase::default_with_payload(jwt_payload)
     }
-    .compute_nonce(&get_test_circuit_config());
+    .compute_nonce();
     convert_prove_and_verify(&testcase).await.unwrap();
 }
 
@@ -93,7 +93,7 @@ async fn request_with_sub() {
         uid_key: String::from("sub"),
         ..ProofTestCase::default_with_payload(jwt_payload)
     }
-    .compute_nonce(&get_test_circuit_config());
+    .compute_nonce();
     convert_prove_and_verify(&testcase).await.unwrap();
 }
 
@@ -110,7 +110,7 @@ async fn request_with_sub_no_email_verified() {
         uid_key: String::from("sub"),
         ..ProofTestCase::default_with_payload(jwt_payload)
     }
-    .compute_nonce(&get_test_circuit_config());
+    .compute_nonce();
     convert_prove_and_verify(&testcase).await.unwrap();
 }
 
@@ -127,7 +127,7 @@ async fn request_with_wrong_uid_key() {
         uid_key: String::from("email"),
         ..ProofTestCase::default_with_payload(jwt_payload)
     }
-    .compute_nonce(&get_test_circuit_config());
+    .compute_nonce();
 
     convert_prove_and_verify(&testcase).await.unwrap();
 }
@@ -145,7 +145,7 @@ async fn request_with_invalid_exp_date() {
         epk_expiry_time_secs: 200,
         ..ProofTestCase::default_with_payload(jwt_payload)
     }
-    .compute_nonce(&get_test_circuit_config());
+    .compute_nonce();
 
     convert_prove_and_verify(&testcase).await.unwrap();
 }
@@ -161,7 +161,7 @@ async fn request_jwt_exp_field_does_not_matter() {
     let testcase = ProofTestCase {
         ..ProofTestCase::default_with_payload(jwt_payload)
     }
-    .compute_nonce(&get_test_circuit_config());
+    .compute_nonce();
 
     convert_prove_and_verify(&testcase).await.unwrap();
 }
@@ -195,7 +195,7 @@ async fn request_all_sub_lengths() {
         };
 
         let testcase = ProofTestCase::default_with_payload(jwt_payload)
-            .compute_nonce(&get_test_circuit_config());
+            .compute_nonce();
 
         convert_prove_and_verify(&testcase).await.unwrap();
     }

@@ -1,4 +1,3 @@
-has_input_skip_aud_checks: true
 max_lengths:
   jwt: 1536
   jwt_header_with_separator: 300

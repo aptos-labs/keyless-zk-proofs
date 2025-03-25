@@ -15,7 +15,7 @@ async fn test_federated_jwk_fetch() {
     };
 
     let testcase =
-        ProofTestCase::default_with_payload(jwt_payload).compute_nonce(&get_test_circuit_config());
+        ProofTestCase::default_with_payload(jwt_payload).compute_nonce();
 
     let jwk_keypair = gen_test_jwk_keypair_with_kid_override(kid);
     let prover_request_input = testcase.convert_to_prover_request(&jwk_keypair);
@@ -34,7 +34,7 @@ async fn test_federated_jwk_fetch_fails_for_bad_iss() {
     };
 
     let testcase =
-        ProofTestCase::default_with_payload(jwt_payload).compute_nonce(&get_test_circuit_config());
+        ProofTestCase::default_with_payload(jwt_payload).compute_nonce();
 
     let jwk_keypair = gen_test_jwk_keypair_with_kid_override(kid);
     let prover_request_input = testcase.convert_to_prover_request(&jwk_keypair);
@@ -58,7 +58,7 @@ async fn test_federated_jwk_fetch_fails_for_bad_kid() {
     };
 
     let testcase =
-        ProofTestCase::default_with_payload(jwt_payload).compute_nonce(&get_test_circuit_config());
+        ProofTestCase::default_with_payload(jwt_payload).compute_nonce();
 
     let jwk_keypair = gen_test_jwk_keypair_with_kid_override(kid);
     let prover_request_input = testcase.convert_to_prover_request(&jwk_keypair);

@@ -1,0 +1,50 @@
+name: run-cargo-test
+
+on:
+  push:
+  workflow_dispatch:
+    inputs:
+      CIRCUIT_RELEASE_TAG:
+        type: string
+      PROVER_GIT_REF:
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  docker-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - id: auth
+        name: "Authenticate to Google Cloud"
+        uses: "google-github-actions/auth@v1"
+        with:
+          create_credentials_file: false
+          token_format: "access_token"
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT_EMAIL }}
+
+      - name: Login to us-central1 Google Artifact Registry
+        uses: docker/login-action@v3
+        with:
+          registry: us-docker.pkg.dev
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./prover-service/DockerfileV2
+          push: true
+          tags: |
+            us-docker.pkg.dev/aptos-registry/docker/prover-service:${{ github.sha }}.${{ inputs.CIRCUIT_RELEASE_TAG }}
+          build-args: |
+            GIT_COMMIT=${{ github.sha }}
+            CIRCUIT_RELEASE_TAG=${{ inputs.CIRCUIT_RELEASE_TAG }}
