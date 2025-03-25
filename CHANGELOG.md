@@ -6,7 +6,7 @@ Currently this contains the changes from the last few of Rex's PRs.
 
 This PR changes the `./task.sh` actions that procure the setups (prover key, verification key, circuit config, witness gen binaries). It also cleans up the `task.sh` actions more generally.
 
-Previously, there was a single action that downloaded these resources from URLs that were hardcoded in the scripts. Now, there are two options for procuring a setup:
+Previously, there was a single action that downloaded these resources from old ceremony repo URLs that were hardcoded in the scripts. Now, there are two options for procuring a setup:
 
 ### Locally-generated testing setup
 

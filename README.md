@@ -25,7 +25,7 @@ the circuit compiles before committing. To do this, run the following
 command:
 
 ```
-./scripts/task.sh setup-dev-environment misc:install-circom-precommit-hook
+./scripts/task.sh misc install-circom-precommit-hook
 ```
 
 For more information on the actions defined for this repo, see [the scripts
