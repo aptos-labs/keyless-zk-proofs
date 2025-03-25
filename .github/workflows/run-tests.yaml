@@ -36,7 +36,7 @@ jobs:
       - run: source ~/.bashrc && cargo test 
   rust-macos:
     name: Run cargo test on macos
-    runs-on: macos-latest
+    runs-on: macos-latest-xlarge
     env:
       CARGO_TERM_COLOR: always
     steps:
