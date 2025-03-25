@@ -13,8 +13,8 @@ import os
 
 def cache_bucket():
     credentials, project = default()
-    client = storage.Client(credentials=credentials, project="aptos-data-staging")
-    return client.get_bucket("aptos-keyless-testing")
+    client = storage.Client(credentials=credentials, project="aptos-keyless-prod")
+    return client.get_bucket("aptos-circuit-testing-setups")
 
 
 def download_blob_if_present(name, dest):
