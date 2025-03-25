@@ -105,7 +105,7 @@ class TestingSetup(setups.Setup):
                 self.c_witness_gen_from_scratch()
         else:
             if not ignore_cache and cache.download_blob_if_present(self.checksum(), TESTING_SETUPS_DIR) and self.is_complete():
-                if platform.machine() == 'x86_64' and not repo_circuit_setup.witness_gen_c():
+                if platform.machine() == 'x86_64' and not self.witness_gen_c():
                     self.c_witness_gen_from_scratch()
             else:
                 eprint("Deleting old testing setups...")

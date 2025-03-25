@@ -78,7 +78,6 @@ src_files_common = [
   'fullprover.cpp',
   'groth16.cpp',
   'logger.cpp',
-  'main.cpp',
   'misc.cpp',
   'multiexp.cpp',
   'naf.cpp',
