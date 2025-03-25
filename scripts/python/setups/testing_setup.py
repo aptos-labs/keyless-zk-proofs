@@ -29,14 +29,15 @@ def repo_circuit_setup_path():
 
 def require_ptau_file():
     if PTAU_PATH.is_file():
-        eprint("Powers-of-tau file found, skipping download.")
+        eprint("Powers-of-tau file found at " + str(PTAU_PATH) + ", skipping download.")
     else:
-        eprint("Downloading powers-of-tau file...")
+        eprint("Downloading powers-of-tau file... (destination: " + str(PTAU_PATH) + ")")
         utils.download_file(PTAU_URL, PTAU_PATH)
+        eprint("Finished downloading to " + str(PTAU_PATH) + ".")
 
     eprint("Checking sha256sum of ptau file...")
     if utils.file_checksum(PTAU_PATH) != PTAU_CHECKSUM:
-        eprint("WARNING: ptau file doesn't match expected sha256sum. Aborting.")
+        eprint("WARNING: ptau file at " + str(PTAU_PATH) + " doesn't match expected sha256sum. Aborting.")
         exit(2)
 
 class TestingSetup(setups.Setup):
