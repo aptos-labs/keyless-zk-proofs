@@ -1,0 +1,16 @@
+name: run-cargo-test
+
+on:
+  push:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rust-macos:
+    name: Run cargo test on macos
+    runs-on: macos-latest-xlarge
+    steps:
+      - run: |
+          free -m
