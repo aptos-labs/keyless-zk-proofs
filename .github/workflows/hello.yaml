@@ -39,3 +39,4 @@ jobs:
       - name: hello
         run: |
           pwd
+          ls
