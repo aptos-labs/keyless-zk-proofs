@@ -9,6 +9,10 @@ on:
       PROVER_GIT_REF:
         type: string
 
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
   docker-image:
     runs-on: ubuntu-latest
