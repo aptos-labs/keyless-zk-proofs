@@ -2,15 +2,36 @@ name: run-cargo-test
 
 on:
   push:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  workflow_dispatch:
+    inputs:
+      CIRCUIT_RELEASE_TAG:
+        type: string
+      PROVER_GIT_REF:
+        type: string
 
 jobs:
-  rust-macos:
-    name: Run cargo test on macos
-    runs-on: macos-latest-xlarge
+  docker-image:
+    runs-on: ubuntu-latest
     steps:
-      - run: |
-          sysctl hw.memsize
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - id: auth
+        name: "Authenticate to Google Cloud"
+        uses: "google-github-actions/auth@v1"
+        with:
+          create_credentials_file: false
+          token_format: "access_token"
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT_EMAIL }}
+
+      - name: Login to us-central1 Google Artifact Registry
+        uses: docker/login-action@v3
+        with:
+          registry: us-docker.pkg.dev
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
+      - name: hello
+        run: |
+          pwd
