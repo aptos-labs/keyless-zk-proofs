@@ -3,12 +3,14 @@
 # The image used for building
 FROM debian:bookworm as build_prover_service
 ARG TARGETARCH
+ARG RELEASE_DEFAULT
+ARG RELEASE_NEW
 
 # copy the entire cargo workspace into the image
 COPY --link . .
 
 # Install deps for building prover service
-RUN ./scripts/task.sh prover-service install-deps
+RUN ./scripts/task.sh prover-service install-deps 
 
 # Build prover service
 RUN /root/.cargo/bin/cargo build --release -p prover-service \
@@ -17,8 +19,8 @@ RUN /root/.cargo/bin/cargo build --release -p prover-service \
 # Download trusted setup and witness gen binaries
 ENV RESOURCES_DIR=/resources
 RUN ./scripts/task.sh setup download-ceremonies-for-releases \
-        "test_releases/test-ceremony-20250224"               \
-        "test_releases/test-ceremony-20250224"               \
+        "$RELEASE_DEFAULT"                                   \
+        "$RELEASE_NEW"                                       \
         --witness-gen-type "c"
 
 
@@ -40,6 +42,8 @@ COPY --link --from=build_prover_service ./rust-rapidsnark/rapidsnark/build/subpr
 COPY --link --from=build_prover_service ./resources ./resources
 # copy prover service config file
 COPY --link ./prover-service/config.yml ./config.yml
+# copy prover service config file for running the automated docker test (not needed I think)
+#COPY --link ./prover-service/config_docker_test.yml ./config_docker_test.yml
 
 ARG GIT_COMMIT
 ENV GIT_COMMIT=$GIT_COMMIT

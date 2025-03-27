@@ -1,0 +1,14 @@
+[package]
+name = "automated-docker-test"
+edition = "2021"
+
+[dependencies]
+prover-service = { workspace = true } 
+keyless-common = { workspace = true } 
+shellexpand = { workspace = true } 
+serde = { workspace = true } 
+serde_json = { workspace = true } 
+aptos-crypto = { workspace = true } 
+aptos-types = { workspace = true } 
+serde_yaml = { workspace = true } 
+reqwest = { workspace = true } 

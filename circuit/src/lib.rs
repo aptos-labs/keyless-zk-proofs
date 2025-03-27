@@ -4,7 +4,7 @@
 extern crate core;
 
 use anyhow::ensure;
-use aptos_keyless_common::input_processing::{
+use keyless_common::input_processing::{
     circuit_input_signals::{CircuitInputSignals, Padded},
     witness_gen::witness_gen,
 };

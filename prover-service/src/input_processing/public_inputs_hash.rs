@@ -4,9 +4,9 @@ use super::{field_check_input, field_parser::FieldParser};
 use crate::input_processing::types::Input;
 use anyhow::{anyhow, Result};
 use aptos_crypto::poseidon_bn254;
-use aptos_keyless_common::input_processing::config::CircuitConfig;
 use aptos_types::keyless::{Configuration, IdCommitment};
 use ark_bn254::Fr;
+use keyless_common::input_processing::config::CircuitConfig;
 
 pub fn compute_idc_hash(
     input: &Input,
@@ -170,15 +170,15 @@ mod tests {
         encoding_type::EncodingType,
         poseidon_bn254,
     };
-    use aptos_keyless_common::input_processing::{
-        config::CircuitConfig,
-        encoding::{FromB64, JwtParts},
-        sha::with_sha_padding_bytes,
-    };
     use aptos_types::{
         jwks::rsa::RSA_JWK, keyless::Configuration, transaction::authenticator::EphemeralPublicKey,
     };
     use ark_bn254::Fr;
+    use keyless_common::input_processing::{
+        config::CircuitConfig,
+        encoding::{FromB64, JwtParts},
+        sha::with_sha_padding_bytes,
+    };
     use std::{fs, str::FromStr, sync::Arc};
 
     #[test]

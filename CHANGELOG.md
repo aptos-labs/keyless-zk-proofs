@@ -2,6 +2,38 @@
 
 Currently this contains the changes from the last few of Rex's PRs.
 
+## PR #44: Automate testing docker image
+
+This PR adds the `automated-docker-test` folder, which contains resources
+that allow for running an automated test of a prover service docker image.
+See the [README](./automated-docker-test/README.md) for more details.
+
+## PR #43: Minor script/CI improvements 
+
+Does the following:
+
+* Make task.sh not print 'file not found' and 'package not found' messages
+* Print out ptau file path when downloading/verifying checksum so that it's
+  easy to find when there are errors
+* Change macos CI tests to run on a larger VM, so that it hopefully won't
+  run out of memory when doing a local testing setup
+* Fix autocompletion
+
+## PR #43: Fix prover service 
+
+This PR does the following:
+
+* Changes `prover_service/circuit_config.yml` to work with the audless
+  version of the circuit
+* Since prover service tests will now pass for the current version of the
+  circuit (i.e., the one in `circuit/templates`), sets the GH workflow to
+  run tests with a testing setup corresponding to whatever circuit is in
+  the repo
+* Removes an extraneous `main.cpp` file:
+  `rust-rapidsnark/rapidsnark/src/main.cpp`. We don't use it, and it was
+  causing issues with compilation on Zhoujun's machine
+* Misc bugfixes in `scripts`
+
 ## PR #39: New setup procurement
 
 This PR changes the `./task.sh` actions that procure the setups (prover key, verification key, circuit config, witness gen binaries). It also cleans up the `task.sh` actions more generally.

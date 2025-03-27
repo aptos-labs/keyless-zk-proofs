@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::TestCircuitHandle;
-use aptos_keyless_common::input_processing::{
-    circuit_input_signals::CircuitInputSignals, config::CircuitConfig,
-};
 use ark_bn254::Fr;
 use ark_ff::PrimeField;
+use keyless_common::input_processing::{
+    circuit_input_signals::CircuitInputSignals, config::CircuitConfig,
+};
 use rand::{distributions::Alphanumeric, rngs::ThreadRng, Rng}; // 0.8
 use std::iter::zip;
 

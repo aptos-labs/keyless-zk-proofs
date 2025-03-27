@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::TestCircuitHandle;
-use aptos_keyless_common::input_processing::{
+use keyless_common::input_processing::{
     circuit_input_signals::CircuitInputSignals, config::CircuitConfig, sha,
 };
 use rand_chacha::{

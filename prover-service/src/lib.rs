@@ -18,5 +18,5 @@ pub mod training_wheels;
 pub mod watcher;
 pub mod witness_gen;
 
-#[cfg(test)]
+// #[cfg(test)]
 pub mod tests;

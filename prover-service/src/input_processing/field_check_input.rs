@@ -3,9 +3,7 @@
 use super::{field_parser::ParsedField, types::Input};
 use crate::input_processing::field_parser::FieldParser;
 use anyhow::{bail, Result};
-use aptos_keyless_common::input_processing::circuit_input_signals::{
-    CircuitInputSignals, Unpadded,
-};
+use keyless_common::input_processing::circuit_input_signals::{CircuitInputSignals, Unpadded};
 
 fn calc_string_bodies(s: &str) -> Vec<bool> {
     let bytes = s.as_bytes();

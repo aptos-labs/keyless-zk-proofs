@@ -6,9 +6,7 @@ use num_bigint::BigUint;
 use num_traits::Num;
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
-#[cfg(test)]
 use std::fs::File;
-#[cfg(test)]
 use std::io::Write;
 use std::sync::{Arc, RwLock};
 
@@ -89,13 +87,17 @@ fn groth16_vk_rewriter() {
     ) {
         let local_vk_json = std::fs::read_to_string(path_in.as_str()).unwrap();
         let local_vk: SnarkJsGroth16VerificationKey = serde_json::from_str(&local_vk_json).unwrap();
-        let onchain_vk = local_vk.try_as_onchain_repr().unwrap();
-        let json_out = serde_json::to_string_pretty(&onchain_vk).unwrap();
-        File::create(path_out)
-            .unwrap()
-            .write_all(json_out.as_bytes())
-            .unwrap();
+        write_vk_onchain_repr_file(local_vk, &path_out);
     }
+}
+
+pub fn write_vk_onchain_repr_file(vk: SnarkJsGroth16VerificationKey, path_out: &str) {
+    let onchain_vk = vk.try_as_onchain_repr().unwrap();
+    let json_out = serde_json::to_string_pretty(&onchain_vk).unwrap();
+    File::create(&path_out)
+        .unwrap()
+        .write_all(json_out.as_bytes())
+        .unwrap();
 }
 
 //

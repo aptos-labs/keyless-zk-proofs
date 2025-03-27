@@ -1,9 +1,9 @@
 // Copyright © Aptos Foundation
 
 use crate::groth16_vk::{OnChainGroth16VerificationKey, SnarkJsGroth16VerificationKey};
-use aptos_keyless_common::input_processing::config::CircuitConfig;
 use figment::providers::{Env, Format, Yaml};
 use figment::Figment;
+use keyless_common::input_processing::config::CircuitConfig;
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use std::fs;
@@ -50,6 +50,7 @@ pub struct ProverServiceConfig {
 pub static CONFIG: Lazy<ProverServiceConfig> = Lazy::new(|| {
     let config_file_path =
         std::env::var(CONFIG_FILE_PATH_ENVVAR).unwrap_or(String::from(CONFIG_FILE_PATH));
+
     Figment::new()
         .merge(Yaml::file(config_file_path))
         .merge(Env::raw())

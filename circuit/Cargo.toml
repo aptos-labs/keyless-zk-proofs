@@ -15,7 +15,7 @@ rust-version = { workspace = true }
 [dependencies]
 anyhow = { workspace = true }
 aptos-crypto = { workspace = true }
-aptos-keyless-common = { workspace = true }
+keyless-common = { workspace = true }
 aptos-logger = { workspace = true }
 ark-bn254 = { workspace = true }
 ark-ff = { workspace = true }

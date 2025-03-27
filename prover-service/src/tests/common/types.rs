@@ -8,12 +8,12 @@ use crate::{
     input_processing::rsa::RsaPrivateKey,
     training_wheels::verification_logic::compute_nonce,
 };
-use aptos_keyless_common::input_processing::{config::CircuitConfig, encoding::FromFr};
 use aptos_types::{
     jwks::rsa::RSA_JWK, keyless::Pepper, transaction::authenticator::EphemeralPublicKey,
 };
 use ark_ff::{BigInteger, PrimeField};
 use jsonwebtoken::{Algorithm, Header};
+use keyless_common::input_processing::{config::CircuitConfig, encoding::FromFr};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -88,8 +88,10 @@ pub trait TestJWKKeyPair {
     fn sign(&self, payload: &impl Serialize) -> String;
     #[allow(clippy::all)]
     fn into_rsa_jwk(&self) -> RSA_JWK;
+    fn to_json(&self) -> Result<String, serde_json::Error>;
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct DefaultTestJWKKeyPair {
     kid: String,
     private_key: crate::input_processing::rsa::RsaPrivateKey,
@@ -137,6 +139,10 @@ impl TestJWKKeyPair for DefaultTestJWKKeyPair {
 
     fn into_rsa_jwk(&self) -> RSA_JWK {
         RSA_JWK::new_256_aqab(&self.kid, &self.pubkey_mod_b64())
+    }
+
+    fn to_json(&self) -> Result<String, serde_json::Error> {
+        serde_json::to_string(&self.into_rsa_jwk())
     }
 }
 

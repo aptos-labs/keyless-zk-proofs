@@ -45,15 +45,21 @@ install_deps() {
   fi
 }
 
+
 install_deps
 
-if ! ls .venv &> /dev/null; then
-  python3 -m venv .venv
+if  [ -z $RESOURCES_DIR ]; then
+  RESOURCES_DIR="$HOME/.local/share/aptos-keyless"
 fi
-if ! .venv/bin/pip3 show google-cloud-storage typer &> /dev/null;  then
-  .venv/bin/pip3 install google-cloud-storage typer &> /dev/null
+mkdir -p $RESOURCES_DIR
+
+if ! ls $RESOURCES_DIR/scripts-python-venv; then
+  python3 -m venv $RESOURCES_DIR/scripts-python-venv
+fi
+if ! $RESOURCES_DIR/scripts-python-venv/bin/pip3 show google-cloud-storage typer;  then
+  $RESOURCES_DIR/scripts-python-venv/bin/pip3 install google-cloud-storage typer
 fi
 
-.venv/bin/python3 $SCRIPT_DIR/python/main.py "$@"
+$RESOURCES_DIR/scripts-python-venv/bin/python3 $SCRIPT_DIR/python/main.py "$@"
 
 

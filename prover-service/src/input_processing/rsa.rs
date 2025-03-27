@@ -6,6 +6,7 @@ use rsa::{
     pkcs1::{EncodeRsaPrivateKey, LineEnding},
     traits::PublicKeyParts,
 };
+use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -46,6 +47,7 @@ impl RsaPublicKey {
     }
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct RsaPrivateKey {
     internal_private_key: rsa::RsaPrivateKey,
 }

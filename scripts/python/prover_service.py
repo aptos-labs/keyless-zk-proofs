@@ -1,6 +1,7 @@
 from utils import manage_deps
 import utils
 import typer
+import os
 
 app = typer.Typer(no_args_is_help=True)
 
@@ -15,3 +16,12 @@ def add_envvars_to_profile():
     path = utils.repo_root() / "rust-rapidsnark/rapidsnark/build/subprojects/oneTBB-2022.0.0"
     utils.add_envvar_to_profile("LD_LIBRARY_PATH", "$LD_LIBRARY_PATH:" + str(path))
     utils.add_envvar_to_profile("DYLD_LIBRARY_PATH", "$DYLD_LIBRARY_PATH:" + str(path))
+
+@app.command()
+def test_docker_image(release):
+    """Run automated docker image test. Expects the prover service docker image to be tagged "prover-service"."""
+    os.chdir(utils.repo_root())
+    utils.run_shell_command("docker image rm -f automated-docker-test-mock-on-chain || true ", as_root=True)
+    utils.run_shell_command("docker image rm -f automated-docker-test-test-runner || true ", as_root=True)
+    utils.run_shell_command(f"cd automated-docker-test && cargo run prepare-test \"{release}\" \"{release}\"")
+    utils.run_shell_command("docker compose -f automated-docker-test/test_deployment.yml up --abort-on-container-exit", as_root=True)

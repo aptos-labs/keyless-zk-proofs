@@ -12,7 +12,7 @@ use self::{
 };
 use crate::input_processing::types::Input;
 use anyhow::Result;
-use aptos_keyless_common::{
+use keyless_common::{
     input_processing::{
         circuit_input_signals::{CircuitInputSignals, Padded},
         config::CircuitConfig,

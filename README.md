@@ -10,6 +10,9 @@ This repo contains:
    circuit unit tests.
 4. Some shared rust code in `keyless-common/`.
 5. A VK diff tool in `vk-diff` (see its [README](/vk-diff) for details).
+5. A folder/crate `automated-docker-test`, which allows for running an
+   automated test of a prover service docker image. (See its [README](./automated-docker-test/README.md) 
+   for details)
 
 ## Development environment setup
 

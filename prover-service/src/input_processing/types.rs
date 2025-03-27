@@ -1,6 +1,6 @@
 // Copyright © Aptos Foundation
 
-use aptos_keyless_common::input_processing::encoding::JwtParts;
+use keyless_common::input_processing::encoding::JwtParts;
 
 use aptos_types::{jwks::rsa::RSA_JWK, transaction::authenticator::EphemeralPublicKey};
 use ark_bn254::Fr;

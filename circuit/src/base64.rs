@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::TestCircuitHandle;
-use aptos_keyless_common::input_processing::{
+use itertools::*;
+use keyless_common::input_processing::{
     circuit_input_signals::CircuitInputSignals, config::CircuitConfig,
 };
-use itertools::*;
 
 fn expected_decoded(b64: &str) -> Vec<u8> {
     base64::decode_config(b64, base64::URL_SAFE_NO_PAD).unwrap()

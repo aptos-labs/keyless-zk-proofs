@@ -254,13 +254,13 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "aptos-crypto",
- "aptos-keyless-common",
  "aptos-logger",
  "ark-bn254",
  "ark-ff",
  "base64 0.13.1",
  "hex",
  "itertools 0.13.0",
+ "keyless-common",
  "num-bigint 0.4.4",
  "num-modular",
  "num-traits",
@@ -271,23 +271,6 @@ dependencies = [
  "sha2 0.10.8",
  "tempfile",
  "tokio",
-]
-
-[[package]]
-name = "aptos-keyless-common"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "aptos-types",
- "ark-bn254",
- "ark-ff",
- "base64 0.13.1",
- "hex",
- "num-bigint 0.4.4",
- "serde",
- "serde_json",
- "tempfile",
- "tracing",
 ]
 
 [[package]]
@@ -682,6 +665,21 @@ name = "autocfg"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
+
+[[package]]
+name = "automated-docker-test"
+version = "0.0.0"
+dependencies = [
+ "aptos-crypto",
+ "aptos-types",
+ "keyless-common",
+ "prover-service",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "serde_yaml 0.9.32",
+ "shellexpand",
+]
 
 [[package]]
 name = "axum"
@@ -2853,6 +2851,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "keyless-common"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "aptos-types",
+ "ark-bn254",
+ "ark-ff",
+ "base64 0.13.1",
+ "hex",
+ "jsonwebtoken",
+ "num-bigint 0.4.4",
+ "rsa",
+ "serde",
+ "serde_json",
+ "serde_yaml 0.9.32",
+ "tempfile",
+ "tracing",
+]
+
+[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3367,6 +3385,7 @@ dependencies = [
  "num-iter",
  "num-traits",
  "rand 0.8.5",
+ "serde",
  "smallvec",
  "zeroize",
 ]
@@ -4214,7 +4233,6 @@ dependencies = [
  "anyhow",
  "aptos-crypto",
  "aptos-crypto-derive",
- "aptos-keyless-common",
  "aptos-types",
  "ark-bls12-381",
  "ark-bn254",
@@ -4239,6 +4257,7 @@ dependencies = [
  "indicatif",
  "init-tracing-opentelemetry",
  "jsonwebtoken",
+ "keyless-common",
  "lazy_static",
  "log",
  "num-bigint 0.4.4",
@@ -4632,6 +4651,7 @@ dependencies = [
  "pkcs1",
  "pkcs8",
  "rand_core 0.6.4",
+ "serde",
  "sha2 0.10.8",
  "signature 2.2.0",
  "spki",

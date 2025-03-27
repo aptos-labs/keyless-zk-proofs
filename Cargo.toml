@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 
-members = ["circuit", "keyless-common", "prover-service", "vk-diff", "rust-rapidsnark"]
+members = ["circuit", "keyless-common", "prover-service", "vk-diff", "rust-rapidsnark", "automated-docker-test"]
 
 [workspace.package]
 authors = ["Aptos Labs <opensource@aptoslabs.com>"]
@@ -23,7 +23,8 @@ overflow-checks = true
 anyhow = "1.0.79"
 aptos-crypto = { git = "https://github.com/aptos-labs/aptos-core", branch = "main", package = "aptos-crypto" }
 aptos-crypto-derive = { git = "https://github.com/aptos-labs/aptos-core", branch = "main", package = "aptos-crypto-derive" }
-aptos-keyless-common = { path = "keyless-common" }
+keyless-common = { path = "keyless-common" }
+prover-service = { path = "prover-service" }
 aptos-keyless-pepper-common = { path = "keyless/pepper/common" }
 aptos-keyless-pepper-service = { path = "keyless/pepper/service" }
 aptos-logger = { git = "https://github.com/aptos-labs/aptos-core" }
@@ -70,8 +71,8 @@ prometheus = "0.13.3"
 rand = "0.7.3"
 rand_core = "0.6.4"
 regex = "1.10.5"
-reqwest = { version = "0.11.24", features = ["json", "stream"] }
-rsa = "0.9.6"
+reqwest = { version = "0.11.24", features = ["json", "stream", "blocking"] }
+rsa = { version = "0.9.6", features = ["serde"] }
 rust-rapidsnark = { path = "rust-rapidsnark" }
 rustls = "0.22.2"
 serde = { version = "1.0.196", features = ["derive"] }

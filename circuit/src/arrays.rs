@@ -3,11 +3,11 @@
 
 use crate::TestCircuitHandle;
 use aptos_crypto::poseidon_bn254;
-use aptos_keyless_common::input_processing::{
-    circuit_input_signals::CircuitInputSignals, config::CircuitConfig,
-};
 use ark_bn254::Fr;
 use ark_ff::{One, Zero};
+use keyless_common::input_processing::{
+    circuit_input_signals::CircuitInputSignals, config::CircuitConfig,
+};
 use rand::{thread_rng, Rng};
 
 fn build_array_selector_output(len: u32, start: u32, end: u32) -> Vec<u8> {

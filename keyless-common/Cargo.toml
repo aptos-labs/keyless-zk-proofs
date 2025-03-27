@@ -1,5 +1,5 @@
 [package]
-name = "aptos-keyless-common"
+name = "keyless-common"
 description = "Aptos Keyless circuit tests"
 version = "0.1.0"
 
@@ -24,3 +24,7 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 tempfile = { workspace = true }
 tracing = { workspace = true }
+
+jsonwebtoken = { workspace = true }
+serde_yaml = { workspace = true }
+rsa = { workspace = true }

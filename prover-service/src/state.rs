@@ -1,6 +1,6 @@
 use aptos_crypto::ed25519::Ed25519PrivateKey;
-use aptos_keyless_common::input_processing::config::CircuitConfig;
 use figment::{providers::Env, Figment};
+use keyless_common::input_processing::config::CircuitConfig;
 use rust_rapidsnark::FullProver;
 use serde::{Deserialize, Serialize};
 

@@ -56,3 +56,6 @@ jobs:
             us-docker.pkg.dev/aptos-registry/docker/prover-service:${{ github.sha }}
           build-args: |
             GIT_COMMIT=${{ github.sha }}
+            RELEASE_DEFAULT=test_releases/test-ceremony-20250224
+            RELEASE_NEW=test_releases/test-ceremony-20250224
+

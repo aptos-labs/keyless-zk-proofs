@@ -8,7 +8,6 @@ use aptos_crypto::ed25519::{Ed25519PrivateKey, Ed25519PublicKey};
 use aptos_crypto::ValidCryptoMaterialStringExt;
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
-#[cfg(test)]
 use std::io::Write;
 use std::sync::{Arc, RwLock};
 
@@ -103,15 +102,18 @@ fn tw_vk_rewriter() {
         std::env::var("LOCAL_TW_VK_IN"),
         std::env::var("ONCHAIN_KEYLESS_CONFIG_OUT"),
     ) {
-        let local_tw_sk_encoded = std::fs::read_to_string(path_in.as_str()).unwrap();
+        let local_tw_sk_encoded = std::fs::read_to_string(&path_in).unwrap();
         let local_tw_sk =
             Ed25519PrivateKey::from_encoded_string(local_tw_sk_encoded.as_str()).unwrap();
-        let local_tw_pk = Ed25519PublicKey::from(&local_tw_sk);
-        let onchain_keyless_config = OnChainKeylessConfiguration::from_tw_pk(Some(local_tw_pk));
-        let json_out = serde_json::to_string_pretty(&onchain_keyless_config).unwrap();
-        std::fs::File::create(path_out)
-            .unwrap()
-            .write_all(json_out.as_bytes())
-            .unwrap();
+        let local_tw_keypair = TrainingWheelsKeyPair::from_sk(local_tw_sk);
+        write_tw_on_chain_repr_json(&local_tw_keypair, &path_out);
     }
+}
+
+pub fn write_tw_on_chain_repr_json(tw_keypair: &TrainingWheelsKeyPair, path_out: &str) {
+    let json_out = serde_json::to_string_pretty(&tw_keypair.on_chain_repr).unwrap();
+    std::fs::File::create(path_out)
+        .unwrap()
+        .write_all(json_out.as_bytes())
+        .unwrap();
 }

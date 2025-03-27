@@ -2,11 +2,11 @@
 
 use aptos_crypto_derive::BCSCryptoHash;
 use aptos_crypto_derive::CryptoHasher;
-use aptos_keyless_common::PoseidonHash;
 use aptos_types::{
     keyless::{Groth16Proof, Pepper},
     transaction::authenticator::EphemeralPublicKey,
 };
+use keyless_common::PoseidonHash;
 use serde::{Deserialize, Serialize};
 
 //#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
