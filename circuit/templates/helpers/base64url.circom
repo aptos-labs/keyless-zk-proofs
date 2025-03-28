@@ -147,7 +147,7 @@ template Base64UrlDecode(N) {
     }
 }
 
-// Given a base64url-encoded array `in`, max length `maxN`, and actual unpadded length `n`, returns
+// Given the max length `maxN`, and actual unpadded length `n`, returns
 // the actual length of the decoded string
 template Base64UrlDecodedLength(maxN) {
     var max_q = (3 * maxN) \ 4;
