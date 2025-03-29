@@ -193,7 +193,7 @@ template identity(
     );
 
     // TODO(Perf): If we are hashing a (collision-resistant) base64url-encoding of the payload above for the
-    // cocatenation check, we could avoid this extra hashing here, perhaps?
+    //   cocatenation check, we could avoid this extra hashing here, perhaps?
     signal jwt_payload_hash <== HashBytesToFieldWithLen(MAX_JWT_PAYLOAD_LEN)(
         jwt_payload,
         jwt_payload_len

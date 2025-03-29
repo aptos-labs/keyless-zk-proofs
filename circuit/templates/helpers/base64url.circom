@@ -86,9 +86,9 @@ template Base64URLLookup() {
     1 === result;
 }
 
-// Takes in an array `in` of base64url characters and decodes it to ASCII characters in `out`. `in` may be
-// 0-padded after its base64 elements
-// Assumes `in` contains only base64url characters followed by 0-padding
+// Takes in an array `in` of base64url characters and decodes it to ASCII characters in `out`. 
+// `in` may be 0-padded after its base64 elements.
+// Assumes `in` contains only base64url characters followed by 0-padding.
 template Base64UrlDecode(N) {
     //var N = ((3*M)\4)+2; // Rough inverse of the computation performed to compute M
     var M = 4*((N+2)\3);
