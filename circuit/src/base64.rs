@@ -119,6 +119,33 @@ fn base64_decode_test_short_three_chars() {
     assert!(result.is_ok());
 }
 
+// The Base64DecodedLength should return the correct decoded length.
+#[test]
+fn base64_decoded_length_test() {
+    let circuit_handle = TestCircuitHandle::new("base64_decoded_length.circom").unwrap();
+
+    let sizes = vec![
+        (3u64, 4u64),
+        (3u64 + 1, 4u64 + 2),
+        (3u64 + 2, 4u64 + 3),
+        (3u64 * 10 + 1, 4u64 * 10 + 2),
+        (3u64 * 10 + 2, 4u64 * 10 + 3),
+    ];
+    for (expected_decoded_len, encoded_len) in sizes {
+        println!("expected_decoded_len={expected_decoded_len}, encoded_len={encoded_len}");
+        let config = CircuitConfig::new();
+
+        let circuit_input_signals = CircuitInputSignals::new()
+            .u64_input("encoded_len", encoded_len)
+            .u64_input("expected_decoded_len", expected_decoded_len)
+            .pad(&config)
+            .unwrap();
+
+        let result = circuit_handle.gen_witness(circuit_input_signals);
+        assert!(result.is_ok());
+    }
+}
+
 // ignoring b/c takes forever
 #[test]
 #[ignore]

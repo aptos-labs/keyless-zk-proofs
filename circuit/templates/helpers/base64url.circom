@@ -1,12 +1,26 @@
+/**
+ * This file implements the base64url scheme as per RFC 7515 (see https://datatracker.ietf.org/doc/html/rfc7515#appendix-C).
+ *
+ * Most importantly, this base64url flavor does not append = padding characters at the end.
+ *
+ * For more details, see: http://alinush.org/keyless#base64url.
+ *
+ * This file started as a modification of zkEmail's base64 libraries:
+ *
+ *   https://github.com/zkemail/zk-email-verify/blob/main/packages/circuits/helpers/base64.circom
+ *
+ */
+
 pragma circom 2.1.3;
 
-// File taken from https://github.com/zkemail/zk-email-verify/blob/main/packages/circuits/helpers/base64.circom
-
 include "circomlib/circuits/comparators.circom";
+
+include "../stdlib/functions/min_num_bits.circom";
 
 // http://0x80.pl/notesen/2016-01-17-sse-base64-decoding.html#vector-lookup-base
 // Modified to support base64url format instead.
 // Also accepts zero padding, which is not in the base64url format.
+// TODO(Comment): Seems to take an 8-bit base64 character and return its 6 bit decoding?
 template Base64URLLookup() {
     signal input in;
     signal output out;
@@ -147,34 +161,69 @@ template Base64UrlDecode(N) {
     }
 }
 
-// Given the max length `MAX_ENCODED_LEN`, and actual unpadded length `n`, returns
-// the actual length of the decoded string
+// Returns the length of the decoded data, given a base64url (unpadded) encoded length `m`.
+//
+// @param   MAX_ENCODED_LEN the maximum length of a base64url output, in bytes
+//
+// @input   m               the length of the encoded base64url data, in bytes
+//
+// @output  decoded_len     the length of the corresponding decoded data, in bytes
+//
+// @notes
+//   explanation why decoded length = \floor{3 * encoded length / 4}
+//
+//   encoding works as follows:
+//   suppose plaintext is length \ell
+//   every 24 bits chunk (3 bytes) is encoded into 32 bits (4 base64url characters)
+//     specifically, each 6-bit subchunk is mapped to a base64url character
+//   last chunk could be 1 or 2 bytes though
+//     case 1: \ell mod 3 = 1
+//     if it's 1 byte (8 bits), then pad it with 4 zero bits to get 12 bits
+//     now, encode these 12 bits to 2 base64url characters
+//       normally, would add another 2 padding characters (i.e., ==), but not for JWTs
+//     case 2: \ell mod 3 = 2
+//     if it's 2 bytes (16 bits), then pad it with 2 zero bits to get 18 bits
+//     now, encode these 18 bits to 3 base64url characters
+//       normally, would add another 1 padding characters (i.e., =), but not for JWTs
+//
+//   decoding works as follows:
+//   suppose encoded length is m
+//   suppose plaintext is length \ell
+//   from the algorithm above, 
+//   if m mod 4 = 0, then the input was evenly divisible into 3 byte chunks
+//     so \ell = 3 * m / 4
+//   if m mod 4 = 2, then we are in case 1 above, where \ell mod 3 = 1
+//     so \ell = \floor{3 * m / 4}
+//       e.g., \ell = 1 => m = 2 => \floor{3 * 2 / 4} = \floor{6/4} = \floor{3/2} = 1
+//       e.g., \ell = 3 + 1 => m = 4 + 2 => \floor{3 * 6 / 4} = \floor{9/2} = 4
+//       e.g., \ell = k*3 + 1 => m = k*4 + 2 => \floor{3 * (k*4 + 2) / 4} =
+//                                            = 3*k + \floor{6/4} = 3*k + 1
+//   if m mod 4 = 3, then we are in case 2 above, where \ell mod 3 = 2
+//      e.g., \ell = 2 => m = 3 => \floor{3 * 3 / 4} = \floor{9/4} = 2
+//      e.g., \ell = 3 + 2 => m = 4 + 3 => \floor{3 * 7 / 4} = \floor{21/4} = 5
+//      e.g., \ell = k*3 + 2 => m = k*4 + 3 => \floor{3 * (k*4 + 3) / 4} = 
+//                                           = 3*k + \floor{9/4} = 3*k + 2
 template Base64UrlDecodedLength(MAX_ENCODED_LEN) {
-    var max_q = (3 * MAX_ENCODED_LEN) \ 4;
-    //signal input in[MAX_ENCODED_LEN];
-    signal input n; // actual length
-    signal output decoded_len;
-    signal q <-- 3*n \ 4;
-    signal r <-- 3*n % 4;
+    assert(MAX_ENCODED_LEN > 0);
+    var MAX_QUO = (3 * MAX_ENCODED_LEN) \ 4;
+    var MAX_QUO_BITS = min_num_bits(MAX_QUO);
 
-    3*n - 4*q - r === 0;
-    signal r_correct_reminder <== LessThan(2)([r, 4]);
-    r_correct_reminder === 1;
+    signal input m; // encoded length
+    
+    signal q <-- 3*m \ 4;
+    signal r <-- 3*m % 4;
 
-    // use log function to compute log(max_q)
-    signal q_correct_quotient <== LessThan(252)([q, max_q]);
-    q_correct_quotient === 1;
+    // Step 1: Check Euclidean division holds over \Zp
+    3*m === q * 4 + r;
 
-    // var eq = 61;
-    // assumes valid encoding (if last != "=" then second to last is also
-    // != "=")
-    // TODO: We don't seem to need this, as the jwt spec removes b64 padding
-    // see https://datatracker.ietf.org/doc/html/rfc7515#page-54
-    //signal l <== SelectArrayValue(MAX_ENCODED_LEN)(in, n - 1);
-    //signal s2l <== SelectArrayValue(MAX_ENCODED_LEN)(in, n - 2);
-    //signal s_l <== IsEqual()([l, eq]);
-    //signal s_s2l <== IsEqual()([s2l, eq]);
-    //signal reducer <== -1*s_l -1*s_s2l;
-    //decoded_len <== q + reducer;
-    //log("decoded_len", decoded_len);
+    // Step 2: Checks that the remainder is less than the divisor (i.e., less than 4 <=> 2-bit)
+    _ <== Num2Bits(2)(r);
+
+    // TODO: May want to do another division to enforce m % 4 != 1
+
+    // Step 3: Check that the quotient is bounded appropriately.
+    _ <== Num2Bits(MAX_QUO_BITS)(q);
+    
+    // The decoded length is the quotient: i.e., \floor{3 * m / 4}
+    signal output decoded_len <== q;
 }
