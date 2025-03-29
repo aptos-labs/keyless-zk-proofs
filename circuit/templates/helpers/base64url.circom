@@ -147,11 +147,11 @@ template Base64UrlDecode(N) {
     }
 }
 
-// Given the max length `maxN`, and actual unpadded length `n`, returns
+// Given the max length `MAX_ENCODED_LEN`, and actual unpadded length `n`, returns
 // the actual length of the decoded string
-template Base64UrlDecodedLength(maxN) {
-    var max_q = (3 * maxN) \ 4;
-    //signal input in[maxN];
+template Base64UrlDecodedLength(MAX_ENCODED_LEN) {
+    var max_q = (3 * MAX_ENCODED_LEN) \ 4;
+    //signal input in[MAX_ENCODED_LEN];
     signal input n; // actual length
     signal output decoded_len;
     signal q <-- 3*n \ 4;
@@ -170,8 +170,8 @@ template Base64UrlDecodedLength(maxN) {
     // != "=")
     // TODO: We don't seem to need this, as the jwt spec removes b64 padding
     // see https://datatracker.ietf.org/doc/html/rfc7515#page-54
-    //signal l <== SelectArrayValue(maxN)(in, n - 1);
-    //signal s2l <== SelectArrayValue(maxN)(in, n - 2);
+    //signal l <== SelectArrayValue(MAX_ENCODED_LEN)(in, n - 1);
+    //signal s2l <== SelectArrayValue(MAX_ENCODED_LEN)(in, n - 2);
     //signal s_l <== IsEqual()([l, eq]);
     //signal s_s2l <== IsEqual()([s2l, eq]);
     //signal reducer <== -1*s_l -1*s_s2l;
