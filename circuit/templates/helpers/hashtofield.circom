@@ -42,17 +42,23 @@ template HashBytesToFieldWithLen(numBytes) {
 
     CheckAreBytes(numBytes)(in);
 
-    var num_elems = numBytes%31 == 0 ? numBytes\31 : numBytes\31 + 1; 
+    var num_elems = numBytes % 31 == 0 ? numBytes\31 : numBytes\31 + 1;
 
-    signal input_packed[num_elems] <== ChunksToFieldElems(numBytes, 31, 8)(in); // Pack 31 bytes per field element
+    // Pack 31 bytes per field element
+    signal input_packed[num_elems] <== ChunksToFieldElems(
+        numBytes,   // inputLen (i.e., max input len)
+        31,         // chunksPerFieldElem
+        8           // bitsPerChunk
+    )(in);
 
-    signal input_with_len[num_elems+1];
+    // TODO(Cleanup): Can't we use a var here? We are simply re-assigning signals, it seems.
+    signal input_with_len[num_elems + 1];
     for (var i = 0; i < num_elems; i++) {
         input_with_len[i] <== input_packed[i];
     }
     input_with_len[num_elems] <== len;
 
-    hash <== HashElemsToField(num_elems+1)(input_with_len);
+    hash <== HashElemsToField(num_elems + 1)(input_with_len);
 }
 
 // Hashes multiple bytes to one field element using a Poseidon hash
