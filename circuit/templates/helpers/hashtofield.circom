@@ -81,6 +81,10 @@ template HashBytesToField(numBytes) {
 // Hashes multiple field elements to one using Poseidon. Works with up to 64 input elements
 // For more than 16 elements, multiple Poseidon hashes are used before being combined in a final
 // hash. This is because the template we use supports only 16 input elements at most
+//
+// Notes:
+//   TODO(Comment): Looks like this is doing an incomplete hex-ary Merkle tree.
+//   Used by HashBytesToField and HashBytesToFieldWithLen.
 template HashElemsToField(numElems) {
     signal input in[numElems];
     signal output hash;
