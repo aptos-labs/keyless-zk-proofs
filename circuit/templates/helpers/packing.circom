@@ -142,6 +142,8 @@ template ChunksToFieldElem(numChunks, bitsPerChunk) {
 // Assumes each element in `in` contains `bitsPerChunk` bits of information of a field element
 // Each field element is assumed to be `chunksPerFieldElem` * `bitsPerChunk` bits. The final field element may be less than this
 // There are assumed to be `inputLen` / `chunksPerFieldElem` field elements, rounded up to the nearest whole number.
+//
+// TODO(Cleanup): `chunksPerFieldElem` is backend-specific! Need a compile-time check.
 template ChunksToFieldElems(inputLen, chunksPerFieldElem, bitsPerChunk) {
     signal input in[inputLen];
     var num_elems = inputLen%chunksPerFieldElem == 0 ? inputLen \ chunksPerFieldElem : (inputLen\chunksPerFieldElem) + 1; // '\' is the quotient operation - we add 1 if there are extra bits past the full chunks
