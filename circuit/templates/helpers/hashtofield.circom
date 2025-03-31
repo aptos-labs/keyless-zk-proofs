@@ -5,15 +5,37 @@ include "circomlib/circuits/comparators.circom";
 
 include "./packing.circom";
 
-// Hashes multiple bytes to one field element using a Poseidon hash
-// We hash the length `len` of the input as well to prevent collisions
-// Currently does not work with greater than 64*31=1984 bytes
-//
-// Warning: `numBytes` cannot be 0.
-//
-// Assumes `len` is the length of the input hash. This is only used in hashing and is not verified
-// by this template
+/**
+ * Hashes multiple bytes to one field element using Poseidon.
+ * We hash the length `len` of the input as well to prevent collisions.
+ *
+ * Currently, does not work for inputs larger than $64 \times 31 = 1984$ bytes.
+ * TODO(Comment): Why?
+ *
+ * TODO(Buses): If `in` is `Bytes(MAX_LEN)` bus, then we can remove the `CheckAreBytes`
+ * constraint here, since it may be unnecessarily repeated if this gets called for the
+ * same byte sub-sequence repeatedly.
+ *
+ * Parameters:
+ *   numBytes       the max number of bytes this can handle; is > 0 and <= 1984 (64 * 31)
+ *
+ * Input signals:
+ *   in[numBytes]   array to be hashed, although only in[0], in[1], ..., in[len-1];
+ *                  constrained to ensure elements are actually bytes
+ *                  are actually hashed
+ *   len            the number of bytes that will be actually hashed;
+ *                  bytes `in[len], in[len+1]..., in[numBytes-1]` are ignored
+ *
+ * Output signals:
+ *   hash           the Poseidon-BN254 hash of these bytes
+ *                  // TODO(Docs): Write spec and point to it here (maybe in AIP-61's appendix)
+ *
+ * Notes:
+ *   There is no way to meaningfully ensure that `len` is the actual length of the bytes in `in`.
+ *   TODO(Buses): Some type-safety via a `Bytes(MAX_LEN)` bus may be useful here?
+ */
 template HashBytesToFieldWithLen(numBytes) {
+    assert(numBytes > 0);
     signal input in[numBytes];
     signal input len;
     signal output hash;

@@ -99,6 +99,7 @@ template BitsToFieldElems(inputLen, bitsPerFieldElem) {
 
 // Enforces that each scalar in the input array `in` will fit in a byte, i.e.
 // is between 0 and 256 exclusive
+// TODO(Cleanup): Rename to AreBytes or AssertIsBytes (need convention)
 template CheckAreBytes(numBytes) {
     signal input in[numBytes];
 
