@@ -34,7 +34,7 @@ include "circomlib/circuits/bitify.circom";
 
 // The main Aptos Keyless circuit. The parameters below are max lengths, 
 // in bytes, for the...
-template identity(
+template keyless(
     MAX_B64U_JWT_NO_SIG_LEN,    // ...full base64url JWT without the signature, but with SHA2 padding
     MAX_B64U_JWT_HEADER_W_DOT_LEN,  // ...full base64url JWT header with a dot at the end
     MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN,   // ...full base64url JWT payload with SHA2 padding

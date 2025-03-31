@@ -1,8 +1,8 @@
 pragma circom 2.1.3;
 
-include "mainTemplate.circom";
+include "keyless.circom";
 
-component main { public [public_inputs_hash] } = identity(
+component main { public [public_inputs_hash] } = keyless(
     /* JWT */
     192*8,      // MAX_B64U_JWT_NO_SIG_LEN
     300,        // MAX_B64U_JWT_HEADER_W_DOT_LEN
