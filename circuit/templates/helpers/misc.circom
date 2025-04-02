@@ -25,6 +25,20 @@ template isWhitespace() {
 // https://github.com/TheFrozenFire/snark-jwt-verify/blob/master/circuits/calculate_total.circom
 // This circuit returns the sum of the inputs in `num`
 // `n` must be greater than 0.
+//
+// TODO(Perf): Isn't there a faster way to do this than `n` constraints?
+// ```
+// template Sum(N) {
+//    signal input in[N];
+//    signal output sum;
+//
+//    var acc = 0;
+//    for (var i = 0; i < N; i++) {
+//        acc = acc + in[i];
+//    }
+//    sum <== acc;
+// }
+// ```
 template CalculateTotal(n) {
     signal input nums[n];
     signal output sum;

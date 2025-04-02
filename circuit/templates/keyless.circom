@@ -29,8 +29,9 @@ include "helpers/rsa/rsa_verify.circom";
 include "circomlib/circuits/poseidon.circom";
 include "circomlib/circuits/bitify.circom";
 
-// TODO:
-//   1. Figure out how to assert than BN254 is used as the curve (e.g., in the Poseidon-BN254 templates and IsLessThan template) so we don't get into trouble due to bad assumptions about max field element size
+// TODO: Figure out how to assert than BN254 is used as the curve (e.g., in
+// the Poseidon-BN254 templates and IsLessThan template) so we don't get into
+// trouble due to bad assumptions about max field element size
 
 // The main Aptos Keyless circuit. The parameters below are max lengths, 
 // in bytes, for the...
