@@ -1,3 +1,48 @@
+/**
+ * Let \F denote circom's finite field of prime order p.
+ * Let #B denote the number of bytes that can be fit into an element of \F (e.g., #B = 31
+ * for BN254).
+ * Let H_n : \F^n -> \F (e.g., Poseidon) denote a hash function family.
+ *
+ * This file implements templates for hashing various objects (byte arrays, strings, etc.),
+ * using \F and H_n as building blocks.
+ *
+ * WARNING: Some of these algorithms are used in the keyless TXN validation logic on-chain
+ * on Aptos. Changing them haphazardly will break backwards compatibility, so exercise
+ * caution!
+ *
+ * # Preliminaries
+ *
+ * ## Zero-padding
+ *
+ * ```
+ *  ZeroPad_{max}(b) => pb:
+ *   - (b_1, ..., b_n) <- b
+ *   - pb <- (b_1, ..., b_n, 0, ... , 0) s.t. |pb| = max
+ * ```
+ *
+ * Zero-pads an array of `n` bytes `b = [b_1, ..., b_n]` up to `max` bytes.
+ *
+ * ## Packing bytes to scalar(s)
+ *
+ * ```
+ *  PackBytesToScalars_{max}(b) => (e_1, e_2, \ldots, e_k)
+ * ```
+ *
+ * Packs n bytes into k = ceil(n/#B) field elements, zero-padding the last element
+ * when #B does not divide n. Since circom fields will typically be prime-order, even
+ * after fitting max #B bytes into a field element, we may be left with some extra
+ * unused *bits* at the end. This function always sets those bits to zero!
+ *
+ * WARNING: Not injective, since when there is room in a field element, we pad
+ * it with zero bytes.
+ * This is fine for our purposes, because we either hash length-suffixed byte arrays
+ * or null-terminated strings. So the non-injectiveness of this can accounted for.
+ * (Note to self: EPK *is* packed via this but its length in bytes is appended.)
+ *
+ * TODO(Docs): Continue
+ */
+
 pragma circom 2.1.3;
 
 include "circomlib/circuits/poseidon.circom";
@@ -28,7 +73,6 @@ include "./packing.circom";
  *
  * Output signals:
  *   hash           the Poseidon-BN254 hash of these bytes
- *                  // TODO(Docs): Write spec and point to it here (maybe in AIP-61's appendix)
  *
  * Notes:
  *   There is no way to meaningfully ensure that `len` is the actual length of the bytes in `in`.

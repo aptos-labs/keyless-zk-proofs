@@ -1,3 +1,11 @@
+/**
+ * TODO(Buses): We definitely need a ZeroPaddedBytes(MAX) that has an (1) array of signals, each storing a byte and (2) an actual length signal.
+ *
+ * TODO(Buses): We also need a PackedBytes(MAX) that can be obtained from a ZeroPaddedBytes
+ * (MAX) and once again has (1) an array of signals, each storing a bunch of packed bytes,
+ * and (2) an actual length signal. (This length could be stored as the last element of the
+ * array of signals in (1)).
+ */
 pragma circom 2.1.3;
 
 include "./arrays.circom";
@@ -123,6 +131,7 @@ template CheckAre64BitLimbs(numLimbs) {
 // Inspired by `Bits2Num` in circomlib. Packs chunks of bits into a single field element
 // Assumes that each value in `in` encodes `bitsPerChunk` bits of a single field element
 template ChunksToFieldElem(numChunks, bitsPerChunk) {
+    // TODO: What ensures that we don't exceed circom's field size here?
     signal input in[numChunks];
     signal output out;
 
