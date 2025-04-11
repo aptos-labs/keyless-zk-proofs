@@ -12,8 +12,7 @@ use serial_test::serial;
 #[tokio::test]
 #[serial]
 async fn default_request() {
-    let testcase = ProofTestCase::default_with_payload(TestJWTPayload::default())
-        .compute_nonce();
+    let testcase = ProofTestCase::default_with_payload(TestJWTPayload::default()).compute_nonce();
 
     convert_prove_and_verify(&testcase).await.unwrap();
 }
@@ -193,8 +192,7 @@ async fn request_all_sub_lengths() {
             ..TestJWTPayload::default()
         };
 
-        let testcase = ProofTestCase::default_with_payload(jwt_payload)
-            .compute_nonce();
+        let testcase = ProofTestCase::default_with_payload(jwt_payload).compute_nonce();
 
         convert_prove_and_verify(&testcase).await.unwrap();
     }

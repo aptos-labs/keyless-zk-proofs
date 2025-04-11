@@ -96,30 +96,21 @@ impl ProverServiceConfig {
 
     pub fn witness_gen_js_path(&self) -> String {
         shellexpand::tilde(
-            &(String::from(&self.resources_dir)
-                + "/"
-                + self.setup_dir()
-                + "/generate_witness.js"),
+            &(String::from(&self.resources_dir) + "/" + self.setup_dir() + "/generate_witness.js"),
         )
         .into_owned()
     }
 
     pub fn witness_gen_wasm_path(&self) -> String {
         shellexpand::tilde(
-            &(String::from(&self.resources_dir)
-                + "/"
-                + self.setup_dir()
-                + "/main.wasm"),
+            &(String::from(&self.resources_dir) + "/" + self.setup_dir() + "/main.wasm"),
         )
         .into_owned()
     }
 
     pub fn circuit_config_path(&self) -> String {
         shellexpand::tilde(
-            &(String::from(&self.resources_dir)
-                + "/"
-                + self.setup_dir()
-                + "/circuit_config.yml"),
+            &(String::from(&self.resources_dir) + "/" + self.setup_dir() + "/circuit_config.yml"),
         )
         .into_owned()
     }

@@ -17,10 +17,7 @@ impl PathStr for NamedTempFile {
     }
 }
 
-pub fn witness_gen(
-    config: &ProverServiceConfig,
-    body: &str,
-) -> Result<NamedTempFile> {
+pub fn witness_gen(config: &ProverServiceConfig, body: &str) -> Result<NamedTempFile> {
     let span = info_span!("Generating witness");
     let _enter = span.enter();
 
@@ -29,12 +26,8 @@ pub fn witness_gen(
 
     fs::write(input_file.path(), body.as_bytes())?;
 
-    let output = get_witness_command(
-        config,
-        input_file.path_str()?,
-        witness_file.path_str()?,
-    )
-    .output()?;
+    let output =
+        get_witness_command(config, input_file.path_str()?, witness_file.path_str()?).output()?;
 
     // Check if the command executed successfully
     if output.status.success() {

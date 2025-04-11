@@ -3,20 +3,20 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use super::{gen_test_ephemeral_pk, gen_test_ephemeral_pk_blinder, get_test_pepper};
+use crate::config::ProverServiceConfig;
+use crate::tests::common::get_config;
 use crate::{
     api::{EphemeralPublicKeyBlinder, RequestInput},
     input_processing::rsa::RsaPrivateKey,
     training_wheels::verification_logic::compute_nonce,
 };
-use aptos_keyless_common::input_processing::{config::CircuitConfig, encoding::FromFr};
+use aptos_keyless_common::input_processing::encoding::FromFr;
 use aptos_types::{
     jwks::rsa::RSA_JWK, keyless::Pepper, transaction::authenticator::EphemeralPublicKey,
 };
 use ark_ff::{BigInteger, PrimeField};
 use jsonwebtoken::{Algorithm, Header};
 use serde::{Deserialize, Serialize};
-use crate::config::ProverServiceConfig;
-use crate::tests::common::get_config;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct TestJWTPayload {

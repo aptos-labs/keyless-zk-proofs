@@ -16,7 +16,7 @@ use aptos_crypto::{
     encoding_type::EncodingType,
     Uniform,
 };
-use aptos_keyless_common::input_processing::{config::CircuitConfig, encoding::AsFr};
+use aptos_keyless_common::input_processing::encoding::AsFr;
 use aptos_types::{
     jwks::rsa::RSA_JWK, keyless::Pepper, transaction::authenticator::EphemeralPublicKey,
 };
@@ -30,14 +30,12 @@ use figment::{
 use rand::{rngs::ThreadRng, thread_rng};
 use rust_rapidsnark::FullProver;
 use serde::Serialize;
-use std::{fs, marker::PhantomData, str::FromStr, sync::Arc};
+use std::{marker::PhantomData, str::FromStr, sync::Arc};
 use tokio::sync::Mutex;
 
 pub mod types;
 
-use crate::prover_key::{
-    TrainingWheelsKeyPair,
-};
+use crate::prover_key::TrainingWheelsKeyPair;
 use crate::state::SetupSpecificState;
 
 const TEST_JWK_EXPONENT_STR: &str = "65537";
@@ -110,7 +108,9 @@ pub async fn convert_prove_and_verify(
             config: testcase.prover_service_config.load_circuit_params(),
             groth16_vk: testcase.prover_service_config.load_vk(),
             tw_keys: TrainingWheelsKeyPair::from_sk(tw_sk_default),
-            full_prover: Mutex::new(FullProver::new(testcase.prover_service_config.zkey_path().as_str()).unwrap()),
+            full_prover: Mutex::new(
+                FullProver::new(testcase.prover_service_config.zkey_path().as_str()).unwrap(),
+            ),
         },
     };
 

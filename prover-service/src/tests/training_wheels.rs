@@ -7,8 +7,7 @@ use crate::tests::common::{gen_test_jwk_keypair, types::TestJWKKeyPair};
 use crate::training_wheels::validate_jwt_sig_and_dates;
 
 fn test_jwt_validation(jwt_payload: TestJWTPayload, config: &ProverServiceConfig) {
-    let testcase =
-        ProofTestCase::default_with_payload(jwt_payload).compute_nonce();
+    let testcase = ProofTestCase::default_with_payload(jwt_payload).compute_nonce();
 
     let jwk_keypair = gen_test_jwk_keypair();
     let prover_request_input = testcase.convert_to_prover_request(&jwk_keypair);

@@ -86,8 +86,6 @@ pub fn derive_circuit_input_signals(
     if config.has_input_skip_aud_checks {
         circuit_input_signals =
             circuit_input_signals.bool_input("skip_aud_checks", input.skip_aud_checks);
-    } else {
-        panic!("============================");
     }
     circuit_input_signals = circuit_input_signals
         .fr_input("public_inputs_hash", public_inputs_hash)
