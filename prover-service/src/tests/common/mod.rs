@@ -42,22 +42,6 @@ use crate::state::SetupSpecificState;
 
 const TEST_JWK_EXPONENT_STR: &str = "65537";
 
-pub fn init_test_full_prover() -> FullProver {
-    let prover_server_config = Figment::new()
-        .merge(Yaml::file(config::LOCAL_TESTING_CONFIG_FILE_PATH))
-        .extract()
-        .expect("Couldn't load config file");
-    let config: ProverServiceConfig = prover_server_config;
-
-    FullProver::new(&config.zkey_path())
-        .expect("failed to initialize rapidsnark prover")
-}
-
-pub fn get_test_circuit_config() -> CircuitConfig {
-    serde_yaml::from_str(&fs::read_to_string("circuit_config.yml").expect("Unable to read file"))
-        .expect("should parse correctly")
-}
-
 pub fn gen_test_ephemeral_pk() -> EphemeralPublicKey {
     let ephemeral_private_key: Ed25519PrivateKey = EncodingType::Hex
         .decode_key(

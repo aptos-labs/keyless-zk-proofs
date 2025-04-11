@@ -2,7 +2,6 @@
 
 use crate::handlers::encode_proof;
 use crate::load_vk::prepared_vk;
-use crate::tests::common::get_test_circuit_config;
 use crate::tests::common::{
     convert_prove_and_verify,
     types::{ProofTestCase, TestJWTPayload},

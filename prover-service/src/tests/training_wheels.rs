@@ -3,7 +3,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use crate::config::ProverServiceConfig;
 use crate::config::CONFIG;
 use crate::tests::common::types::{ProofTestCase, TestJWTPayload};
-use crate::tests::common::{gen_test_jwk_keypair, get_test_circuit_config, types::TestJWKKeyPair};
+use crate::tests::common::{gen_test_jwk_keypair, types::TestJWKKeyPair};
 use crate::training_wheels::validate_jwt_sig_and_dates;
 
 fn test_jwt_validation(jwt_payload: TestJWTPayload, config: &ProverServiceConfig) {
