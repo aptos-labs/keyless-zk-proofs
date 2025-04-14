@@ -84,7 +84,7 @@ pub async fn prove_handler(
         .with_status(StatusCode::INTERNAL_SERVER_ERROR)?;
 
     // Prove!
-    let prover_unlocked = state.setup.full_prover.lock().await;
+    let prover_unlocked = state.full_prover.lock().await;
 
     let g16vk = prepared_vk(&state.config.verification_key_path());
     let max_retries = 3;
@@ -126,7 +126,7 @@ pub async fn prove_handler(
     };
 
     let training_wheels_signature = EphemeralSignature::ed25519(
-        training_wheels::sign(&state.setup.tw_keys.signing_key, proof, public_inputs_hash)
+        training_wheels::sign(&state.tw_keys.signing_key, proof, public_inputs_hash)
             .map_err(anyhow::Error::from)
             .with_status(StatusCode::INTERNAL_SERVER_ERROR)?,
     );
@@ -139,7 +139,7 @@ pub async fn prove_handler(
     };
 
     if state.config.enable_debug_checks {
-        assert!(training_wheels::verify(&response, &state.setup.tw_keys.verification_key).is_ok());
+        assert!(training_wheels::verify(&response, &state.tw_keys.verification_key).is_ok());
     }
 
     metrics::GROTH16_TIME_SECS.observe((f64::from(internal_metrics.prover_time)) / 1000.0);

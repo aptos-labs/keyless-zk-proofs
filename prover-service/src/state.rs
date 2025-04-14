@@ -16,15 +16,14 @@ pub struct ProverServiceSecrets {
 }
 
 pub struct SetupSpecificState {
-    pub config: CircuitConfig,
-    pub groth16_vk: OnChainGroth16VerificationKey,
-    pub tw_keys: TrainingWheelsKeyPair,
-    pub full_prover: Mutex<FullProver>,
 }
 
 pub struct ProverServiceState {
     pub config: ProverServiceConfig,
-    pub setup: SetupSpecificState,
+    pub circuit_metadata: CircuitConfig,
+    pub groth16_vk: OnChainGroth16VerificationKey,
+    pub tw_keys: TrainingWheelsKeyPair,
+    pub full_prover: Mutex<FullProver>,
 }
 
 impl ProverServiceState {
@@ -36,20 +35,16 @@ impl ProverServiceState {
             .extract()
             .expect("Couldn't load private key from environment variable PRIVATE_KEY");
 
-        let default_circuit = SetupSpecificState {
-            config: CONFIG.load_circuit_params(),
+        ProverServiceState {
+            config: CONFIG.clone(),
+            circuit_metadata: CONFIG.load_circuit_params(),
             groth16_vk: CONFIG.load_vk(),
             tw_keys: TrainingWheelsKeyPair::from_sk(private_key),
             full_prover: Mutex::new(FullProver::new(&CONFIG.zkey_path()).unwrap()),
-        };
-
-        ProverServiceState {
-            config: CONFIG.clone(),
-            setup: default_circuit,
         }
     }
 
     pub fn circuit_config(&self) -> &CircuitConfig {
-        &self.setup.config
+        &self.circuit_metadata
     }
 }

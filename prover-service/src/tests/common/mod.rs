@@ -36,7 +36,6 @@ use tokio::sync::Mutex;
 pub mod types;
 
 use crate::prover_key::TrainingWheelsKeyPair;
-use crate::state::SetupSpecificState;
 
 const TEST_JWK_EXPONENT_STR: &str = "65537";
 
@@ -104,14 +103,12 @@ pub async fn convert_prove_and_verify(
 
     let state = ProverServiceState {
         config: testcase.prover_service_config.clone(),
-        setup: SetupSpecificState {
-            config: testcase.prover_service_config.load_circuit_params(),
-            groth16_vk: testcase.prover_service_config.load_vk(),
-            tw_keys: TrainingWheelsKeyPair::from_sk(tw_sk_default),
-            full_prover: Mutex::new(
-                FullProver::new(testcase.prover_service_config.zkey_path().as_str()).unwrap(),
-            ),
-        },
+        circuit_metadata: testcase.prover_service_config.load_circuit_params(),
+        groth16_vk: testcase.prover_service_config.load_vk(),
+        tw_keys: TrainingWheelsKeyPair::from_sk(tw_sk_default),
+        full_prover: Mutex::new(
+            FullProver::new(testcase.prover_service_config.zkey_path().as_str()).unwrap(),
+        ),
     };
 
     let prover_request_input = testcase.convert_to_prover_request(&jwk_keypair);
