@@ -4,13 +4,11 @@ use ark_bn254::{Fq, Fq2, G1Projective, G2Projective};
 use ark_ff::PrimeField;
 use num_bigint::BigUint;
 use num_traits::Num;
-use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 #[cfg(test)]
 use std::fs::File;
 #[cfg(test)]
 use std::io::Write;
-use std::sync::{Arc, RwLock};
 
 //
 // Below are some utils for converting a VK from snarkjs to its on-chain representation.
@@ -101,10 +99,6 @@ fn groth16_vk_rewriter() {
 //
 // Utils end.
 //
-
-/// This variable holds the cached on-chain VK. A refresh loop exists to update it periodically.
-pub static ON_CHAIN_GROTH16_VK: Lazy<Arc<RwLock<Option<OnChainGroth16VerificationKey>>>> =
-    Lazy::new(|| Arc::new(RwLock::new(None)));
 
 /// On-chain representation of a VK.
 ///

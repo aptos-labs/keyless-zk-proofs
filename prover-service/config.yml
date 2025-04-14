@@ -2,8 +2,7 @@
 ---
 
 resources_dir: "/resources/ceremonies"
-default_setup_dir: "default"
-#new_setup_dir: "new"
+setup_dir: "default"
 
 zkey_filename: "prover_key.zkey"
 witness_gen_binary_filename: "main_c"

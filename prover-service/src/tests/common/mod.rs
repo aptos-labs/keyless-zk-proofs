@@ -16,7 +16,7 @@ use aptos_crypto::{
     encoding_type::EncodingType,
     Uniform,
 };
-use aptos_keyless_common::input_processing::{config::CircuitConfig, encoding::AsFr};
+use aptos_keyless_common::input_processing::encoding::AsFr;
 use aptos_types::{
     jwks::rsa::RSA_JWK, keyless::Pepper, transaction::authenticator::EphemeralPublicKey,
 };
@@ -30,34 +30,14 @@ use figment::{
 use rand::{rngs::ThreadRng, thread_rng};
 use rust_rapidsnark::FullProver;
 use serde::Serialize;
-use std::{fs, marker::PhantomData, str::FromStr, sync::Arc};
+use std::{marker::PhantomData, str::FromStr, sync::Arc};
 use tokio::sync::Mutex;
 
 pub mod types;
 
-use crate::groth16_vk::ON_CHAIN_GROTH16_VK;
-use crate::prover_key::{
-    OnChainKeylessConfiguration, TrainingWheelsKeyPair, ON_CHAIN_KEYLESS_CONFIG,
-};
-use crate::state::SetupSpecificState;
+use crate::prover_key::TrainingWheelsKeyPair;
 
 const TEST_JWK_EXPONENT_STR: &str = "65537";
-
-pub fn init_test_full_prover(use_new_setup: bool) -> FullProver {
-    let prover_server_config = Figment::new()
-        .merge(Yaml::file(config::LOCAL_TESTING_CONFIG_FILE_PATH))
-        .extract()
-        .expect("Couldn't load config file");
-    let config: ProverServiceConfig = prover_server_config;
-
-    FullProver::new(&config.zkey_path(use_new_setup))
-        .expect("failed to initialize rapidsnark prover")
-}
-
-pub fn get_test_circuit_config() -> CircuitConfig {
-    serde_yaml::from_str(&fs::read_to_string("circuit_config.yml").expect("Unable to read file"))
-        .expect("should parse correctly")
-}
 
 pub fn gen_test_ephemeral_pk() -> EphemeralPublicKey {
     let ephemeral_private_key: Ed25519PrivateKey = EncodingType::Hex
@@ -114,41 +94,21 @@ pub async fn convert_prove_and_verify(
     testcase: &ProofTestCase<impl Serialize + WithNonce + Clone>,
 ) -> Result<(), anyhow::Error> {
     let jwk_keypair = gen_test_jwk_keypair();
-    let (tw_sk_default, _) = gen_test_training_wheels_keypair();
-    let (tw_sk_new, tw_pk_new) = gen_test_training_wheels_keypair();
-    let prover_server_config = get_config();
-
-    let new_vk = if prover_server_config.new_setup_dir.is_some() {
-        Some(prover_server_config.load_vk(true))
-    } else {
-        None
-    };
+    let (tw_sk_default, tw_pk) = gen_test_training_wheels_keypair();
 
     let dm: DashMap<KeyID, Arc<RSA_JWK>> =
         DashMap::from_iter([("test-rsa".to_owned(), Arc::new(jwk_keypair.into_rsa_jwk()))]);
 
-    // Fill external resource caches.
-    ON_CHAIN_GROTH16_VK.write().unwrap().clone_from(&new_vk);
-    *ON_CHAIN_KEYLESS_CONFIG.write().unwrap() = Some(OnChainKeylessConfiguration::from_tw_pk(
-        Some(tw_pk_new.clone()),
-    ));
-
     DECODING_KEY_CACHE.insert(String::from("test.oidc.provider"), dm);
 
     let state = ProverServiceState {
-        config: prover_server_config.clone(),
-        default_setup: SetupSpecificState {
-            config: get_test_circuit_config(),
-            groth16_vk: prover_server_config.load_vk(false),
-            tw_keys: TrainingWheelsKeyPair::from_sk(tw_sk_default),
-            full_prover: Mutex::new(init_test_full_prover(false)),
-        },
-        new_setup: Some(SetupSpecificState {
-            config: get_test_circuit_config(),
-            groth16_vk: new_vk.unwrap(),
-            tw_keys: TrainingWheelsKeyPair::from_sk(tw_sk_new),
-            full_prover: Mutex::new(init_test_full_prover(true)),
-        }),
+        config: testcase.prover_service_config.clone(),
+        circuit_metadata: testcase.prover_service_config.load_circuit_params(),
+        groth16_vk: testcase.prover_service_config.load_vk(),
+        tw_keys: TrainingWheelsKeyPair::from_sk(tw_sk_default),
+        full_prover: Mutex::new(
+            FullProver::new(testcase.prover_service_config.zkey_path().as_str()).unwrap(),
+        ),
     };
 
     let prover_request_input = testcase.convert_to_prover_request(&jwk_keypair);
@@ -174,9 +134,9 @@ pub async fn convert_prove_and_verify(
             public_inputs_hash,
             ..
         } => {
-            let g16vk = prepared_vk(&prover_server_config.verification_key_path(true));
+            let g16vk = prepared_vk(&testcase.prover_service_config.verification_key_path());
             proof.verify_proof(public_inputs_hash.as_fr(), &g16vk)?;
-            training_wheels::verify(&response, &tw_pk_new)
+            training_wheels::verify(&response, &tw_pk)
         }
         ProverServiceResponse::Error { message } => {
             panic!("returned ProverServiceResponse::Error: {}", message)

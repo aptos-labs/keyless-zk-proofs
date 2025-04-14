@@ -3,12 +3,14 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use super::{gen_test_ephemeral_pk, gen_test_ephemeral_pk_blinder, get_test_pepper};
+use crate::config::ProverServiceConfig;
+use crate::tests::common::get_config;
 use crate::{
     api::{EphemeralPublicKeyBlinder, RequestInput},
     input_processing::rsa::RsaPrivateKey,
     training_wheels::verification_logic::compute_nonce,
 };
-use aptos_keyless_common::input_processing::{config::CircuitConfig, encoding::FromFr};
+use aptos_keyless_common::input_processing::encoding::FromFr;
 use aptos_types::{
     jwks::rsa::RSA_JWK, keyless::Pepper, transaction::authenticator::EphemeralPublicKey,
 };
@@ -142,6 +144,7 @@ impl TestJWKKeyPair for DefaultTestJWKKeyPair {
 
 #[derive(Clone)]
 pub struct ProofTestCase<T: Serialize + WithNonce + Clone> {
+    pub prover_service_config: ProverServiceConfig,
     pub jwt_payload: T,
     pub epk: EphemeralPublicKey,
     pub epk_blinder_fr: ark_bn254::Fr,
@@ -165,15 +168,16 @@ impl<T: Serialize + WithNonce + Clone> ProofTestCase<T> {
         extra_field: Option<String>,
         uid_key: String,
         idc_aud: Option<String>,
-        config: &CircuitConfig,
     ) -> Self {
+        let prover_service_config = get_config();
+        let circuit_metadata = prover_service_config.load_circuit_params();
         let epk = gen_test_ephemeral_pk();
         let epk_blinder = gen_test_ephemeral_pk_blinder();
-
-        let nonce = compute_nonce(exp_date, &epk, epk_blinder, config).unwrap();
+        let nonce = compute_nonce(exp_date, &epk, epk_blinder, &circuit_metadata).unwrap();
         let payload_with_nonce = jwt_payload.with_nonce(&nonce.to_string());
 
         Self {
+            prover_service_config,
             jwt_payload: payload_with_nonce as T,
             epk,
             epk_blinder_fr: epk_blinder,
@@ -182,7 +186,7 @@ impl<T: Serialize + WithNonce + Clone> ProofTestCase<T> {
             epk_expiry_horizon_secs: exp_horizon,
             extra_field,
             uid_key,
-            idc_aud: idc_aud,
+            idc_aud,
             skip_aud_checks: false,
         }
     }
@@ -193,6 +197,7 @@ impl<T: Serialize + WithNonce + Clone> ProofTestCase<T> {
         let pepper = get_test_pepper();
 
         Self {
+            prover_service_config: get_config(),
             jwt_payload,
             epk,
             epk_blinder_fr: epk_blinder,
@@ -206,12 +211,13 @@ impl<T: Serialize + WithNonce + Clone> ProofTestCase<T> {
         }
     }
 
-    pub fn compute_nonce(self, config: &CircuitConfig) -> Self {
+    pub fn compute_nonce(self) -> Self {
+        let circuit_metadata = self.prover_service_config.load_circuit_params();
         let nonce = compute_nonce(
             self.epk_expiry_time_secs,
             &self.epk,
             self.epk_blinder_fr,
-            config,
+            &circuit_metadata,
         )
         .unwrap();
         let payload_with_nonce = self.jwt_payload.with_nonce(&nonce.to_string());

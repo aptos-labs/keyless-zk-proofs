@@ -16,12 +16,7 @@ RUN /root/.cargo/bin/cargo build --release -p prover-service \
 
 # Download trusted setup and witness gen binaries
 ENV RESOURCES_DIR=/resources
-RUN ./scripts/task.sh setup download-ceremonies-for-releases \
-        "test_releases/test-ceremony-20250224"               \
-        "test_releases/test-ceremony-20250224"               \
-        --witness-gen-type "c"
-
-
+RUN ./scripts/task.sh setup download-ceremonies-for-releases --witness-gen-type c circuit-v1.0.1 circuit-v1.0.1
 
 
 # The image that is actually deployed

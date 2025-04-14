@@ -17,13 +17,9 @@ use axum_prometheus::{
     PrometheusMetricLayerBuilder, AXUM_HTTP_REQUESTS_DURATION_SECONDS,
 };
 use prover_service::config::CONFIG;
-use prover_service::groth16_vk::ON_CHAIN_GROTH16_VK;
-use prover_service::prover_key::ON_CHAIN_KEYLESS_CONFIG;
-use prover_service::watcher::start_external_resource_refresh_loop;
 use std::{fs, net::SocketAddr, sync::Arc, time::Duration};
 use tower::ServiceBuilder;
 use tower_http::cors::{Any, CorsLayer};
-use tracing::warn;
 
 #[tokio::main]
 async fn main() {
@@ -41,41 +37,9 @@ async fn main() {
     let state = ProverServiceState::init();
     let state = Arc::new(state);
 
-    let vkey = fs::read_to_string(state.config.verification_key_path(false))
+    let vkey = fs::read_to_string(state.config.verification_key_path())
         .expect("Unable to read default vkey file");
     info!("Default verifying Key: {}", vkey);
-
-    if state.config.new_setup_dir.is_some() {
-        let new_vkey = fs::read_to_string(state.config.verification_key_path(true))
-            .expect("Unable to read new vkey file");
-        info!("New verifying Key: {}", new_vkey);
-    }
-
-    match std::env::var("ONCHAIN_GROTH16_VK_URL") {
-        Ok(url) => {
-            start_external_resource_refresh_loop(
-                url.as_str(),
-                Duration::from_secs(10),
-                ON_CHAIN_GROTH16_VK.clone(),
-            );
-        }
-        Err(_e) => {
-            warn!("Could not find envvar ONCHAIN_GROTH16_VK_URL, on-chain Groth16 VK detection disabled.");
-        }
-    }
-
-    match std::env::var("ONCHAIN_TW_VK_URL") {
-        Ok(url) => {
-            start_external_resource_refresh_loop(
-                url.as_str(),
-                Duration::from_secs(10),
-                ON_CHAIN_KEYLESS_CONFIG.clone(),
-            );
-        }
-        Err(_e) => {
-            warn!("Could not find envvar ONCHAIN_TW_VK_URL, on-chain TW VK detection disabled.");
-        }
-    }
 
     // init jwk fetching job; refresh every `config.jwk_refresh_rate_secs` seconds
     jwk_fetching::init_jwk_fetching(
@@ -105,14 +69,6 @@ async fn main() {
         .route(
             "/v0/prove",
             post(handlers::prove_handler).fallback(handlers::fallback_handler),
-        )
-        .route(
-            "/cached/groth16-vk",
-            get(handlers::cached_groth16_vk_handler),
-        )
-        .route(
-            "/cached/keyless-config",
-            get(handlers::cached_keyless_config),
         )
         .route("/healthcheck", get(handlers::healthcheck_handler))
         .fallback(handlers::fallback_handler)

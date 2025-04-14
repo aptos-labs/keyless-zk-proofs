@@ -21,8 +21,6 @@ use ark_ff::PrimeField;
 use axum::{extract::State, http::StatusCode, Json};
 use axum_extra::extract::WithRejection;
 
-use crate::groth16_vk::{OnChainGroth16VerificationKey, ON_CHAIN_GROTH16_VK};
-use crate::prover_key::{OnChainKeylessConfiguration, ON_CHAIN_KEYLESS_CONFIG};
 use aptos_crypto::hash::CryptoHash;
 use serde::Deserialize;
 use std::{fs, sync::Arc, time::Instant};
@@ -61,20 +59,7 @@ pub async fn prove_handler(
     let input = preprocess::decode_and_add_jwk(body, jwk_override.as_ref())
         .with_status(StatusCode::BAD_REQUEST)?;
 
-    let on_chain_groth16_vk = {
-        // Minimizing the lock acquisition time.
-        ON_CHAIN_GROTH16_VK.read().unwrap().as_ref().cloned()
-    };
-    let local_new_groth16_vk = state.new_setup.as_ref().map(|c| &c.groth16_vk);
-    #[allow(clippy::match_like_matches_macro)]
-    let use_new_setup = match (on_chain_groth16_vk.as_ref(), local_new_groth16_vk) {
-        (Some(on_chain), Some(local)) if on_chain == local => true,
-        _ => false,
-    };
-
-    info!("Setup selected, on_chain_groth16_vk={:?}, local_new_groth16_vk={:?}, local_default_groth16_vk={:?}, use_new_setup={}", on_chain_groth16_vk, local_new_groth16_vk, state.default_setup.groth16_vk, use_new_setup);
-
-    let circuit_config = state.circuit_config(use_new_setup);
+    let circuit_config = state.circuit_config();
 
     training_wheels::check_nonce_consistency(&input, circuit_config)
         .with_status(StatusCode::BAD_REQUEST)?;
@@ -95,17 +80,13 @@ pub async fn prove_handler(
         fs::write("formatted_input.json", &formatted_input_str).unwrap();
     }
 
-    let witness_file = witness_gen(&state.config, use_new_setup, &formatted_input_str)
+    let witness_file = witness_gen(&state.config, &formatted_input_str)
         .with_status(StatusCode::INTERNAL_SERVER_ERROR)?;
 
     // Prove!
-    let prover_unlocked = if use_new_setup {
-        state.new_setup.as_ref().unwrap().full_prover.lock().await
-    } else {
-        state.default_setup.full_prover.lock().await
-    };
+    let prover_unlocked = state.full_prover.lock().await;
 
-    let g16vk = prepared_vk(&state.config.verification_key_path(use_new_setup));
+    let g16vk = prepared_vk(&state.config.verification_key_path());
     let max_retries = 3;
     let mut retries = 0;
     let (proof, _proof_json, internal_metrics) = loop {
@@ -144,47 +125,8 @@ pub async fn prove_handler(
         }
     };
 
-    let onchain_twpk = {
-        // Minimize lock acquisition time.
-        ON_CHAIN_KEYLESS_CONFIG
-            .read()
-            .unwrap()
-            .as_ref()
-            .map(|c| &c.data.training_wheels_pubkey)
-            .cloned()
-    };
-
-    let local_new_twpk = state
-        .new_setup
-        .as_ref()
-        .map(|s| &s.tw_keys.on_chain_repr.data.training_wheels_pubkey);
-    let (using_new_tw_keys, actual_tw_sk, actual_tw_pk) =
-        match (onchain_twpk.as_ref(), local_new_twpk) {
-            (Some(on_chain), Some(local)) if on_chain == local => {
-                let new_tw_keys = &state.new_setup.as_ref().unwrap().tw_keys;
-                (
-                    true,
-                    &new_tw_keys.signing_key,
-                    &new_tw_keys.verification_key,
-                )
-            }
-            _ => (
-                false,
-                &state.default_setup.tw_keys.signing_key,
-                &state.default_setup.tw_keys.verification_key,
-            ),
-        };
-
-    info!(
-        "TW keys selected, onchain_twpk={:?}, local_new_twpk={:?}, local_default_twpk={:?}, use_new_twpk={}",
-        onchain_twpk,
-        local_new_twpk,
-        state.default_setup.tw_keys.on_chain_repr.data.training_wheels_pubkey,
-        using_new_tw_keys
-    );
-
     let training_wheels_signature = EphemeralSignature::ed25519(
-        training_wheels::sign(actual_tw_sk, proof, public_inputs_hash)
+        training_wheels::sign(&state.tw_keys.signing_key, proof, public_inputs_hash)
             .map_err(anyhow::Error::from)
             .with_status(StatusCode::INTERNAL_SERVER_ERROR)?,
     );
@@ -197,7 +139,7 @@ pub async fn prove_handler(
     };
 
     if state.config.enable_debug_checks {
-        assert!(training_wheels::verify(&response, actual_tw_pk).is_ok());
+        assert!(training_wheels::verify(&response, &state.tw_keys.verification_key).is_ok());
     }
 
     metrics::GROTH16_TIME_SECS.observe((f64::from(internal_metrics.prover_time)) / 1000.0);
@@ -215,25 +157,6 @@ pub async fn healthcheck_handler() -> (StatusCode, &'static str) {
 /// On all unrecognized routes, return 404.
 pub async fn fallback_handler() -> (StatusCode, &'static str) {
     (StatusCode::NOT_FOUND, "Invalid route")
-}
-
-pub async fn cached_groth16_vk_handler() -> (StatusCode, Json<Option<OnChainGroth16VerificationKey>>)
-{
-    let cached = { ON_CHAIN_GROTH16_VK.read().unwrap().as_ref().cloned() };
-    if let Some(val) = cached {
-        (StatusCode::OK, Json(Some(val)))
-    } else {
-        (StatusCode::NOT_FOUND, Json(None))
-    }
-}
-
-pub async fn cached_keyless_config() -> (StatusCode, Json<Option<OnChainKeylessConfiguration>>) {
-    let cached = { ON_CHAIN_KEYLESS_CONFIG.read().unwrap().as_ref().cloned() };
-    if let Some(val) = cached {
-        (StatusCode::OK, Json(Some(val)))
-    } else {
-        (StatusCode::NOT_FOUND, Json(None))
-    }
 }
 
 #[derive(Deserialize)]

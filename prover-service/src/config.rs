@@ -20,8 +20,7 @@ fn default_true() -> bool {
 //#[serde(deny_unknown_fields)]
 pub struct ProverServiceConfig {
     pub git_commit: Option<String>,
-    pub default_setup_dir: String,
-    pub new_setup_dir: Option<String>,
+    pub setup_dir: String,
     /// Directory with prover/verification key and witness gen binary
     pub resources_dir: String,
     pub zkey_filename: String,
@@ -58,85 +57,72 @@ pub static CONFIG: Lazy<ProverServiceConfig> = Lazy::new(|| {
 });
 
 impl ProverServiceConfig {
-    pub fn setup_dir(&self, use_new_setup: bool) -> &String {
-        if use_new_setup {
-            self.new_setup_dir.as_ref().unwrap()
-        } else {
-            &self.default_setup_dir
-        }
+    pub fn setup_dir(&self) -> &String {
+        &self.setup_dir
     }
 
-    pub fn zkey_path(&self, use_new_setup: bool) -> String {
+    pub fn zkey_path(&self) -> String {
         shellexpand::tilde(
             &(String::from(&self.resources_dir)
                 + "/"
-                + self.setup_dir(use_new_setup)
+                + self.setup_dir()
                 + "/"
                 + &self.zkey_filename),
         )
         .into_owned()
     }
 
-    pub fn witness_gen_binary_path(&self, use_new_setup: bool) -> String {
+    pub fn witness_gen_binary_path(&self) -> String {
         shellexpand::tilde(
             &(String::from(&self.resources_dir)
                 + "/"
-                + self.setup_dir(use_new_setup)
+                + self.setup_dir()
                 + "/"
                 + &self.witness_gen_binary_filename),
         )
         .into_owned()
     }
 
-    pub fn verification_key_path(&self, use_new_setup: bool) -> String {
+    pub fn verification_key_path(&self) -> String {
         shellexpand::tilde(
             &(String::from(&self.resources_dir)
                 + "/"
-                + self.setup_dir(use_new_setup)
+                + self.setup_dir()
                 + "/"
                 + &self.test_verification_key_filename),
         )
         .into_owned()
     }
 
-    pub fn witness_gen_js_path(&self, use_new_setup: bool) -> String {
+    pub fn witness_gen_js_path(&self) -> String {
         shellexpand::tilde(
-            &(String::from(&self.resources_dir)
-                + "/"
-                + self.setup_dir(use_new_setup)
-                + "/generate_witness.js"),
+            &(String::from(&self.resources_dir) + "/" + self.setup_dir() + "/generate_witness.js"),
         )
         .into_owned()
     }
 
-    pub fn witness_gen_wasm_path(&self, use_new_setup: bool) -> String {
+    pub fn witness_gen_wasm_path(&self) -> String {
         shellexpand::tilde(
-            &(String::from(&self.resources_dir)
-                + "/"
-                + self.setup_dir(use_new_setup)
-                + "/main.wasm"),
+            &(String::from(&self.resources_dir) + "/" + self.setup_dir() + "/main.wasm"),
         )
         .into_owned()
     }
 
-    pub fn circuit_config_path(&self, use_new_setup: bool) -> String {
+    pub fn circuit_config_path(&self) -> String {
         shellexpand::tilde(
-            &(String::from(&self.resources_dir)
-                + "/"
-                + self.setup_dir(use_new_setup)
-                + "/circuit_config.yml"),
+            &(String::from(&self.resources_dir) + "/" + self.setup_dir() + "/circuit_config.yml"),
         )
         .into_owned()
     }
 
-    pub fn load_circuit_params(&self, use_new_setup: bool) -> CircuitConfig {
-        let path = self.circuit_config_path(use_new_setup);
+    pub fn load_circuit_params(&self) -> CircuitConfig {
+        let path = self.circuit_config_path();
         let circuit_config_yaml = std::fs::read_to_string(path).unwrap();
         serde_yaml::from_str(&circuit_config_yaml).unwrap()
     }
 
-    pub fn load_vk(&self, from_new_setup: bool) -> OnChainGroth16VerificationKey {
-        let path = self.verification_key_path(from_new_setup);
+    pub fn load_vk(&self) -> OnChainGroth16VerificationKey {
+        let path = self.verification_key_path();
         let vk_json = fs::read_to_string(path).unwrap();
         let local_vk: SnarkJsGroth16VerificationKey =
             serde_json::from_str(vk_json.as_str()).unwrap();
