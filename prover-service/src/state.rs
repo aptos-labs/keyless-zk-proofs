@@ -15,9 +15,6 @@ pub struct ProverServiceSecrets {
     pub private_key_0: Ed25519PrivateKey,
 }
 
-pub struct SetupSpecificState {
-}
-
 pub struct ProverServiceState {
     pub config: ProverServiceConfig,
     pub circuit_metadata: CircuitConfig,
