@@ -25,7 +25,7 @@ FROM debian:bookworm
 
 # need libyaml, gmp, and openssl dylibs to run prover service
 RUN apt-get update \
- && apt-get install -y libyaml-dev libgmp-dev libssl-dev
+ && apt-get install -y libyaml-dev libgmp-dev libssl-dev curl
 
 # copy prover service binary
 COPY --link --from=build_prover_service ./prover-service-bin ./prover-service-bin
