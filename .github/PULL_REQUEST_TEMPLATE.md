@@ -2,7 +2,7 @@
 
 <!--
  Describe **what** the change is. e.g.,:
-  - fixing a soundness bug in the the IsLessThan() template
+  - fixing a soundness bug in the IsLessThan() template
   - adding a new test for IsLessThan() to ensure that 3 < 3 cannot be satisfied
   - adding an new `/vk` endpoint to the prover service
 -->
