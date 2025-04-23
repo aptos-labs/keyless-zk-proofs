@@ -237,7 +237,7 @@ template BracketsDepthMap(len) {
 template Base64DecodedLength(maxN) {
     var max_q = (3 * maxN) \ 4;
     //signal input in[maxN];
-    signal input n; // actual lenght
+    signal input n; // actual length
     signal output decoded_len;
     signal q <-- 3*n \ 4;
     signal r <-- 3*n % 4;
