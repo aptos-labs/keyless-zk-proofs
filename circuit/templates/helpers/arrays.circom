@@ -363,7 +363,7 @@ template ASCIIDigitsToField(maxLen) {
 
     signal success;
     var index_eq_sum = 0;
-    // `s` is initally set to 1 and is 0 after len == i
+    // `s` is initially set to 1 and is 0 after len == i
     var s = 1; 
 
     accumulators[0] <== digits[0]-48;
