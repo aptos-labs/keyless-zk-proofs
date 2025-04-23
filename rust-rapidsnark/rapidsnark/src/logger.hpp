@@ -117,7 +117,7 @@ public:
     void debug(std::ostringstream& stream) throw();
 
     // Error and Alarm log must be always enable
-    // Hence, there is no interfce to control error and alarm logs
+    // Hence, there is no interface to control error and alarm logs
 
     // Interfaces to control log levels
     void updateLogLevel(LogLevel logLevel);
