@@ -51,6 +51,13 @@ include "circomlib/circuits/comparators.circom";
 include "./packing.circom";
 
 /**
+ * A bus to denote a PoseidonBN254 hash in a type-safe way.
+ */
+bus PoseidonBN254Hash() {
+    signal value;
+}
+
+/**
  * Hashes multiple bytes to one field element using Poseidon.
  * We hash the length `len` of the input as well to prevent collisions.
  *
@@ -102,23 +109,33 @@ template HashBytesToFieldWithLen(numBytes) {
     }
     input_with_len[num_elems] <== len;
 
-    hash <== HashElemsToField(num_elems + 1)(input_with_len);
+    PoseidonBN254Hash() poseidonHash <== HashElemsToField(num_elems + 1)(input_with_len);
+
+    hash <== poseidonHash.value;
 }
 
-// Hashes multiple field elements to one using Poseidon. Works with up to 64 input elements
-// For more than 16 elements, multiple Poseidon hashes are used before being combined in a final
-// hash. This is because the template we use supports only 16 input elements at most
+// (Merkle-)hashes a vector of field elements using Poseidon-BN254. 
 //
-// Notes:
-//   TODO(Comment): Looks like this is doing an incomplete hex-ary Merkle tree.
+// @param   numElems  the number of elements to be hashed; must be <= 64
+//
+// @input  in         the `numElems`-sized vector of field elements
+// @output hash : PoseidonBN254Hash   the (Merkle) hash of the vector
+//
+// @notes:
+//   When numElems <= 16, returns H_{numElems}(in[0], ..., in[numElems-1])
+//   When 16 < numElems <= 64, returns an (incomplete) hex-ary Merkle tree.
+//
 //   Used by HashBytesToFieldWithLen.
 template HashElemsToField(numElems) {
     signal input in[numElems];
-    signal output hash;
+    output PoseidonBN254Hash() hash;
 
     if (numElems <= 16) { 
-        hash <== Poseidon(numElems)(in);
+        hash.value <== Poseidon(numElems)(in);
     } else if (numElems <= 32) {
+        //          h_2
+        //        /     \
+        //  h_{16}       h_{numElems - 16}
         signal inputs_one[16];
         for (var i = 0; i < 16; i++) {
             inputs_one[i] <== in[i];
@@ -129,8 +146,12 @@ template HashElemsToField(numElems) {
         }
         signal h1 <== Poseidon(16)(inputs_one);
         signal h2 <== Poseidon(numElems-16)(inputs_two);
-        hash <== Poseidon(2)([h1, h2]);
+        hash.value <== Poseidon(2)([h1, h2]);
     } else if (numElems <= 48) {
+        //            h_3
+        //          /  |  \
+        //        /    |    \
+        //  h_{16}   h_{16}  h_{numElems - 32}
         signal inputs_one[16];
         for (var i = 0; i < 16; i++) {
             inputs_one[i] <== in[i];
@@ -146,8 +167,14 @@ template HashElemsToField(numElems) {
         signal h1 <== Poseidon(16)(inputs_one);
         signal h2 <== Poseidon(16)(inputs_two);
         signal h3 <== Poseidon(numElems-32)(inputs_three);
-        hash <== Poseidon(3)([h1, h2, h3]); 
+        hash.value <== Poseidon(3)([h1, h2, h3]);
     } else if (numElems <= 64) {
+        //                h_4
+        //              / / \ \
+        //            /  /   \  \
+        //          /   |     |   \
+        //        /     |     |     \
+        //  h_{16}   h_{16}  h_{16}  h_{numElems - 32}
         signal inputs_one[16];
         for (var i = 0; i < 16; i++) {
             inputs_one[i] <== in[i];
@@ -168,7 +195,7 @@ template HashElemsToField(numElems) {
         signal h2 <== Poseidon(16)(inputs_two);
         signal h3 <== Poseidon(16)(inputs_three);
         signal h4 <== Poseidon(numElems-48)(inputs_four);
-        hash <== Poseidon(4)([h1, h2, h3, h4]);  
+        hash.value <== Poseidon(4)([h1, h2, h3, h4]);
     } else {
         1 === 0;
     }
