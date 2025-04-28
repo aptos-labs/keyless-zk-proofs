@@ -105,30 +105,13 @@ template HashBytesToFieldWithLen(numBytes) {
     hash <== HashElemsToField(num_elems + 1)(input_with_len);
 }
 
-// Hashes multiple bytes to one field element using a Poseidon hash
-// Currently does not work with greater than 64*31=1984 bytes
-//
-// Warning: `numBytes` cannot be 0.
-template HashBytesToField(numBytes) {
-    signal input in[numBytes];
-    signal output hash;
-
-    CheckAreBytes(numBytes)(in);
-
-    var num_elems = numBytes%31 == 0 ? numBytes\31 : numBytes\31 + 1; 
-
-    signal input_packed[num_elems] <== ChunksToFieldElems(numBytes, 31, 8)(in); // Pack 31 bytes per field element
-
-    hash <== HashElemsToField(num_elems)(input_packed);
-}
-
 // Hashes multiple field elements to one using Poseidon. Works with up to 64 input elements
 // For more than 16 elements, multiple Poseidon hashes are used before being combined in a final
 // hash. This is because the template we use supports only 16 input elements at most
 //
 // Notes:
 //   TODO(Comment): Looks like this is doing an incomplete hex-ary Merkle tree.
-//   Used by HashBytesToField and HashBytesToFieldWithLen.
+//   Used by HashBytesToFieldWithLen.
 template HashElemsToField(numElems) {
     signal input in[numElems];
     signal output hash;
