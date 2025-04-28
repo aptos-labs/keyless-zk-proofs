@@ -15,7 +15,7 @@
  *     + When the JWT is base64url encoded, we specifically refer to it as base64url-encoded JWT
  *       and name circom variables / signals appropriately; e.g., b64u_jwt_payload
  */
-pragma circom 2.1.3;
+pragma circom 2.2.2;
 
 include "helpers/base64url.circom";
 include "helpers/arrays.circom";

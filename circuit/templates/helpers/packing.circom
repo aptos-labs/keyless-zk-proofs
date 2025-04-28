@@ -6,7 +6,7 @@
  * and (2) an actual length signal. (This length could be stored as the last element of the
  * array of signals in (1)).
  */
-pragma circom 2.1.3;
+pragma circom 2.2.2;
 
 include "./arrays.circom";
 

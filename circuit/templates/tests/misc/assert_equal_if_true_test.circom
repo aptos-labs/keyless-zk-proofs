@@ -1,5 +1,5 @@
 
-pragma circom 2.1.3;
+pragma circom 2.2.2;
 
 include "helpers/misc.circom";
 

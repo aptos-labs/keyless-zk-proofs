@@ -1,4 +1,4 @@
-pragma circom 2.1.3;
+pragma circom 2.2.2;
 
 /**
  * Given a natural number n > 0, returns \floor{\log_2{n}}.

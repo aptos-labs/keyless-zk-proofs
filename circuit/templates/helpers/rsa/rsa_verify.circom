@@ -1,4 +1,4 @@
-pragma circom 2.0.0;
+pragma circom 2.2.2;
 
 // File copied and modified from https://github.com/zkp-application/circom-rsa-verify/blob/main/circuits/rsa_verify.circom, except for the `FpPow65537Mod` template. The only difference is using `FpPow65537Mod` for exponentiation instead of the tempalte provided in the original repo, as it is more efficient
 

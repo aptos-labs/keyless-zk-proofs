@@ -1,4 +1,4 @@
-pragma circom 2.0.3;
+pragma circom 2.2.2;
 
 // File copied from https://github.com/doubleblind-xyz/circom-rsa/blob/master/circuits/fp.circom
 
