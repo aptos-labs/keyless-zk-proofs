@@ -137,12 +137,12 @@ component main = Hash64BitLimbsToFieldWithLenTest(__MAX_LEN__);
 }
 
 #[test]
-fn check_are_64bit_limbs_should_pass_with_valid_limbs() {
+fn assert_is_64bit_limbs_should_pass_with_valid_limbs() {
     let mut rng = thread_rng();
     let circuit_src_template = r#"
 pragma circom 2.1.3;
 include "helpers/hashtofield.circom";
-component main = CheckAre64BitLimbs(__NUM_LIMBS__);
+component main = AssertIs64BitLimbs(__NUM_LIMBS__);
 "#;
 
     for num_limbs in 0..60 {
@@ -164,11 +164,11 @@ component main = CheckAre64BitLimbs(__NUM_LIMBS__);
 }
 
 #[test]
-fn check_are_64bit_limbs_should_fail_with_invalid_limbs() {
+fn assert_is_64bit_limbs_should_fail_with_invalid_limbs() {
     let circuit_src_template = r#"
 pragma circom 2.1.3;
 include "helpers/hashtofield.circom";
-component main = CheckAre64BitLimbs(__NUM_LIMBS__);
+component main = AssertIs64BitLimbs(__NUM_LIMBS__);
 "#;
 
     for num_limbs in 1..60 {

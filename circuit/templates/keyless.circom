@@ -512,7 +512,7 @@ template RSA_2048_e_65537_PKCS1_V1_5_Verify(SIGNATURE_LIMB_BIT_WIDTH, SIGNATURE_
     signal message_limbs[4] <== BitsToFieldElems(256, SIGNATURE_LIMB_BIT_WIDTH)(message_bits);
 
     // TODO: These checks should be done in `RsaVerifyPkcs1v15`, no?
-    CheckAre64BitLimbs(SIGNATURE_NUM_LIMBS)(signature);
+    AssertIs64BitLimbs(SIGNATURE_NUM_LIMBS)(signature);
     signal sig_ok <== BigLessThan(252, SIGNATURE_NUM_LIMBS)(signature, pubkey_modulus);
     sig_ok === 1;
 

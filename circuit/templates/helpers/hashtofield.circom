@@ -216,7 +216,7 @@ template Hash64BitLimbsToFieldWithLen(NUM_LIMBS) {
     signal input in[NUM_LIMBS];
     signal input len;
 
-    CheckAre64BitLimbs(NUM_LIMBS)(in);
+    AssertIs64BitLimbs(NUM_LIMBS)(in);
 
     var NUM_ELEMS = NUM_LIMBS % 3 == 0 ? NUM_LIMBS \ 3 : NUM_LIMBS \ 3 + 1;
 

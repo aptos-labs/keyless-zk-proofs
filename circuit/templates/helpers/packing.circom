@@ -120,19 +120,25 @@ template AssertIsBytes(NUM_BYTES) {
     }
 }
 
-// Enforces that each scalar in the input array `in` will fit in a limb of size 64
-// i.e. is between - and 2^64 exclusive
-template CheckAre64BitLimbs(numLimbs) {
-    signal input in[numLimbs];
 
-    for (var i = 0; i < numLimbs; i++) {
-        var is_byte = LessThan(65)([in[i], 2**64]);
-        is_byte === 1;
+// Enforces that each scalar in the input array `in` is 64-bit (i.e., \in [0, 2^{64}))
+//
+// @param   NUM_LIMBS   the size of the input array
+//
+// @input   in          the input array of NUM_LIMBS signals
+//
+// @postconditions      in[i] \in [0, 2^{64}), \forall i \in [0, NUM_LIMBS)
+template AssertIs64BitLimbs(NUM_LIMBS) {
+    signal input in[NUM_LIMBS];
+
+    for (var i = 0; i < NUM_LIMBS; i++) {
+        _ <== Num2Bits(64)(in[i]);
     }
 }
 
 // Inspired by `Bits2Num` in circomlib. Packs chunks of bits into a single field element
 // Assumes that each value in `in` encodes `bitsPerChunk` bits of a single field element
+// TODO(Tags): `in` should be tagged with maxbits = bitsPerChunk
 template ChunksToFieldElem(numChunks, bitsPerChunk) {
     // TODO: What ensures that we don't exceed circom's field size here?
     signal input in[numChunks];
