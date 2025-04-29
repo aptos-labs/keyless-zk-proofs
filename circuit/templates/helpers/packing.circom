@@ -105,15 +105,18 @@ template BitsToFieldElems(inputLen, bitsPerFieldElem) {
     bits_2_num_be[num_elems-1].out ==> elems[num_elems-1];
 }
 
-// Enforces that each scalar in the input array `in` will fit in a byte, i.e.
-// is between 0 and 256 exclusive
-// TODO(Cleanup): Rename to AreBytes or AssertIsBytes (need convention)
-template CheckAreBytes(numBytes) {
-    signal input in[numBytes];
+// Enforces that each scalar in the input array `in` is a byte (i.e., \in [0, 256))
+//
+// @param   NUM_BYTES   the size of the input array
+//
+// @input   in          the input array of NUM_BYTES signals
+//
+// @postconditions      in[i] \in [0, 256), \forall i \in [0, NUM_BYTES)
+template AssertIsBytes(NUM_BYTES) {
+    signal input in[NUM_BYTES];
 
-    for (var i = 0; i < numBytes; i++) {
-        var is_byte = LessThan(9)([in[i], 256]);
-        is_byte === 1;
+    for (var i = 0; i < NUM_BYTES; i++) {
+        _ <== Num2Bits(8)(in[i]);
     }
 }
 

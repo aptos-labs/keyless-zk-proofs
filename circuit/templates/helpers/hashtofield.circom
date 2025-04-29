@@ -64,7 +64,7 @@ bus PoseidonBN254Hash() {
  * Currently, does not work for inputs larger than $64 \times 31 = 1984$ bytes.
  * TODO(Comment): Why?
  *
- * TODO(Buses): If `in` is `Bytes(MAX_LEN)` bus, then we can remove the `CheckAreBytes`
+ * TODO(Buses): If `in` is `Bytes(MAX_LEN)` bus, then we can remove the `AssertIsBytes`
  * constraint here, since it may be unnecessarily repeated if this gets called for the
  * same byte sub-sequence repeatedly.
  *
@@ -91,7 +91,7 @@ template HashBytesToFieldWithLen(numBytes) {
     signal input len;
     signal output hash;
 
-    CheckAreBytes(numBytes)(in);
+    AssertIsBytes(numBytes)(in);
 
     var num_elems = numBytes % 31 == 0 ? numBytes\31 : numBytes\31 + 1;
 
