@@ -149,7 +149,6 @@ template identity(
 
     skip_aud_checks * (skip_aud_checks-1) === 0; // Ensure equal to 0 or 1
     var s = use_aud_override;
-    s * (s-1) === 0; // Ensure s = 0 or s = 1
     for (var i = 0; i < maxAudValueLen; i++) {
         aud_value[i] <== (override_aud_value[i]-private_aud_value[i]) * s + private_aud_value[i];
     }
