@@ -202,11 +202,12 @@ template HashElemsToField(numElems) {
 
 }
 
-// Hashes multiple 64 bit limbs to one field element using a Poseidon hash
-// We hash the length of the input as well to avoid collisions
+// Hashes multiple 64-bit limbs to a field element using a Poseidon hash.
 //
-// Assumes `len` is the length of the provided input. It is used only for hashing and is not
-// verified by this template
+// We hash the length of the input as well to avoid collisions.
+//
+// Assumes `len` is the length [in bytes?] of the provided input. It is used only for hashing and is not
+// verified by this template.
 //
 // Warning: `numLimbs` cannot be 0.
 template Hash64BitLimbsToFieldWithLen(numLimbs) {
