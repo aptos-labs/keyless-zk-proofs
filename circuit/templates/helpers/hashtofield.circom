@@ -209,23 +209,26 @@ template HashElemsToField(numElems) {
 // Assumes `len` is the length [in bytes?] of the provided input. It is used only for hashing and is not
 // verified by this template.
 //
-// Warning: `numLimbs` cannot be 0.
-template Hash64BitLimbsToFieldWithLen(numLimbs) {
-    signal input in[numLimbs];
+// Warning: `NUM_LIMBS` cannot be 0.
+template Hash64BitLimbsToFieldWithLen(NUM_LIMBS) {
+    assert(NUM_LIMBS != 0);
+
+    signal input in[NUM_LIMBS];
     signal input len;
 
-    CheckAre64BitLimbs(numLimbs)(in);
+    CheckAre64BitLimbs(NUM_LIMBS)(in);
 
-    var num_elems = numLimbs%3 == 0 ? numLimbs\3 : numLimbs\3 + 1; 
+    var NUM_ELEMS = NUM_LIMBS % 3 == 0 ? NUM_LIMBS \ 3 : NUM_LIMBS \ 3 + 1;
 
-    signal input_packed[num_elems] <== ChunksToFieldElems(numLimbs, 3, 64)(in); // Pack 3 64-bit limbs per field element
+    // Pack 3 64-bit limbs per field element
+    signal input_packed[NUM_ELEMS] <== ChunksToFieldElems(NUM_LIMBS, 3, 64)(in);
 
-    signal input_with_len[num_elems+1];
-    for (var i = 0; i < num_elems; i++) {
+    signal input_with_len[NUM_ELEMS + 1];
+    for (var i = 0; i < NUM_ELEMS; i++) {
         input_with_len[i] <== input_packed[i];
     }
-    input_with_len[num_elems] <== len;
+    input_with_len[NUM_ELEMS] <== len;
 
-    signal output hash <== Poseidon(num_elems+1)(input_with_len);
+    signal output hash <== Poseidon(NUM_ELEMS + 1)(input_with_len);
 }
 
