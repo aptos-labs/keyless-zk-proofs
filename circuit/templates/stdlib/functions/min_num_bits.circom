@@ -1,3 +1,6 @@
+/**
+ * Author: Alin Tomescu
+ */
 pragma circom 2.2.2;
 
 include "./log2_floor.circom";

@@ -9,6 +9,7 @@
 pragma circom 2.2.2;
 
 include "./arrays.circom";
+include "../stdlib/functions/assert_bits_fit_scalar.circom";
 
 // Based on `Num2Bits` in circomlib
 // Converts a field element `in` into an array `out` of
@@ -140,7 +141,9 @@ template AssertIs64BitLimbs(NUM_LIMBS) {
 // Assumes that each value in `in` encodes `bitsPerChunk` bits of a single field element
 // TODO(Tags): `in` should be tagged with maxbits = bitsPerChunk
 template ChunksToFieldElem(numChunks, bitsPerChunk) {
-    // TODO: What ensures that we don't exceed circom's field size here?
+    // Ensure we don't exceed circom's field size here
+    _ = assert_bits_fit_scalar(numChunks * bitsPerChunk);
+
     signal input in[numChunks];
     signal output out;
 
