@@ -1,5 +1,6 @@
 pragma circom 2.2.2;
 
+// for EscalarProduct
 include "circomlib/circuits/multiplexer.circom";
 include "circomlib/circuits/comparators.circom";
 include "./hashtofield.circom";
@@ -126,18 +127,24 @@ template SingleOneArray(len) {
     should_be_all_zeros === 0;
 }
 
-// Given an array 'arr', returns the value at index `index`
-// Assumes that 0 <= index < len
+// Indexes into an array of signals, returning the value at that index.
 //
-// TODO(Buses): Use an Index(N) bus here to ensure `0 <= index < len = N`.
-template SelectArrayValue(len) {
-    signal input arr[len];
-    signal input index;
+// @param  LEN      the length of the array 
+//
+// @input  arr[LEN] the array of length `LEN`
+// @input  i        the location in the array to be fetched; must have i \in [0, LEN)
+// @output out      arr[i]
+//
+// TODO(Buses): Use an Index(LEN) bus here to ensure `0 <= i < LEN`.
+// TODO: Rename to ArrayGet
+template SelectArrayValue(LEN) {
+    signal input arr[LEN];
+    signal input i;
     signal output out;
 
-    signal selector[len] <== SingleOneArray(len)(index);
+    signal mask[LEN] <== SingleOneArray(LEN)(i);
 
-    out <== EscalarProduct(len)(arr, selector);
+    out <== EscalarProduct(LEN)(arr, mask);
 }
 
 // Similar to Decoder template from circomlib/circuits/multiplexer.circom
