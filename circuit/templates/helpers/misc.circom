@@ -82,7 +82,8 @@ template EnforceNotNested(len) {
 // output = 00000000000111111000
 template StringBodies(len) {
   signal input in[len];
-  signal output out[len];
+  // TODO(Tags): Enforce binarity in a more type-safe way, rather than just declaring it here.
+  signal output {binary} out[len];
 
 
   signal quotes[len];

@@ -92,14 +92,20 @@ template ElementwiseMul(len) {
     }
 }
 
-// Given an array of integers `in` of all 1s and 0s, returns an array `out` where
-// each 1 is now 0 and each 0 is now 1
-// Assumes `in` contains only 1s and 0s
-template InvertBinaryArray(len) {
-    signal input in[len];
-    signal output out[len];
+// Given a binary array, returns an "inverted" array where where bits are flipped.
+//
+// @param   LEN                 the length of the array
+//
+// @input   in[LEN]  {binary}   the input array of bits
+// @output  out[LEN] {binary}   the output array of flipped bits
+//
+// @notes
+//   Enforces at compile time that `in` contains only 1s and 0s via the {binary} tag.
+template InvertBinaryArray(LEN) {
+    signal input {binary} in[LEN];
+    signal output {binary} out[LEN];
 
-    for (var i = 0; i < len; i++) {
+    for (var i = 0; i < LEN; i++) {
         out[i] <== 1 - in[i];
     }
 }
