@@ -166,45 +166,58 @@ template ChunksToFieldElem(NUM_CHUNKS, BITS_PER_CHUNK) {
     elem ==> out;
 }
 
-// Packs chunks into multiple field elements
-// `inputLen` cannot be 0.
-// Assumes each element in `in` contains `bitsPerChunk` bits of information of a field element
-// Each field element is assumed to be `chunksPerFieldElem` * `bitsPerChunk` bits. The final field element may be less than this
-// There are assumed to be `inputLen` / `chunksPerFieldElem` field elements, rounded up to the nearest whole number.
+// Tightly-packs many chunks into a many scalars.
 //
-// TODO(Cleanup): `chunksPerFieldElem` is backend-specific! Need a compile-time check.
-template ChunksToFieldElems(inputLen, chunksPerFieldElem, bitsPerChunk) {
-    signal input in[inputLen];
-    var num_elems = inputLen%chunksPerFieldElem == 0 ? inputLen \ chunksPerFieldElem : (inputLen\chunksPerFieldElem) + 1; // '\' is the quotient operation - we add 1 if there are extra bits past the full chunks
-    signal output elems[num_elems];
-    component chunks_2_field[num_elems]; 
-    for (var i = 0; i < num_elems-1; i++) {
-        chunks_2_field[i] = ChunksToFieldElem(chunksPerFieldElem, bitsPerChunk); // assign circuit component
+// @param   NUM_CHUNKS         the number of chunks to pack; cannot be 0
+// @param   BITS_PER_CHUNK     the max size of each chunk in bits
+// @param   CHUNKS_PER_SCALAR  a scalar can fit at most
+//                             CHUNKS_PER_SCALAR * BITS_PER_CHUNK bits
+//
+// @input   in                  the chunks to be packed
+// @output  out[NUM_SCALARS]    array of NUM_SCALARS scalars packing the chunks, where
+//                              NUM_SCALARS = ceil(NUM_CHUNKS / CHUNKS_PER_SCALAR)
+//
+// TODO: Rename to ChunksToScalars
+template ChunksToFieldElems(NUM_CHUNKS, CHUNKS_PER_SCALAR, BITS_PER_CHUNK) {
+    assert(NUM_CHUNKS != 0);
+
+    var NUM_CHUNKS_IN_LAST_SCALAR;
+    var NUM_SCALARS;
+
+    if (NUM_CHUNKS % CHUNKS_PER_SCALAR == 0) {
+        // The chunks can be spread evenly across the scalars
+        NUM_CHUNKS_IN_LAST_SCALAR = CHUNKS_PER_SCALAR;
+        NUM_SCALARS = NUM_CHUNKS \ CHUNKS_PER_SCALAR;
+    } else {
+        // The chunks CANNOT be spread evenly across the scalars
+        // => the last scalar will have < CHUNKS_PER_SCALAR chunks
+        NUM_CHUNKS_IN_LAST_SCALAR = NUM_CHUNKS % CHUNKS_PER_SCALAR; // in [0, CHUNKS_PER_SCALAR)
+        NUM_SCALARS = 1 + NUM_CHUNKS \ CHUNKS_PER_SCALAR;
     }
 
-    // If we have an extra chunk that isn't full of bits, we truncate the Bits2NumBigEndian component size for that chunk. This is equivalent to 0 padding the end of the array
-    var num_extra_chunks = inputLen % chunksPerFieldElem;
-    if (num_extra_chunks == 0) {
-        num_extra_chunks = chunksPerFieldElem; // The last field element is full
-        chunks_2_field[num_elems-1] = ChunksToFieldElem(chunksPerFieldElem, bitsPerChunk);
-    } else {
-        chunks_2_field[num_elems-1] = ChunksToFieldElem(num_extra_chunks, bitsPerChunk);
+    signal input in[NUM_CHUNKS];
+    signal output out[NUM_SCALARS];
+
+    component chunksToScalar[NUM_SCALARS]; 
+    for (var i = 0; i < NUM_SCALARS - 1; i++) {
+        chunksToScalar[i] = ChunksToFieldElem(CHUNKS_PER_SCALAR, BITS_PER_CHUNK);
     }
+
+    chunksToScalar[NUM_SCALARS - 1] = ChunksToFieldElem(NUM_CHUNKS_IN_LAST_SCALAR, BITS_PER_CHUNK);
 
     // Assign all but the last field element
-    for (var i = 0; i < num_elems-1; i++) {
-        for (var j = 0; j < chunksPerFieldElem; j++) {
-            var index = (i * chunksPerFieldElem) + j;
-            chunks_2_field[i].in[j] <== in[index];
+    for (var i = 0; i < NUM_SCALARS - 1; i++) {
+        for (var j = 0; j < CHUNKS_PER_SCALAR; j++) {
+            var index = (i * CHUNKS_PER_SCALAR) + j;
+            chunksToScalar[i].in[j] <== in[index];
         }
-        chunks_2_field[i].out ==> elems[i];
+        chunksToScalar[i].out ==> out[i];
     }
 
     // Assign the last field element
-    var i = num_elems-1;
-    for (var j = 0; j < num_extra_chunks; j++) {
-        var index = (i*chunksPerFieldElem) + j;
-        chunks_2_field[num_elems-1].in[j] <== in[index];
+    for (var j = 0; j < NUM_CHUNKS_IN_LAST_SCALAR; j++) {
+        var index = (NUM_SCALARS - 1) * CHUNKS_PER_SCALAR + j;
+        chunksToScalar[NUM_SCALARS - 1].in[j] <== in[index];
     }
-    chunks_2_field[i].out ==> elems[i];
+    chunksToScalar[NUM_SCALARS - 1].out ==> out[NUM_SCALARS - 1];
 }
