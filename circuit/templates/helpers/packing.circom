@@ -106,7 +106,7 @@ template BitsToFieldElems(inputLen, bitsPerFieldElem) {
     bits_2_num_be[num_elems-1].out ==> elems[num_elems-1];
 }
 
-// Enforces that each scalar in the input array `in` is a byte (i.e., \in [0, 256))
+// Enforces that each scalar in an array is a byte.
 //
 // @param   NUM_BYTES   the size of the input array
 //
@@ -121,8 +121,7 @@ template AssertIsBytes(NUM_BYTES) {
     }
 }
 
-
-// Enforces that each scalar in the input array `in` is 64-bit (i.e., \in [0, 2^{64}))
+// Enforces that each scalar in an array is 64-bits.
 //
 // @param   NUM_LIMBS   the size of the input array
 //
