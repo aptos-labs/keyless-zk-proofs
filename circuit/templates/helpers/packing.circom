@@ -136,25 +136,34 @@ template AssertIs64BitLimbs(NUM_LIMBS) {
     }
 }
 
-// Inspired by `Bits2Num` in circomlib. Packs chunks of bits into a single field element
-// Assumes that each value in `in` encodes `bitsPerChunk` bits of a single field element
-// TODO(Tags): `in` should be tagged with maxbits = bitsPerChunk
-template ChunksToFieldElem(numChunks, bitsPerChunk) {
+// Tightly-packs many chunks into a single scalar. (Inspired by `Bits2Num` in
+// circomlib.)
+//
+// @param  NUM_CHUNKS       the number of chunks
+// @param  BITS_PER_CHUNK   the max size of each chunk in bits, such that a field
+//                          element can fit NUM_CHUNKS * BITS_PER_CHUNK bits
+//
+// @input  in[NUM_CHUNKS]   the chunks themselves
+// @output out              \sum_{i = 0}^{NUM_CHUNKS} in[i] 2^{BITS_PER_CHUNK}
+//
+// TODO(Tags): `in` should be tagged with maxbits = BITS_PER_CHUNK
+// TODO: Rename to ChunksToScalar
+template ChunksToFieldElem(NUM_CHUNKS, BITS_PER_CHUNK) {
     // Ensure we don't exceed circom's field size here
-    _ = assert_bits_fit_scalar(numChunks * bitsPerChunk);
+    _ = assert_bits_fit_scalar(NUM_CHUNKS * BITS_PER_CHUNK);
+    var BASE = 2**BITS_PER_CHUNK;
 
-    signal input in[numChunks];
+    signal input in[NUM_CHUNKS];
     signal output out;
 
-    var lc1 = in[0];
-
-    var e2 = 2**bitsPerChunk;
-    for (var i = 1; i<numChunks; i++) {
-        lc1 += in[i] * e2;
-        e2 = e2 * (2**bitsPerChunk);
+    var elem = in[0];
+    var pow = BASE;
+    for (var i = 1; i < NUM_CHUNKS; i++) {
+        elem += in[i] * pow;
+        pow *= BASE;            // (2^{BITS_PER_CHUNK})^i --> (2^{BITS_PER_CHUNK})^{i+1}
     }
 
-    lc1 ==> out;
+    elem ==> out;
 }
 
 // Packs chunks into multiple field elements
