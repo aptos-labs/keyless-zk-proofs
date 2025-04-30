@@ -6,6 +6,9 @@ include "circomlib/circuits/comparators.circom";
 include "./hashtofield.circom";
 include "./misc.circom";
 
+include "../stdlib/functions/assert_bits_fit_scalar.circom";
+include "../stdlib/functions/min_num_bits.circom";
+
 // Outputs a bit array where indices [start_index, end_index) (inclusive of start_index, exclusive of end_index) are all 1, and all other bits are 0.
 // If end_index >= len, returns a bit array where start_index and all indices after it are 1, and all other bits are 0.
 template ArraySelector(len) {
@@ -101,30 +104,43 @@ template InvertBinaryArray(len) {
     }
 }
 
-// Similar to Decoder template from circomlib/circuits/multiplexer.circom
-// Returns a bit array `out` with a 1 at index `index`, and 0s everywhere else
-// Assumes that 0 <= index < len
-template SingleOneArray(len) {
-    signal input index;
+// Returns a "one-hot" bit mask with a 1 at index `idx`, and 0s everywhere else.
+// Only satisfiable when 0 <= idx < LEN.
+//
+// @param   LEN       the length of the mask
+//
+// @input   idx       the index \in [0, LEN) where the bitmask should be 1
+// @output  out[LEN]  the "one-hot" bit mask
+//
+// @notes
+//   Similar to Decoder template from [circomlib](https://github.com/iden3/circomlib/blob/35e54ea21da3e8762557234298dbb553c175ea8d/circuits/multiplexer.circom#L78), except
+//   it does NOT return all zeros when idx > LEN.
+template SingleOneArray(LEN) {
+    signal input idx;
+    signal output out[LEN];
 
-    signal output out[len];
     signal success;
     var lc = 0;
 
-    for (var i = 0; i < len; i++) {
-        out[i] <-- (index == i) ? 1 : 0;
-        // Enforces that either out[i] is 0, or index = i
-        out[i] * (index-i) === 0;
+    for (var i = 0; i < LEN; i++) {
+        out[i] <-- (idx == i) ? 1 : 0;
+        // Enforces that either: out[i] == 0, or idx == i
+        out[i] * (idx - i) === 0;
         lc = lc + out[i];
     }
     lc ==> success;
-    // support array sizes up to a million with the `GreaterEqThan` 20 parameter. Being conservative here b/c according to Michael this template is very cheap
-    //
-    // TODO: Declare `var B = 20` , assert that B bits in a scalar, then use it here.
-    signal should_be_all_zeros <== GreaterEqThan(20)([index, len]);
-    // Enforces that `lc` is equal to 1 if len < index
-    success === 1 * (1 - should_be_all_zeros);
-    should_be_all_zeros === 0;
+
+    // Note: This would return all zeros when idx > LEN, but its callers assume 
+    // it will always return a one-hot bitmask. So, for now, enforcing that 
+    // 0 <= idx < LEN via constraints.
+    // TODO(Tags): Use tags to enforce this at compile time.
+    var B = min_num_bits(LEN);
+    _ = assert_bits_fit_scalar(B);
+    signal idx_is_bounded <== LessThan(B)([idx, LEN]);
+    idx_is_bounded === 1;
+
+    // Enforces that `lc` is equal to 1, when idx \in [0, LEN)
+    success === 1;
 }
 
 // Indexes into an array of signals, returning the value at that index.
