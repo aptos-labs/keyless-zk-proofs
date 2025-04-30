@@ -22,35 +22,29 @@ template isWhitespace() {
    signal output is_whitespace <== is_tab + is_line_break + is_space;
 }
 
-// https://github.com/TheFrozenFire/snark-jwt-verify/blob/master/circuits/calculate_total.circom
-// This circuit returns the sum of the inputs in `num`
-// `n` must be greater than 0.
+// This circuit returns the sum of an array of signals.
 //
-// TODO(Perf): Isn't there a faster way to do this than `n` constraints?
-// ```
-// template Sum(N) {
-//    signal input in[N];
-//    signal output sum;
+// @param  N        the size of the array
 //
-//    var acc = 0;
-//    for (var i = 0; i < N; i++) {
-//        acc = acc + in[i];
-//    }
-//    sum <== acc;
-// }
-// ```
-template CalculateTotal(n) {
-    signal input nums[n];
+// @input  nums[N]  the array of signals
+// @output sum      the sum of the signals in the array
+//
+// @notes:
+//   Originally, Michael implemented it like [this](https://github.com/TheFrozenFire/snark-jwt-verify/blob/master/circuits/calculate_total.circom). But this seems really
+//   inefficient (famous last words) I am not sure that the compiler optimizes it away.
+//   The circom paper clearly shows that a var suffices here (see the MultiAND example
+//   in Section 3.12 of  [the paper](https://www.techrxiv.org/articles/preprint/CIRCOM_A_Robust_and_Scalable_Language_for_Building_Complex_Zero-Knowledge_Circuits/19374986))
+template CalculateTotal(N) {
+    signal input nums[N];
     signal output sum;
 
-    signal sums[n];
-    sums[0] <== nums[0];
+    var lc = 0;
 
-    for (var i=1; i < n; i++) {
-        sums[i] <== sums[i - 1] + nums[i];
+    for (var i = 0; i < N; i++) {
+        lc += nums[i];
     }
 
-    sum <== sums[n - 1];
+    sum <== lc;
 }
 
 // Given input `in`, enforces that `in[0] === in[1]` if `bool` is 1
