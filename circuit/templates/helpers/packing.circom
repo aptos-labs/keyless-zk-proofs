@@ -8,8 +8,14 @@
  */
 pragma circom 2.2.2;
 
-include "./arrays.circom";
 include "../stdlib/functions/assert_bits_fit_scalar.circom";
+
+include "arrays.circom";
+
+include "packing/AssertIsBytes.circom";
+include "packing/AssertIs64BitLimbs.circom";
+include "packing/ChunksToFieldElem.circom";
+include "packing/ChunksToFieldElems.circom";
 
 // Based on `Num2Bits` in circomlib
 // Converts a field element `in` into an array `out` of
@@ -104,120 +110,4 @@ template BitsToFieldElems(inputLen, bitsPerFieldElem) {
         bits_2_num_be[num_elems-1].in[j] <== in[index];
     }
     bits_2_num_be[num_elems-1].out ==> elems[num_elems-1];
-}
-
-// Enforces that each scalar in an array is a byte.
-//
-// @param   NUM_BYTES   the size of the input array
-//
-// @input   in          the input array of NUM_BYTES signals
-//
-// @postconditions      in[i] \in [0, 256), \forall i \in [0, NUM_BYTES)
-template AssertIsBytes(NUM_BYTES) {
-    signal input in[NUM_BYTES];
-
-    for (var i = 0; i < NUM_BYTES; i++) {
-        _ <== Num2Bits(8)(in[i]);
-    }
-}
-
-// Enforces that each scalar in an array is 64-bits.
-//
-// @param   NUM_LIMBS   the size of the input array
-//
-// @input   in          the input array of NUM_LIMBS signals
-//
-// @postconditions      in[i] \in [0, 2^{64}), \forall i \in [0, NUM_LIMBS)
-template AssertIs64BitLimbs(NUM_LIMBS) {
-    signal input in[NUM_LIMBS];
-
-    for (var i = 0; i < NUM_LIMBS; i++) {
-        _ <== Num2Bits(64)(in[i]);
-    }
-}
-
-// Tightly-packs many chunks into a single scalar. (Inspired by `Bits2Num` in
-// circomlib.)
-//
-// @param  NUM_CHUNKS       the number of chunks
-// @param  BITS_PER_CHUNK   the max size of each chunk in bits, such that a field
-//                          element can fit NUM_CHUNKS * BITS_PER_CHUNK bits
-//
-// @input  in[NUM_CHUNKS]   the chunks themselves
-// @output out              \sum_{i = 0}^{NUM_CHUNKS} in[i] 2^{BITS_PER_CHUNK}
-//
-// TODO(Tags): `in` should be tagged with maxbits = BITS_PER_CHUNK
-// TODO: Rename to ChunksToScalar
-template ChunksToFieldElem(NUM_CHUNKS, BITS_PER_CHUNK) {
-    // Ensure we don't exceed circom's field size here
-    _ = assert_bits_fit_scalar(NUM_CHUNKS * BITS_PER_CHUNK);
-    var BASE = 2**BITS_PER_CHUNK;
-
-    signal input in[NUM_CHUNKS];
-    signal output out;
-
-    var elem = in[0];
-    var pow = BASE;
-    for (var i = 1; i < NUM_CHUNKS; i++) {
-        elem += in[i] * pow;
-        pow *= BASE;            // (2^{BITS_PER_CHUNK})^i --> (2^{BITS_PER_CHUNK})^{i+1}
-    }
-
-    elem ==> out;
-}
-
-// Tightly-packs many chunks into a many scalars.
-//
-// @param   NUM_CHUNKS         the number of chunks to pack; cannot be 0
-// @param   BITS_PER_CHUNK     the max size of each chunk in bits
-// @param   CHUNKS_PER_SCALAR  a scalar can fit at most
-//                             CHUNKS_PER_SCALAR * BITS_PER_CHUNK bits
-//
-// @input   in                  the chunks to be packed
-// @output  out[NUM_SCALARS]    array of NUM_SCALARS scalars packing the chunks, where
-//                              NUM_SCALARS = ceil(NUM_CHUNKS / CHUNKS_PER_SCALAR)
-//
-// TODO: Rename to ChunksToScalars
-template ChunksToFieldElems(NUM_CHUNKS, CHUNKS_PER_SCALAR, BITS_PER_CHUNK) {
-    assert(NUM_CHUNKS != 0);
-
-    var NUM_CHUNKS_IN_LAST_SCALAR;
-    var NUM_SCALARS;
-
-    if (NUM_CHUNKS % CHUNKS_PER_SCALAR == 0) {
-        // The chunks can be spread evenly across the scalars
-        NUM_CHUNKS_IN_LAST_SCALAR = CHUNKS_PER_SCALAR;
-        NUM_SCALARS = NUM_CHUNKS \ CHUNKS_PER_SCALAR;
-    } else {
-        // The chunks CANNOT be spread evenly across the scalars
-        // => the last scalar will have < CHUNKS_PER_SCALAR chunks
-        NUM_CHUNKS_IN_LAST_SCALAR = NUM_CHUNKS % CHUNKS_PER_SCALAR; // in [0, CHUNKS_PER_SCALAR)
-        NUM_SCALARS = 1 + NUM_CHUNKS \ CHUNKS_PER_SCALAR;
-    }
-
-    signal input in[NUM_CHUNKS];
-    signal output out[NUM_SCALARS];
-
-    component chunksToScalar[NUM_SCALARS]; 
-    for (var i = 0; i < NUM_SCALARS - 1; i++) {
-        chunksToScalar[i] = ChunksToFieldElem(CHUNKS_PER_SCALAR, BITS_PER_CHUNK);
-    }
-
-    chunksToScalar[NUM_SCALARS - 1] = ChunksToFieldElem(NUM_CHUNKS_IN_LAST_SCALAR, BITS_PER_CHUNK);
-
-    // Assign all but the last field element
-    for (var i = 0; i < NUM_SCALARS - 1; i++) {
-        for (var j = 0; j < CHUNKS_PER_SCALAR; j++) {
-            var index = (i * CHUNKS_PER_SCALAR) + j;
-            chunksToScalar[i].in[j] <== in[index];
-        }
-        chunksToScalar[i].out ==> out[i];
-    }
-
-    // Assign the last field element
-    for (var j = 0; j < NUM_CHUNKS_IN_LAST_SCALAR; j++) {
-        var index = (NUM_SCALARS - 1) * CHUNKS_PER_SCALAR + j;
-        chunksToScalar[NUM_SCALARS - 1].in[j] <== in[index];
-    }
-    chunksToScalar[NUM_SCALARS - 1].out ==> out[NUM_SCALARS - 1];
 }
