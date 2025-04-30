@@ -146,15 +146,6 @@ template SingleOneArray(LEN) {
     }
     lc ==> success;
 
-    // Note: This would return all zeros when idx > LEN, but its callers assume 
-    // it will always return a one-hot bitmask. So, for now, enforcing that 
-    // 0 <= idx < LEN via constraints.
-    // TODO(Tags): Use tags to enforce this at compile time.
-    var B = min_num_bits(LEN);
-    _ = assert_bits_fit_scalar(B);
-    signal idx_is_bounded <== LessThan(B)([idx, LEN]);
-    idx_is_bounded === 1;
-
     // Enforces that `lc` is equal to 1, when idx \in [0, LEN)
     success === 1;
 }
@@ -179,25 +170,41 @@ template SelectArrayValue(LEN) {
     out <== EscalarProduct(LEN)(arr, mask);
 }
 
-// Similar to Decoder template from circomlib/circuits/multiplexer.circom
-// Returns a bit array `out` with a -1 at index `index`, and 0s everywhere else
-// Returns an array of all 0s if it is not the case that 0 <= index < len
+// Returns a "minus-one-hot" bit mask with a -1 at index `idx`, and 0s everywhere else.
+// Returns a vector of all zeros when idx >= LEN.
+//
+// @param   LEN       the length of the mask
+//
+// @input   idx       the index \in [0, LEN) where the bitmask should be 1
+// @output  out[LEN]  the "one-hot" bit mask
+//
+// @warning behaves differently than SingleOneArray: i.e., remains satisfiable even when
+//          idx > LEN
+//
 // TODO: Rename this to make returning all 0s when out of bounds more clear
-template SingleNegOneArray(len) {
-    signal input index;
-    signal output out[len];
+template SingleNegOneArray(LEN) {
+    signal input idx;
+    signal output out[LEN];
     signal success;
-    var lc = 0;
 
-    for (var i = 0; i < len; i++) {
-        out[i] <-- (index == i) ? -1 : 0;
-        out[i] * (index-i) === 0;
+    var lc = 0;
+    for (var i = 0; i < LEN; i++) {
+        out[i] <-- (idx == i) ? -1 : 0;
+        out[i] * (idx - i) === 0;
         lc = lc + out[i];
     }
     lc ==> success;
-    // support array sizes up to a million. Being conservative here b/c according to Michael this template is very cheap
-    signal should_be_all_zeros <== GreaterEqThan(20)([index, len]);
-    success === -1 * (1 - should_be_all_zeros);
+
+    // Allows this template to return all zeros, when idx > LEN
+    var B = min_num_bits(LEN);
+    _ = assert_bits_fit_scalar(B);
+    _ <== Num2Bits(B)(idx);
+    signal idx_is_bounded <== LessThan(B)([idx, LEN]);
+    success === -1 * idx_is_bounded;
+
+    // Old equivalent code:
+    // signal is_out_of_bounds <== GreaterEqThan(20)([idx, LEN]);
+    // success === -1 * (1 - is_out_of_bounds);
 }
 
 // Checks that `substr` of length `substr_len` matches `str` beginning at `start_index`
