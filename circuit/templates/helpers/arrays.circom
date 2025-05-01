@@ -114,37 +114,76 @@ template ArraySelectorComplex(LEN) {
     }
 }
 
-// Outputs a bit array where all bits to the right of `index` are 0, and all other bits including `index` are 1
-// Assumes that 0 <= index < len, and that len > 1
-template LeftArraySelector(len) {
-    signal input index;
-    signal output out[len];
+// Outputs a `LEN`-bit array `out`, where:
+//   out[i] = 1, \forall i \in [0, idx)
+//   out[i] = 0, \forall i \in [idx, LEN)
+//
+// @preconditions
+//    LEN > 1
+//    0 <= idx < LEN
+//
+// @param  LEN  the length of the array
+//
+// @input  idx  the index after which everything is 0; assumed to be < LEN
+//              (i.e., out[idx..] = 0 and out[..idx-1] = 1)
+// @output out  the bit array
+//
+// @notes
+//    LeftArraySelector(4)(0) -> 0000
+//    LeftArraySelector(4)(1) -> 1000
+//    LeftArraySelector(4)(2) -> 1100
+//    LeftArraySelector(4)(3) -> 1110
+//
+// TODO(Buses): Assert precondition holds via buses or tags
+template LeftArraySelector(LEN) {
+    signal input idx;
+    signal output out[LEN];
 
-    // SingleOneArray will fail if index >= len
-    signal bits[len] <== SingleOneArray(len)(index);
+    // SingleOneArray is not satisfiable when idx >= LEN
+    signal bits[LEN] <== SingleOneArray(LEN)(idx);
     var sum = 0;
-    for (var i = 0; i < len; i++) {
+    for (var i = 0; i < LEN; i++) {
         sum = sum + bits[i];
     }
 
-    out[len-1] <== 1 - sum;
-    for (var i = len-2; i >= 0; i--) {
-        out[i] <== out[i+1] + bits[i+1];
+    // TODO: Sum will always be 1 when idx is in bounds, which SingleOneArray enforces,
+    // so out[LEN - 1] will always be 0. Confused.
+    out[LEN - 1] <== 1 - sum;
+    for (var i = LEN - 2; i >= 0; i--) {
+        out[i] <== out[i + 1] + bits[i + 1];
     }
 }
 
-// Outputs a bit array where all bits to the left of `index` are 0, and all other bits are 1 including `index`
-// Assumes that 0 <= index < len
-template RightArraySelector(len) {
-    signal input index;
-    signal output out[len];
+// Outputs a `LEN`-bit array `out`, where:
+//   out[i] = 0, \forall i \in [0, idx]
+//   out[i] = 1, \forall i \in (idx, LEN)
+//
+// @preconditions
+//    0 <= idx < LEN
+//
+// @param  LEN  the length of the array
+//
+// @input  idx  the index after which everything is 1; assumed to be < LEN
+//              (i.e., out[idx+1..] = 1 and out[..idx] =0)
+// @output out  the bit array
+//
+// @notes
+//    RightArraySelector(4)(0) -> 0111
+//    RightArraySelector(4)(1) -> 0011
+//    RightArraySelector(4)(2) -> 0001
+//    RightArraySelector(4)(3) -> 0000
+//
+// TODO(Buses): Assert precondition holds via buses or tags
+template RightArraySelector(LEN) {
+    signal input idx;
+    signal output out[LEN];
 
-    // SingleOneArray fails if index >= len
-    signal bits[len] <== SingleOneArray(len)(index);
+    // SingleOneArray is not satisfiable when idx >= LEN
+    signal bits[LEN] <== SingleOneArray(LEN)(idx);
 
     out[0] <== 0;
-    for (var i = 1; i < len; i++) {
-        out[i] <== out[i-1] + bits[i-1];
+    for (var i = 1; i < LEN; i++) {
+        out[i] <== out[i - 1] + bits[i - 1];
     }
 }
 
@@ -210,13 +249,13 @@ template SingleOneArray(LEN) {
 
     for (var i = 0; i < LEN; i++) {
         out[i] <-- (idx == i) ? 1 : 0;
-        // Enforces that either: out[i] == 0, or idx == i
+        // C1: Enforces that either: out[i] == 0, or idx == i
         out[i] * (idx - i) === 0;
         lc = lc + out[i];
     }
     lc ==> success;
 
-    // Enforces that `lc` is equal to 1, when idx \in [0, LEN)
+    // C2: Enforces that `lc` is equal to 1
     success === 1;
 }
 
