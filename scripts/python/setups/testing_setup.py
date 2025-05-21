@@ -64,7 +64,7 @@ class TestingSetup(setups.Setup):
         print('ZJDB')
         utils.run_shell_command(f'. ~/.nvm/nvm.sh; node -e "console.log(v8.getHeapStatistics().heap_size_limit / 1024 / 1024)"')
         start_time = time.time()
-        utils.run_shell_command(f'. ~/.nvm/nvm.sh; snarkjs groth16 setup main_c.r1cs {PTAU_PATH} prover_key.zkey')
+        utils.run_shell_command(f'. ~/.nvm/nvm.sh; NODE_OPTIONS=--max-old-space-size=8192 snarkjs groth16 setup main_c.r1cs {PTAU_PATH} prover_key.zkey')
         eprint("Running setup took %s seconds" % (time.time() - start_time))
         eprint("Exporting verification key...")
         utils.run_shell_command(f'snarkjs zkey export verificationkey prover_key.zkey verification_key.json')
