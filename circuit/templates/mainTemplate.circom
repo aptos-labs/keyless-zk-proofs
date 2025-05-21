@@ -148,13 +148,11 @@ template identity(
     skip_aud_checks_and_use_aud_override === 0;
 
     skip_aud_checks * (skip_aud_checks-1) === 0; // Ensure equal to 0 or 1
-    var s = use_aud_override;
-    s * (s-1) === 0; // Ensure s = 0 or s = 1
     for (var i = 0; i < maxAudValueLen; i++) {
-        aud_value[i] <== (override_aud_value[i]-private_aud_value[i]) * s + private_aud_value[i];
+        aud_value[i] <== (override_aud_value[i]-private_aud_value[i]) * use_aud_override + private_aud_value[i];
     }
     signal aud_value_len;
-    aud_value_len <== (override_aud_value_len-private_aud_value_len) * s + private_aud_value_len;
+    aud_value_len <== (override_aud_value_len-private_aud_value_len) * use_aud_override + private_aud_value_len;
 
     ParseJWTFieldWithQuotedValue(maxAudKVPairLen, maxAudNameLen, maxAudValueLen)(aud_field, aud_name, aud_value, aud_field_string_bodies, aud_field_len, aud_name_len, aud_value_index, aud_value_len, aud_colon_index, skip_aud_checks);
 
