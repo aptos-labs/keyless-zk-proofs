@@ -61,6 +61,8 @@ class TestingSetup(setups.Setup):
 
     def run_setup(self):
         eprint("Starting setup now: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        print('ZJDB')
+        utils.run_shell_command(f'. ~/.nvm/nvm.sh; node -e "console.log(v8.getHeapStatistics().heap_size_limit / 1024 / 1024)"')
         start_time = time.time()
         utils.run_shell_command(f'. ~/.nvm/nvm.sh; snarkjs groth16 setup main_c.r1cs {PTAU_PATH} prover_key.zkey')
         eprint("Running setup took %s seconds" % (time.time() - start_time))
