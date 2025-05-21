@@ -61,9 +61,8 @@ class TestingSetup(setups.Setup):
 
     def run_setup(self):
         eprint("Starting setup now: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-        utils.run_shell_command(f'. ~/.nvm/nvm.sh; node -e "console.log(v8.getHeapStatistics().heap_size_limit / 1024 / 1024)"')
         start_time = time.time()
-        utils.run_shell_command(f'. ~/.nvm/nvm.sh; NODE_OPTIONS=--max-old-space-size=8192 snarkjs groth16 setup main_c.r1cs {PTAU_PATH} prover_key.zkey')
+        utils.run_shell_command(f'. ~/.nvm/nvm.sh; NODE_OPTIONS=--max-old-space-size=8192 snarkjs groth16 setup main_c.r1cs {PTAU_PATH} prover_key.zkey')  # default heap size was ~2000MB
         eprint("Running setup took %s seconds" % (time.time() - start_time))
         eprint("Exporting verification key...")
         utils.run_shell_command(f'. ~/.nvm/nvm.sh; snarkjs zkey export verificationkey prover_key.zkey verification_key.json')
