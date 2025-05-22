@@ -29,10 +29,6 @@ include "helpers/rsa/rsa_verify.circom";
 include "circomlib/circuits/poseidon.circom";
 include "circomlib/circuits/bitify.circom";
 
-// TODO: Figure out how to assert than BN254 is used as the curve (e.g., in
-// the Poseidon-BN254 templates and IsLessThan template) so we don't get into
-// trouble due to bad assumptions about max field element size
-
 // The main Aptos Keyless circuit. The parameters below are max lengths, 
 // in bytes, for the...
 template keyless(
@@ -59,6 +55,12 @@ template keyless(
     maxUIDValueLen,     // ...ASCII uid value
     maxEFKVPairLen      // ...ASCII extra field
 ) {
+    // Several templates (e.g., Poseidon-BN254 templates, LessThan) assume the
+    // BN254 curve is used, whose scalar field can represent any 253-bit number
+    // (but not necessarily any 254-bit one). Here, we check that the scalar
+    // field satisfies this assumption.
+    _ = assert_bits_fit_scalar(253);
+
     //
     // Global variables
     //
