@@ -19,7 +19,7 @@ use rand::{thread_rng, Rng};
 #[test]
 fn hash_bytes_to_field_with_len() {
     let circuit_src_template = r#"
-pragma circom 2.1.3;
+pragma circom 2.2.2;
 
 include "helpers/hashtofield.circom";
 
@@ -79,7 +79,7 @@ component main = hash_bytes_to_field_with_len_test(__MAX_LEN__);
 #[test]
 fn hash_limbs_to_field_with_len() {
     let circuit_src_template = r#"
-pragma circom 2.1.3;
+pragma circom 2.2.2;
 
 include "helpers/hashtofield.circom";
 
@@ -140,7 +140,7 @@ component main = Hash64BitLimbsToFieldWithLenTest(__MAX_LEN__);
 fn assert_is_64bit_limbs_should_pass_with_valid_limbs() {
     let mut rng = thread_rng();
     let circuit_src_template = r#"
-pragma circom 2.1.3;
+pragma circom 2.2.2;
 include "helpers/hashtofield.circom";
 component main = AssertIs64BitLimbs(__NUM_LIMBS__);
 "#;
@@ -166,7 +166,7 @@ component main = AssertIs64BitLimbs(__NUM_LIMBS__);
 #[test]
 fn assert_is_64bit_limbs_should_fail_with_invalid_limbs() {
     let circuit_src_template = r#"
-pragma circom 2.1.3;
+pragma circom 2.2.2;
 include "helpers/hashtofield.circom";
 component main = AssertIs64BitLimbs(__NUM_LIMBS__);
 "#;
