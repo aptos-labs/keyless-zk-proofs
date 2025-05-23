@@ -105,7 +105,6 @@ template keyless(
         b64u_jwt_payload_sha2_padded_len
     );
 
-    // TODO: Can this var be a signal also? What's the difference? Can the variable just be removed?
     // TODO(Perf): Why not perform this check on `b64u_jwt_header_w_dot`, which is shorter & should save
     //   some constraints? (Since the concatenation check makes it irrelevant where we check this.)
     //
