@@ -90,9 +90,8 @@ template Sha2PaddingVerify(maxInputLen) {
     var padding_start_bits = padding_start * 8;
     var K = len_bits - padding_start_bits - 1 - 64; 
 
-    // Ensure K is smallest value below 512 that satisfies above equation
-    signal K_is_correct <== LessThan(10)([K,512]);
-    K_is_correct === 1;
+    // Ensure K is 9-bits (i.e., < 2^9 = 512)
+    _ <== Num2Bits(9)(K);
 
     signal in_hash <== HashBytesToFieldWithLen(maxInputLen)(in, num_blocks*64);
     // 4.1.a
