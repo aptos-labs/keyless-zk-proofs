@@ -43,7 +43,7 @@ template ParseJWTFieldSharedLogic(maxKVPairLen, maxNameLen, maxValueLen) {
     signal colon_less_value <== LessThan(20)([colon_index, value_index]);
     checks[1] <== IsEqual()([colon_less_value, 1]);
 
-    signal field_len_ok <== GreaterEqThan(20)([field_len, name_len + value_len + 1]);
+    signal field_len_ok <== GreaterThan(20)([field_len, name_len + value_len]);
     checks[2] <== IsEqual()([field_len_ok, 1]);
 
     signal field_hash <== HashBytesToFieldWithLen(maxKVPairLen)(field, field_len);
