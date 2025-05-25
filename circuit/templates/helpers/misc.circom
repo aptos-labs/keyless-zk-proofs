@@ -11,15 +11,20 @@ include "circomlib/circuits/bitify.circom";
 template isWhitespace() {
    signal input char;  
                        
-   signal is_tab <== IsEqual()([char, 9]); // character is a tab space
+   // ASCII bytes in [9, 13] are line break characters:
+   //   tab -- 9, newline -- 10, vertical tab -- 11,
+   //   form feed -- 12, carriage return -- 13
+   signal is_line_break_part_1 <== GreaterThan(8)([char, 8]);
+   signal is_line_break_part_2 <== LessThan(8)([char, 14]);
+   signal is_line_break <== AND()(is_line_break_part_1, is_line_break_part_2);
 
-   signal is_line_break_part_1 <== GreaterEqThan(8)([char, 10]); // ASCII bytes values between 10 ...
-   signal is_line_break_part_2 <== LessEqThan(8)([char, 13]); //    ... and 13 inclusive are line break characters
-   signal is_line_break <== is_line_break_part_1 * is_line_break_part_2;
+   // 32 in ASCII is the space character
+   signal is_space <== IsEqual()([char, 32]);
 
-   signal is_space <== IsEqual()([char, 32]); // ' '
-                       
-   signal output is_whitespace <== is_tab + is_line_break + is_space;
+   // serves as a cheaper logical OR, when we know:
+   //   (1) values are either 0 or 1 and
+   //   (2) both values CANNOT be 1 at the same time
+   signal output is_whitespace <== is_line_break + is_space;
 }
 
 // This circuit returns the sum of an array of signals.
