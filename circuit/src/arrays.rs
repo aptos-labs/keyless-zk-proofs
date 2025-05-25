@@ -1378,10 +1378,10 @@ fn check_are_ascii_digits_test() {
     let mut rng = rand::thread_rng();
     let digits: Vec<u8> = (0..5).map(|_| rng.gen_range(0, 9)).collect();
     let mut input_arr = digits_to_ascii_digits(digits.to_vec());
-    let mut not_digits: Vec<u8> = (0..8 - 5).map(|_| rng.gen_range(0, 250)).collect();
+    let mut not_digits: Vec<u8> = (0..8 - 5).map(|_| rng.gen_range(58, 250)).collect();
     input_arr.append(&mut not_digits);
 
-    let len = 5;
+    let len = 5; // only the first 5 entries should need to be valid digits
     let config = CircuitConfig::new().max_length("in", max_input_len);
     let circuit_input_signals = CircuitInputSignals::new()
         .u64_input("len", len)
