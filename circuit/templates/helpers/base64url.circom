@@ -98,12 +98,19 @@ template Base64URLLookup() {
     1 === result;
 }
 
-// Takes in an array `in` of base64url characters and decodes it to ASCII characters in `out`. 
-// `in` may be 0-padded after its base64 elements.
-// Assumes `in` contains only base64url characters followed by 0-padding.
+// Base64url-decodes an array of bytes into an array.
+//
+// @param   N    the maximum length of the *decoded* output, in bytes
+//
+// @input   in   the base64url-encoded input, as an array of zero-padded bytes
+//
+// @output  out  the decoded output, as an array of bytes
+//
+// @notes
+//    Assumes `in` contains only base64url characters followed by 0-padding.
 template Base64UrlDecode(N) {
-    //var N = ((3*M)\4)+2; // Rough inverse of the computation performed to compute M
-    var M = 4*((N+2)\3);
+    // The encoded input's maximum length
+    var M = 4*((N + 2) \ 3);
     signal input in[M];
     signal output out[N];
 
@@ -116,7 +123,6 @@ template Base64UrlDecode(N) {
         for (var j = 0; j < 3; j++) {
             bits_out[i\4][j] = Bits2Num(8);
         }
-
 
         //     log("range_AZ: ", range_AZ);
         for (var j = 0; j < 4; j++) {
