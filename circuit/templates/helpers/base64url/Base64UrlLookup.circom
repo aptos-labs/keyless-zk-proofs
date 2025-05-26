@@ -2,10 +2,16 @@ pragma circom 2.2.2;
 
 include "circomlib/circuits/comparators.circom";
 
-// http://0x80.pl/notesen/2016-01-17-sse-base64-decoding.html#vector-lookup-base
-// Modified to support base64url format instead.
-// Also accepts zero padding, which is not in the base64url format.
-// TODO(Comment): Seems to take an 8-bit base64 character and return its 6 bit decoding?
+// Given an 8-bit base64 character, returns its 6-bit decoding.
+// Handles the '=' base64 padding character, even though it is not needed for JWTs.
+//
+// @input   in   the 8-bit base64 alphabet character
+//
+// @output  out  the 6-bit decoded bits corresponding to `in`
+//
+// @notes
+//    From [here](http://0x80.pl/notesen/2016-01-17-sse-base64-decoding.html#vector-lookup-base), but
+//    modified to support base64url instead.
 template Base64UrlLookup() {
     signal input in;
     signal output out;
