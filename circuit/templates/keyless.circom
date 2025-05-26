@@ -165,7 +165,7 @@ template keyless(
     // Note: By "padding" here we just mean the "10000..." bits *without* the length L appended to them
     signal input sha2_padding[64];
 
-    Sha2PaddingVerify(MAX_B64U_JWT_NO_SIG_LEN)(
+    SHA2_256_PaddingVerify(MAX_B64U_JWT_NO_SIG_LEN)(
         b64u_jwt_no_sig_sha2_padded,
         sha2_num_blocks,
         b64u_jwt_header_w_dot_len + b64u_jwt_payload_sha2_padded_len,
