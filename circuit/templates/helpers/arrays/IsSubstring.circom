@@ -1,3 +1,6 @@
+// TODO: Although initially only used to check for substrings, I think this should
+// be renamed to IsSubarray, since it works for any array, I believe (modulo the hashing
+// which may enforce that the input be bytes).
 pragma circom 2.2.2;
 
 include "../hashtofield/HashBytesToFieldWithLen.circom";
