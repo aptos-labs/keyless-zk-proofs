@@ -1,7 +1,7 @@
 
 pragma circom 2.2.2;
 
-include "helpers/arrays.circom";
+include "helpers/arrays/IsSubstring.circom";
 
 template assert_is_substring_test() {
     var max_str_len = 256;

@@ -1,6 +1,6 @@
 pragma circom 2.2.2;
 
-include "helpers/arrays.circom";
+include "helpers/arrays/SelectArrayValue.circom";
 
 template select_array_value_test(len) {
     signal input array[len];

@@ -1,6 +1,6 @@
 pragma circom 2.2.2;
 
-include "helpers/arrays.circom";
+include "helpers/arrays/SingleOneArray.circom";
 
 template single_one_array_test(len) {
     signal input index;

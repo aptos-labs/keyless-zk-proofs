@@ -1,6 +1,6 @@
 pragma circom 2.2.2;
 
-include "helpers/arrays.circom";
+include "helpers/arrays/AssertIsConcatenation.circom";
 
 template concatenation_check_test(maxFullStringLen, maxLeftStringLen, maxRightStringLen) {
     signal input full_string[maxFullStringLen];

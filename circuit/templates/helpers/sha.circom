@@ -1,5 +1,6 @@
 pragma circom 2.2.2;
 
+include "./arrays/IsSubstring.circom";
 include "./arrays/SingleOneArray.circom";
 
 include "circomlib/circuits/sha256/constants.circom";

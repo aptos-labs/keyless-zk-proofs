@@ -1,6 +1,6 @@
 pragma circom 2.2.2;
 
-include "helpers/arrays.circom";
+include "helpers/arrays/ArraySelector.circom";
 
 template array_selector_test(len) {
     signal input start_index;

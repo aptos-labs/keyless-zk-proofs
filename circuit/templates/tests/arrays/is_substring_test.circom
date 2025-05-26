@@ -1,6 +1,6 @@
 pragma circom 2.2.2;
 
-include "helpers/arrays.circom";
+include "helpers/arrays/IsSubstring.circom";
 
 template is_substring_test(maxStrLen, maxSubstrLen) {
     signal input str[maxStrLen];

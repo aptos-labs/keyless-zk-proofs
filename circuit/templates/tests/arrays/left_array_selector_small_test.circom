@@ -1,6 +1,6 @@
 pragma circom 2.2.2;
 
-include "helpers/arrays.circom";
+include "helpers/arrays/LeftArraySelector.circom";
 
 template left_array_selector_test(len) {
     signal input index;

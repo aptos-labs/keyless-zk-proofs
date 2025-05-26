@@ -1,5 +1,7 @@
 pragma circom 2.2.2;
 
+include "../arrays/ArraySelector.circom";
+
 include "circomlib/circuits/bitify.circom";
 include "circomlib/circuits/comparators.circom";
 include "circomlib/circuits/gates.circom";

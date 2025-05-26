@@ -8,7 +8,10 @@ include "../hashtofield/HashBytesToFieldWithLen.circom";
 include "./ArraySelector.circom";
 include "./SelectArrayValue.circom";
 
+include "../../stdlib/circuits/Sum.circom";
+
 include "circomlib/circuits/comparators.circom";
+include "circomlib/circuits/gates.circom";
 include "circomlib/circuits/poseidon.circom";
 
 // Checks that `substr` is a substring of `str`.

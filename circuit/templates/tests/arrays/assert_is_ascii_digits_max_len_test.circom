@@ -1,14 +1,14 @@
 pragma circom 2.2.2;
 
-include "helpers/arrays.circom";
+include "helpers/strings/AssertIsAsciiDigits.circom";
 
-template check_are_ascii_digits_test(maxNumDigits) {
+template ascii_digits_test(maxNumDigits) {
     signal input in[maxNumDigits];
     signal input len;
     
     AssertIsAsciiDigits(maxNumDigits)(in, len);
 }
 
-component main = check_are_ascii_digits_test(
+component main = ascii_digits_test(
    8
 );
