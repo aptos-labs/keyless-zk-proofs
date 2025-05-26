@@ -1477,9 +1477,9 @@ fn digits_to_ascii_digits(digits: Vec<u8>) -> Vec<u8> {
 }
 
 #[test]
-fn ascii_digits_to_field_test() {
+fn ascii_digits_to_scalar_test() {
     let circuit_handle =
-        TestCircuitHandle::new("arrays/ascii_digits_to_field_test.circom").unwrap();
+        TestCircuitHandle::new("arrays/ascii_digits_to_scalar_test.circom").unwrap();
     let max_input_len = 20;
     let digits = [2, 1, 2, 4, 7];
 
@@ -1499,9 +1499,9 @@ fn ascii_digits_to_field_test() {
 }
 
 #[test]
-fn ascii_digits_to_field_out_of_bounds_test() {
+fn ascii_digits_to_scalar_out_of_bounds_test() {
     let circuit_handle =
-        TestCircuitHandle::new("arrays/ascii_digits_to_field_test.circom").unwrap();
+        TestCircuitHandle::new("arrays/ascii_digits_to_scalar_test.circom").unwrap();
     let max_input_len = 20;
     let digits = [2, 1, 2, 4, 7];
 
@@ -1521,9 +1521,9 @@ fn ascii_digits_to_field_out_of_bounds_test() {
 }
 
 #[test]
-fn ascii_digits_to_field_small_test() {
+fn ascii_digits_to_scalar_small_test() {
     let circuit_handle =
-        TestCircuitHandle::new("arrays/ascii_digits_to_field_small_test.circom").unwrap();
+        TestCircuitHandle::new("arrays/ascii_digits_to_scalar_small_test.circom").unwrap();
     let max_input_len = 2;
     let digits = [7, 89];
     let ascii_digits = digits_to_ascii_digits(digits.to_vec());
@@ -1542,9 +1542,9 @@ fn ascii_digits_to_field_small_test() {
 }
 
 #[test]
-fn ascii_digits_to_field_large_test() {
+fn ascii_digits_to_scalar_large_test() {
     let circuit_handle =
-        TestCircuitHandle::new("arrays/ascii_digits_to_field_large_test.circom").unwrap();
+        TestCircuitHandle::new("arrays/ascii_digits_to_scalar_large_test.circom").unwrap();
     let max_input_len = 2000;
     // let mut rng = rand::thread_rng();
     // let digits: Vec<u8> = (0..19).map(|_| rng.gen_range(0, 9)).collect();
@@ -1571,9 +1571,9 @@ fn ascii_digits_to_field_large_test() {
 
 #[test]
 #[should_panic]
-fn ascii_digits_to_field_not_ascii_digits_test() {
+fn ascii_digits_to_scalar_not_ascii_digits_test() {
     let circuit_handle =
-        TestCircuitHandle::new("arrays/ascii_digits_to_field_test.circom").unwrap();
+        TestCircuitHandle::new("arrays/ascii_digits_to_scalar_test.circom").unwrap();
     let max_input_len = 20;
     let digits = [2, 1, 24, 4, 7];
     let ascii_digits = digits_to_ascii_digits(digits.to_vec());

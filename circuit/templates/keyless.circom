@@ -395,7 +395,7 @@ template keyless(
         iat_name[i] === required_iat_name[i];
     }
     
-    signal iat_field_elem <== ASCIIDigitsToField(maxIatValueLen)(iat_value, iat_value_len);
+    signal iat_field_elem <== AsciiDigitsToScalar(maxIatValueLen)(iat_value, iat_value_len);
     
     signal input exp_date;
     signal input exp_horizon;
@@ -440,7 +440,7 @@ template keyless(
     log("computed nonce is: ", computed_nonce);
 
     // Check nonce is correct
-    signal nonce_field_elem <== ASCIIDigitsToField(maxNonceValueLen)(nonce_value, nonce_value_len);
+    signal nonce_field_elem <== AsciiDigitsToScalar(maxNonceValueLen)(nonce_value, nonce_value_len);
     
     nonce_field_elem === computed_nonce;
 

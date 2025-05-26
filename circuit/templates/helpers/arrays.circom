@@ -29,7 +29,7 @@ include "../stdlib/functions/min_num_bits.circom";
 // - the number represented by the ASCII `digits` is smaller than the scalar field used by the circuit
 // - `digits` contains only ASCII digit values between 48 and 57 inclusive
 // Does not work when maxLen = 1
-template ASCIIDigitsToField(maxLen) {
+template AsciiDigitsToScalar(maxLen) {
     signal input digits[maxLen]; 
     signal input len; 
     signal output out;
