@@ -29,7 +29,11 @@ fn sha_test() {
 
     // TODO: figure out how to parallelize and why `tokio::task::spawn()` does not work.
     // Is it supported to do multiple `node generate_witness.js xxx` in parallel at all?
-    for input_byte_len in 0..248 {
+    // (I suspect our code is not thread-safe?)
+    //
+    // The SHA2-256 compression function takes 512 bits (64 bytes). So we make sure at least two
+    // calls to it happen.
+    for input_byte_len in 0..=128 {
         let mut input = vec![0; input_byte_len];
         rng.fill_bytes(&mut input);
         let padded_input = sha::with_sha_padding_bytes(&input);
