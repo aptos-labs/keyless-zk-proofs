@@ -23,13 +23,13 @@ template Num2BitsBE(n) {
     signal output out[n];
     var num = 0;
    
-    var e2 = 1;
+    var pow2 = 1;
     for (var i = 0; i < n; i++) {
         var idx = (n - 1) - i;
         out[idx] <-- (in >> i) & 1;
         out[idx] * (out[idx] - 1 ) === 0;
-        num += out[idx] * e2;
-        e2 = e2 + e2;
+        num += out[idx] * pow2;
+        pow2 = pow2 + pow2;
     }
     num === in;
 }
