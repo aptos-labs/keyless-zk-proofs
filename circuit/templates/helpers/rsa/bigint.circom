@@ -361,63 +361,6 @@ template BigIsEqual(k){
     out <== isEqual[k].out;
 }
 
-// leading register of b should be non-zero
-template BigMod(n, k) {
-    assert(n <= 126);
-    signal input a[2 * k];
-    signal input b[k];
-
-    signal output div[k + 1];
-    signal output mod[k];
-
-    var longdiv[2][100] = long_div(n, k, k, a, b);
-    for (var i = 0; i < k; i++) {
-        div[i] <-- longdiv[0][i];
-        mod[i] <-- longdiv[1][i];
-    }
-    div[k] <-- longdiv[0][k];
-    component range_checks[k + 1];
-    for (var i = 0; i <= k; i++) {
-        range_checks[i] = Num2Bits(n);
-        range_checks[i].in <== div[i];
-    }
-
-    component mul = BigMult(n, k + 1);
-    for (var i = 0; i < k; i++) {
-        mul.a[i] <== div[i];
-        mul.b[i] <== b[i];
-    }
-    mul.a[k] <== div[k];
-    mul.b[k] <== 0;
-
-    component add = BigAdd(n, 2 * k + 2);
-    for (var i = 0; i < 2 * k; i++) {
-        add.a[i] <== mul.out[i];
-        if (i < k) {
-            add.b[i] <== mod[i];
-        } else {
-            add.b[i] <== 0;
-        }
-    }
-    add.a[2 * k] <== mul.out[2 * k];
-    add.a[2 * k + 1] <== mul.out[2 * k + 1];
-    add.b[2 * k] <== 0;
-    add.b[2 * k + 1] <== 0;
-
-    for (var i = 0; i < 2 * k; i++) {
-        add.out[i] === a[i];
-    }
-    add.out[2 * k] === 0;
-    add.out[2 * k + 1] === 0;
-
-    component lt = BigLessThan(n, k);
-    for (var i = 0; i < k; i++) {
-        lt.a[i] <== mod[i];
-        lt.b[i] <== b[i];
-    }
-    lt.out === 1;
-}
-
 // a[i], b[i] in 0... 2**n-1
 // represent a = a[0] + a[1] * 2**n + .. + a[k - 1] * 2**(n * k)
 // assume a >= b
@@ -470,65 +413,6 @@ template BigSubModP(n, k){
     }
     for (var i = 0; i < k; i++){
         out[i] <== add.out[i];
-    }
-}
-
-template BigMultModP(n, k) {
-    assert(n <= 252);
-    signal input a[k];
-    signal input b[k];
-    signal input p[k];
-    signal output out[k];
-
-    component big_mult = BigMult(n, k);
-    for (var i = 0; i < k; i++) {
-        big_mult.a[i] <== a[i];
-        big_mult.b[i] <== b[i];
-    }
-    component big_mod = BigMod(n, k);
-    for (var i = 0; i < 2 * k; i++) {
-        big_mod.a[i] <== big_mult.out[i];
-    }
-    for (var i = 0; i < k; i++) {
-        big_mod.b[i] <== p[i];
-    }
-    for (var i = 0; i < k; i++) {
-        out[i] <== big_mod.mod[i];
-    }
-}
-
-template BigModInv(n, k) {
-    assert(n <= 252);
-    signal input in[k];
-    signal input p[k];
-    signal output out[k];
-
-    // length k
-    var inv[100] = mod_inv(n, k, in, p);
-    for (var i = 0; i < k; i++) {
-        out[i] <-- inv[i];
-    }
-    component range_checks[k];
-    for (var i = 0; i < k; i++) {
-        range_checks[i] = Num2Bits(n);
-        range_checks[i].in <== out[i];
-    }
-
-    component mult = BigMult(n, k);
-    for (var i = 0; i < k; i++) {
-        mult.a[i] <== in[i];
-        mult.b[i] <== out[i];
-    }
-    component mod = BigMod(n, k);
-    for (var i = 0; i < 2 * k; i++) {
-        mod.a[i] <== mult.out[i];
-    }
-    for (var i = 0; i < k; i++) {
-        mod.b[i] <== p[i];
-    }
-    mod.mod[0] === 1;
-    for (var i = 1; i < k; i++) {
-        mod.mod[i] === 0;
     }
 }
 
