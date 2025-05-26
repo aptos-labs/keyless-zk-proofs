@@ -4,7 +4,6 @@ pragma circom 2.2.2;
 
 include "circomlib/circuits/bitify.circom";
 
-include "./bigint.circom";
 include "./bigint_func.circom";
 
 // These functions operate over values in Z/Zp for some integer p (typically,
