@@ -8,6 +8,7 @@ use aptos_keyless_common::input_processing::{
     circuit_input_signals::{CircuitInputSignals, Padded},
     witness_gen::witness_gen,
 };
+use std::time::Instant;
 use std::{env, fs, fs::File, io::Write, path::PathBuf, process::Command};
 use tempfile::{tempdir, NamedTempFile, TempDir};
 
@@ -63,8 +64,11 @@ impl TestCircuitHandle {
         tmp_circuit_file.write_all(circuit_src.as_bytes())?;
 
         let circom_path = PathBuf::from(env::var("CARGO_HOME").unwrap()).join("bin/circom");
+
+        let start = Instant::now();
         let output = Command::new(circom_path)
             .args([
+                "--O0",
                 "-l",
                 include_root_dir.to_str().unwrap(),
                 "-l",
@@ -76,6 +80,8 @@ impl TestCircuitHandle {
                 dir.path().to_str().unwrap(),
             ])
             .output()?;
+
+        println!("Time to run circom: {:?}", start.elapsed());
         println!("{}", String::from_utf8_lossy(&output.stdout));
         println!("{}", String::from_utf8_lossy(&output.stderr));
         ensure!(output.status.success());

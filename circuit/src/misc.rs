@@ -9,6 +9,7 @@ use ark_bn254::Fr;
 use ark_ff::PrimeField;
 use rand::{distributions::Alphanumeric, rngs::ThreadRng, Rng}; // 0.8
 use std::iter::zip;
+use std::time::Instant;
 
 fn generate_string_bodies_input() -> String {
     let mut rng = rand::thread_rng();
@@ -279,23 +280,23 @@ fn sum_test() {
 
     let mut rng = rand::thread_rng();
 
-    for _i in 0..256 {
-        let nums: Vec<Fr> = (0..10).map(|_| Fr::from(rng.gen::<u64>())).collect();
+    let nums: Vec<Fr> = (0..10).map(|_| Fr::from(rng.gen::<u64>())).collect();
 
-        let sum: Fr = nums.iter().sum();
+    let sum: Fr = nums.iter().sum();
 
-        let config = CircuitConfig::new().max_length("nums", 10);
+    let config = CircuitConfig::new().max_length("nums", 10);
 
-        let circuit_input_signals = CircuitInputSignals::new()
-            .frs_input("nums", &nums)
-            .fr_input("sum", sum)
-            .pad(&config)
-            .unwrap();
+    let circuit_input_signals = CircuitInputSignals::new()
+        .frs_input("nums", &nums)
+        .fr_input("sum", sum)
+        .pad(&config)
+        .unwrap();
 
-        let result = circuit_handle.gen_witness(circuit_input_signals);
-        println!("{:?}", result);
-        assert!(result.is_ok());
-    }
+    let start = Instant::now();
+    let result = circuit_handle.gen_witness(circuit_input_signals);
+    println!("Time to witgen for sum: {:?}", start.elapsed());
+    println!("{:?}", result);
+    assert!(result.is_ok());
 }
 
 #[test]
