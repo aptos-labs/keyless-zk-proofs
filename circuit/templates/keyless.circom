@@ -179,7 +179,7 @@ template keyless(
     //  - A SHA2 block is 512 bits
     //  - '\' performs division rounded up to an integer
     var SHA2_MAX_NUM_BLOCKS = (MAX_B64U_JWT_NO_SIG_LEN * 8) \ 512;
-    signal jwt_hash[256] <== Sha2_256_prepadded_varlen(SHA2_MAX_NUM_BLOCKS)(
+    signal jwt_hash[256] <== SHA2_256_Prepadded_Hash(SHA2_MAX_NUM_BLOCKS)(
         in <== BytesToBits(MAX_B64U_JWT_NO_SIG_LEN)(b64u_jwt_no_sig_sha2_padded),
         tBlock <== sha2_num_blocks - 1
     );

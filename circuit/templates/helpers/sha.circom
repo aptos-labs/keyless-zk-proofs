@@ -11,7 +11,7 @@ include "circomlib/circuits/comparators.circom";
 // Similar to `sha256_unsafe` in https://github.com/TheFrozenFire/snark-jwt-verify/blob/master/circuits/sha256.circom
 // Hashes a bit array message using SHA2_256, hashing every block up to and including `tBlock`. All blocks after `tBlock` are ignored in the output
 // Expects the bit array input to be padded according to https://www.rfc-editor.org/rfc/rfc4634.html#section-4.1 up to tBlock. 
-template Sha2_256_prepadded_varlen(maxNumBlocks) {
+template SHA2_256_Prepadded_Hash(maxNumBlocks) {
     signal input in[maxNumBlocks * 512];
     signal input tBlock;
     
