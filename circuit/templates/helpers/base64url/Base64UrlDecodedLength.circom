@@ -57,7 +57,7 @@ template Base64UrlDecodedLength(MAX_ENCODED_LEN) {
     signal r <-- 3*m % 4;
 
     // Step 1: Check Euclidean division holds over \Zp
-    3*m === q * 4 + r;
+    3*m === 4*q + r;
 
     // Step 2: Checks that the remainder is less than the divisor (i.e., less than 4 <=> 2-bit)
     _ <== Num2Bits(2)(r);
