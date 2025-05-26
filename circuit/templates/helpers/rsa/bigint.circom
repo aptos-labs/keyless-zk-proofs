@@ -174,52 +174,6 @@ template BigAdd(n, k) {
     out[k] <== unit[k - 2].carry;
 }
 
-// a and b have n-bit registers
-// a has ka registers, each with NONNEGATIVE ma-bit values (ma can be > n)
-// b has kb registers, each with NONNEGATIVE mb-bit values (mb can be > n)
-// out has ka + kb - 1 registers, each with (ma + mb + ceil(log(max(ka, kb))))-bit values
-template BigMultNoCarry(n, ma, mb, ka, kb) {
-    assert(ma + mb <= 253);
-    signal input a[ka];
-    signal input b[kb];
-    signal output out[ka + kb - 1];
-
-    var prod_val[ka + kb - 1];
-    for (var i = 0; i < ka + kb - 1; i++) {
-        prod_val[i] = 0;
-    }
-    for (var i = 0; i < ka; i++) {
-        for (var j = 0; j < kb; j++) {
-            prod_val[i + j] += a[i] * b[j];
-        }
-    }
-    for (var i = 0; i < ka + kb - 1; i++) {
-        out[i] <-- prod_val[i];
-    }
-
-    var a_poly[ka + kb - 1];
-    var b_poly[ka + kb - 1];
-    var out_poly[ka + kb - 1];
-    for (var i = 0; i < ka + kb - 1; i++) {
-        out_poly[i] = 0;
-        a_poly[i] = 0;
-        b_poly[i] = 0;
-        for (var j = 0; j < ka + kb - 1; j++) {
-            out_poly[i] = out_poly[i] + out[j] * (i ** j);
-        }
-        for (var j = 0; j < ka; j++) {
-            a_poly[i] = a_poly[i] + a[j] * (i ** j);
-        }
-        for (var j = 0; j < kb; j++) {
-            b_poly[i] = b_poly[i] + b[j] * (i ** j);
-        }
-    }
-    for (var i = 0; i < ka + kb - 1; i++) {
-        out_poly[i] === a_poly[i] * b_poly[i];
-    }
-}
-
-
 // in[i] contains longs
 // out[i] contains shorts
 template LongToShortNoEndCarry(n, k) {
@@ -274,27 +228,6 @@ template LongToShortNoEndCarry(n, k) {
         runningCarry[i] * (1 << n) === in[i] - out[i] + runningCarry[i-1];
     }
     runningCarry[k-1] === out[k];
-}
-
-template BigMult(n, k) {
-    signal input a[k];
-    signal input b[k];
-    signal output out[2 * k];
-
-    component mult = BigMultNoCarry(n, n, n, k, k);
-    for (var i = 0; i < k; i++) {
-        mult.a[i] <== a[i];
-        mult.b[i] <== b[i];
-    }
-
-    // no carry is possible in the highest order register
-    component longshort = LongToShortNoEndCarry(n, 2 * k - 1);
-    for (var i = 0; i < 2 * k - 1; i++) {
-        longshort.in[i] <== mult.out[i];
-    }
-    for (var i = 0; i < 2 * k; i++) {
-        out[i] <== longshort.out[i];
-    }
 }
 
 template BigLessThan(n, k){
