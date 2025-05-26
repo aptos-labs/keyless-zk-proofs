@@ -51,7 +51,7 @@ template ParseJWTFieldSharedLogic(maxKVPairLen, maxNameLen, maxValueLen) {
     signal name_first_quote <== SelectArrayValue(maxKVPairLen)(field, 0);
     checks[3] <== IsEqual()([name_first_quote, 34]); // '"'
 
-    checks[4] <== CheckSubstrInclusionPolyBoolean(maxKVPairLen, maxNameLen)(field, field_hash, name, name_len, 1);
+    checks[4] <== IsSubstring(maxKVPairLen, maxNameLen)(field, field_hash, name, name_len, 1);
 
     signal name_second_quote <== SelectArrayValue(maxKVPairLen)(field, name_len+1);
     checks[5] <== IsEqual()([name_second_quote, 34]); // '"'
@@ -59,7 +59,7 @@ template ParseJWTFieldSharedLogic(maxKVPairLen, maxNameLen, maxValueLen) {
     signal colon <== SelectArrayValue(maxKVPairLen)(field, colon_index);
     checks[6] <== IsEqual()([colon, 58]); // ':'
 
-    checks[7] <== CheckSubstrInclusionPolyBoolean(maxKVPairLen, maxValueLen)(field, field_hash, value, value_len, value_index);
+    checks[7] <== IsSubstring(maxKVPairLen, maxValueLen)(field, field_hash, value, value_len, value_index);
 
     // Enforce last character of `field` is comma or end brace
     signal last_char <== SelectArrayValue(maxKVPairLen)(field, field_len-1);

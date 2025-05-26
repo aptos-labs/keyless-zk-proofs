@@ -981,9 +981,8 @@ fn check_substr_inclusion_poly_edge_case_test() {
 }
 
 #[test]
-fn check_substr_inclusion_poly_boolean_test() {
-    let circuit_handle =
-        TestCircuitHandle::new("arrays/check_substr_inclusion_poly_boolean_test.circom").unwrap();
+fn is_substring_test() {
+    let circuit_handle = TestCircuitHandle::new("arrays/is_substring_test.circom").unwrap();
 
     let max_str_len = 100;
     let max_substr_len = 20;
@@ -1014,10 +1013,9 @@ fn check_substr_inclusion_poly_boolean_test() {
 }
 
 #[test]
-fn check_substr_inclusion_poly_no_padding_boolean_test() {
+fn is_substring_no_padding_test() {
     let circuit_handle =
-        TestCircuitHandle::new("arrays/check_substr_inclusion_poly_boolean_no_padding_test.circom")
-            .unwrap();
+        TestCircuitHandle::new("arrays/is_substring_no_padding_test.circom").unwrap();
 
     let string = "Hello World!";
     let max_str_len = string.len();
@@ -1047,9 +1045,8 @@ fn check_substr_inclusion_poly_no_padding_boolean_test() {
 }
 
 #[test]
-fn check_substr_inclusion_poly_same_boolean_test() {
-    let circuit_handle =
-        TestCircuitHandle::new("arrays/check_substr_inclusion_poly_boolean_test.circom").unwrap();
+fn is_substring_same_test() {
+    let circuit_handle = TestCircuitHandle::new("arrays/is_substring_test.circom").unwrap();
 
     let string = "Hello World!";
     let max_str_len = 100;
@@ -1077,9 +1074,8 @@ fn check_substr_inclusion_poly_same_boolean_test() {
 }
 
 #[test]
-fn check_substr_inclusion_poly_boolean_out_of_bounds_test() {
-    let circuit_handle =
-        TestCircuitHandle::new("arrays/check_substr_inclusion_poly_boolean_test.circom").unwrap();
+fn is_substring_out_of_bounds_test() {
+    let circuit_handle = TestCircuitHandle::new("arrays/is_substring_test.circom").unwrap();
 
     let string = "Hello World!";
     let max_str_len = 100;
@@ -1107,10 +1103,8 @@ fn check_substr_inclusion_poly_boolean_out_of_bounds_test() {
 }
 
 #[test]
-fn check_substr_inclusion_poly_large_boolean_test() {
-    let circuit_handle =
-        TestCircuitHandle::new("arrays/check_substr_inclusion_poly_boolean_large_test.circom")
-            .unwrap();
+fn is_substring_large_test() {
+    let circuit_handle = TestCircuitHandle::new("arrays/is_substring_large_test.circom").unwrap();
 
     let max_str_len = 2000;
     let max_substr_len = 1000;
@@ -1142,9 +1136,8 @@ As of some one gently rapping, rapping at my chamber door.
 }
 
 #[test]
-fn check_substr_inclusion_poly_small_boolean_test() {
-    let circuit_handle =
-        TestCircuitHandle::new("arrays/check_substr_inclusion_poly_boolean_test.circom").unwrap();
+fn is_substring_small_test() {
+    let circuit_handle = TestCircuitHandle::new("arrays/is_substring_test.circom").unwrap();
 
     let max_str_len = 100;
     let max_substr_len = 20;

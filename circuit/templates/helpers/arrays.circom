@@ -38,7 +38,7 @@ template CheckSubstrInclusionPoly(maxStrLen, maxSubstrLen) {
     signal input substr_len;
     signal input start_index;
 
-    signal success <== CheckSubstrInclusionPolyBoolean(maxStrLen, maxSubstrLen)(
+    signal success <== IsSubstring(maxStrLen, maxSubstrLen)(
         str, str_hash, substr, substr_len, start_index
     );
 
@@ -67,7 +67,7 @@ template CheckSubstrInclusionPoly(maxStrLen, maxSubstrLen) {
 //   success        1 if `substr` starts at `start_index` in `str` and ends at
 //                  `start_index + substr_len - 1`. Otherwise, 0.
 //
-template CheckSubstrInclusionPolyBoolean(maxStrLen, maxSubstrLen) {
+template IsSubstring(maxStrLen, maxSubstrLen) {
     // Note: It does make sense to call this when maxStrLen == maxSubstrLen because
     // we may still have len(substr) < len(str) even though they have the same max
     // length

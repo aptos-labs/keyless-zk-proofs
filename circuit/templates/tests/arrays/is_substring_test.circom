@@ -10,7 +10,7 @@ template check_substr_inclusion_poly_boolean_test(maxStrLen, maxSubstrLen) {
     signal input start_index;
     signal input expected_output;
     
-    signal out <== CheckSubstrInclusionPolyBoolean(maxStrLen, maxSubstrLen)(str, str_hash, substr, substr_len, start_index);
+    signal out <== IsSubstring(maxStrLen, maxSubstrLen)(str, str_hash, substr, substr_len, start_index);
     expected_output === out;
 }
 

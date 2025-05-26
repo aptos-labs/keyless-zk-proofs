@@ -299,7 +299,7 @@ template keyless(
     signal input use_extra_field;
     use_extra_field * (use_extra_field - 1) === 0; // Ensure 0 or 1
 
-    signal ef_passes <== CheckSubstrInclusionPolyBoolean(MAX_JWT_PAYLOAD_LEN, maxEFKVPairLen)(jwt_payload, jwt_payload_hash, extra_field, extra_field_len, extra_index);
+    signal ef_passes <== IsSubstring(MAX_JWT_PAYLOAD_LEN, maxEFKVPairLen)(jwt_payload, jwt_payload_hash, extra_field, extra_field_len, extra_index);
     EnforceNotNested(MAX_JWT_PAYLOAD_LEN)(extra_index, extra_field_len, unquoted_brackets_depth_map);
 
     // Fail if use_extra_field = 1 and ef_passes = 0
@@ -324,7 +324,7 @@ template keyless(
     signal input ev_value[maxEVValueLen];
 
     // Boolean truth table for checking whether we should fail on the results of 'EmailVerifiedCheck'
-    // and `CheckSubstrInclusionPolyBoolean`. We must fail if the uid name is 'email', and the provided
+    // and `IsSubstring`. We must fail if the uid name is 'email', and the provided
     // `ev_field` is not in the full JWT according to the substring check
     // uid_is_email | ev_in_jwt | ev_fail
     //     1        |     1     |   1 
@@ -332,7 +332,7 @@ template keyless(
     //     0        |     1     |   1
     //     0        |     0     |   1
     signal uid_is_email <== EmailVerifiedCheck(maxEVNameLen, maxEVValueLen, maxUIDNameLen)(ev_name, ev_value, ev_value_len, uid_name, uid_name_len);
-    signal ev_in_jwt <== CheckSubstrInclusionPolyBoolean(MAX_JWT_PAYLOAD_LEN, maxEVKVPairLen)(jwt_payload, jwt_payload_hash, ev_field, ev_field_len, ev_index);
+    signal ev_in_jwt <== IsSubstring(MAX_JWT_PAYLOAD_LEN, maxEVKVPairLen)(jwt_payload, jwt_payload_hash, ev_field, ev_field_len, ev_index);
     signal not_ev_in_jwt <== NOT()(ev_in_jwt);
     signal ev_fail <== AND()(uid_is_email, not_ev_in_jwt);
     ev_fail === 0;
