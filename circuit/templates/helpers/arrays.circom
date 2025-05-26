@@ -16,31 +16,13 @@ include "./arrays/SelectArrayValue.circom";
 include "./arrays/IsSubstring.circom";
 include "./arrays/AssertIsConcatenation.circom";
 
+include "./strings/AssertIsAsciiDigits.circom";
+
 include "../stdlib/circuits/ElementwiseMul.circom";
 include "../stdlib/circuits/InvertBinaryArray.circom";
 
 include "../stdlib/functions/assert_bits_fit_scalar.circom";
 include "../stdlib/functions/min_num_bits.circom";
-
-// Enforces that every value in `in` between 0 and len-1 are valid ASCII digits, i.e. are between
-// 48 and 57 inclusive
-template AssertIsAsciiDigits(maxNumDigits) {
-    signal input in[maxNumDigits];
-    signal input len;
-
-    signal selector[maxNumDigits] <== ArraySelector(maxNumDigits)(0, len);
-    for (var i = 0; i < maxNumDigits; i++) {
-        // TODO(Perf): Since numbers are in [48, 58) and 58 is less than 64 = 2^6,
-        //   we could use 6 bits below. But the Num2Bits(6) call would be applied
-        //   to elements after in[len-1], which may not necessarily be 6 bits anymore.
-        //   So, we need extra conditional logic here.
-        _ <== Num2Bits(9)(in[i]);
-        var is_less_than_max = LessThan(9)([in[i], 58]);
-        var is_greater_than_min = GreaterThan(9)([in[i], 47]);
-        var is_ascii_digit = AND()(is_less_than_max, is_greater_than_min);
-        (1 - is_ascii_digit) * selector[i] === 0;
-    }
-}
 
 // Given a string of digits in ASCII format, returns the digits represented as a single field element
 // Assumes:
