@@ -124,7 +124,7 @@ template keyless(
     signal input b64u_jwt_payload[MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN];
     log("b64u_jwt_payload: ");
 
-    CheckSubstrInclusionPoly(MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN, MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN)(
+    AssertIsSubstring(MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN, MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN)(
         str <== b64u_jwt_payload_sha2_padded,
         // TODO(Perf): Unnecessarily hashing this a 2nd time here (already hashed for ConcatenationCheck)
         str_hash <== HashBytesToFieldWithLen(MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN)(
@@ -232,8 +232,8 @@ template keyless(
     signal input aud_field_string_bodies[maxAudKVPairLen]; // ASCII
     signal input aud_field_len; // ASCII
     signal input aud_index; // index of aud field in JWT payload
-    CheckSubstrInclusionPoly(MAX_JWT_PAYLOAD_LEN, maxAudKVPairLen)(jwt_payload, jwt_payload_hash, aud_field, aud_field_len, aud_index);
-    CheckSubstrInclusionPoly(MAX_JWT_PAYLOAD_LEN, maxAudKVPairLen)(string_bodies, jwt_payload_hash, aud_field_string_bodies, aud_field_len, aud_index);
+    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, maxAudKVPairLen)(jwt_payload, jwt_payload_hash, aud_field, aud_field_len, aud_index);
+    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, maxAudKVPairLen)(string_bodies, jwt_payload_hash, aud_field_string_bodies, aud_field_len, aud_index);
     EnforceNotNested(MAX_JWT_PAYLOAD_LEN)(aud_index, aud_field_len, unquoted_brackets_depth_map);
 
     // Perform necessary checks on aud field
@@ -278,8 +278,8 @@ template keyless(
     signal input uid_field_string_bodies[maxUIDKVPairLen];
     signal input uid_field_len;
     signal input uid_index;
-    CheckSubstrInclusionPoly(MAX_JWT_PAYLOAD_LEN, maxUIDKVPairLen)(jwt_payload, jwt_payload_hash, uid_field, uid_field_len, uid_index);
-    CheckSubstrInclusionPoly(MAX_JWT_PAYLOAD_LEN, maxUIDKVPairLen)(string_bodies, jwt_payload_hash, uid_field_string_bodies, uid_field_len, uid_index);
+    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, maxUIDKVPairLen)(jwt_payload, jwt_payload_hash, uid_field, uid_field_len, uid_index);
+    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, maxUIDKVPairLen)(string_bodies, jwt_payload_hash, uid_field_string_bodies, uid_field_len, uid_index);
     EnforceNotNested(MAX_JWT_PAYLOAD_LEN)(uid_index, uid_field_len, unquoted_brackets_depth_map);
 
     // Perform necessary checks on user id field. Some fields this might be in practice are "sub" or "email"
@@ -348,8 +348,8 @@ template keyless(
     signal input iss_field_string_bodies[maxIssKVPairLen];
     signal input iss_field_len;
     signal input iss_index;
-    CheckSubstrInclusionPoly(MAX_JWT_PAYLOAD_LEN, maxIssKVPairLen)(jwt_payload, jwt_payload_hash, iss_field, iss_field_len, iss_index);
-    CheckSubstrInclusionPoly(MAX_JWT_PAYLOAD_LEN, maxIssKVPairLen)(string_bodies, jwt_payload_hash, iss_field_string_bodies, iss_field_len, iss_index);
+    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, maxIssKVPairLen)(jwt_payload, jwt_payload_hash, iss_field, iss_field_len, iss_index);
+    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, maxIssKVPairLen)(string_bodies, jwt_payload_hash, iss_field_string_bodies, iss_field_len, iss_index);
     EnforceNotNested(MAX_JWT_PAYLOAD_LEN)(iss_index, iss_field_len, unquoted_brackets_depth_map);
 
     // Perform necessary checks on iss field
@@ -372,7 +372,7 @@ template keyless(
     signal input iat_field[maxIatKVPairLen];
     signal input iat_field_len;
     signal input iat_index;
-    CheckSubstrInclusionPoly(MAX_JWT_PAYLOAD_LEN, maxIatKVPairLen)(jwt_payload, jwt_payload_hash, iat_field, iat_field_len, iat_index);
+    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, maxIatKVPairLen)(jwt_payload, jwt_payload_hash, iat_field, iat_field_len, iat_index);
 
     // Perform necessary checks on iat field
     var iat_name_len = 3; // iat
@@ -407,8 +407,8 @@ template keyless(
     signal input nonce_field_string_bodies[maxNonceKVPairLen];
     signal input nonce_field_len;
     signal input nonce_index;
-    CheckSubstrInclusionPoly(MAX_JWT_PAYLOAD_LEN, maxNonceKVPairLen)(jwt_payload, jwt_payload_hash, nonce_field, nonce_field_len, nonce_index);
-    CheckSubstrInclusionPoly(MAX_JWT_PAYLOAD_LEN, maxNonceKVPairLen)(string_bodies, jwt_payload_hash, nonce_field_string_bodies, nonce_field_len, nonce_index);
+    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, maxNonceKVPairLen)(jwt_payload, jwt_payload_hash, nonce_field, nonce_field_len, nonce_index);
+    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, maxNonceKVPairLen)(string_bodies, jwt_payload_hash, nonce_field_string_bodies, nonce_field_len, nonce_index);
     EnforceNotNested(MAX_JWT_PAYLOAD_LEN)(nonce_index, nonce_field_len, unquoted_brackets_depth_map);
 
     // Perform necessary checks on nonce field

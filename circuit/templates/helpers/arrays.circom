@@ -31,7 +31,7 @@ include "../stdlib/functions/min_num_bits.circom";
 // Enforces that:
 // - `str[start_index:substr_len]` = `substr[0:substr_len]`
 // TODO: Rename to AssertIsSubstrFromPos()
-template CheckSubstrInclusionPoly(maxStrLen, maxSubstrLen) {
+template AssertIsSubstring(maxStrLen, maxSubstrLen) {
     signal input str[maxStrLen];
     signal input str_hash;
     signal input substr[maxSubstrLen];

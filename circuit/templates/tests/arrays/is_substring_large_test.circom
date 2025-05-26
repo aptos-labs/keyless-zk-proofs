@@ -2,7 +2,7 @@ pragma circom 2.2.2;
 
 include "helpers/arrays.circom";
 
-template check_substr_inclusion_poly_boolean_test(maxStrLen, maxSubstrLen) {
+template is_substring_test(maxStrLen, maxSubstrLen) {
     signal input str[maxStrLen];
     signal input str_hash;
     signal input substr[maxSubstrLen];
@@ -14,6 +14,6 @@ template check_substr_inclusion_poly_boolean_test(maxStrLen, maxSubstrLen) {
     expected_output === out;
 }
 
-component main = check_substr_inclusion_poly_boolean_test(
+component main = is_substring_test(
    2000, 1000
 );

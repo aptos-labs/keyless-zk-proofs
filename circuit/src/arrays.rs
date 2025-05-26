@@ -757,9 +757,8 @@ fn single_neg_one_array_small_test() {
 }
 
 #[test]
-fn check_substr_inclusion_poly_test() {
-    let circuit_handle =
-        TestCircuitHandle::new("arrays/check_substr_inclusion_poly_test.circom").unwrap();
+fn assert_is_substring_test() {
+    let circuit_handle = TestCircuitHandle::new("arrays/assert_is_substring_test.circom").unwrap();
 
     let max_str_len = 100;
     let max_substr_len = 20;
@@ -789,10 +788,9 @@ fn check_substr_inclusion_poly_test() {
 }
 
 #[test]
-fn check_substr_inclusion_poly_no_padding_test() {
+fn assert_is_substring_no_padding_test() {
     let circuit_handle =
-        TestCircuitHandle::new("arrays/check_substr_inclusion_poly_no_padding_test.circom")
-            .unwrap();
+        TestCircuitHandle::new("arrays/assert_is_substring_no_padding_test.circom").unwrap();
 
     let string = "Hello World!";
     let max_str_len = string.len();
@@ -821,9 +819,8 @@ fn check_substr_inclusion_poly_no_padding_test() {
 }
 
 #[test]
-fn check_substr_inclusion_poly_same_test() {
-    let circuit_handle =
-        TestCircuitHandle::new("arrays/check_substr_inclusion_poly_test.circom").unwrap();
+fn assert_is_substring_same_test() {
+    let circuit_handle = TestCircuitHandle::new("arrays/assert_is_substring_test.circom").unwrap();
 
     let string = "Hello World!";
     let max_str_len = 100;
@@ -850,9 +847,8 @@ fn check_substr_inclusion_poly_same_test() {
 }
 
 #[test]
-fn check_substr_inclusion_poly_out_of_bounds_test() {
-    let circuit_handle =
-        TestCircuitHandle::new("arrays/check_substr_inclusion_poly_test.circom").unwrap();
+fn assert_is_substring_out_of_bounds_test() {
+    let circuit_handle = TestCircuitHandle::new("arrays/assert_is_substring_test.circom").unwrap();
 
     let string = "Hello World!";
     let max_str_len = 100;
@@ -879,9 +875,9 @@ fn check_substr_inclusion_poly_out_of_bounds_test() {
 }
 
 #[test]
-fn check_substr_inclusion_poly_large_test() {
+fn assert_is_substring_large_test() {
     let circuit_handle =
-        TestCircuitHandle::new("arrays/check_substr_inclusion_poly_large_test.circom").unwrap();
+        TestCircuitHandle::new("arrays/assert_is_substring_large_test.circom").unwrap();
 
     let max_str_len = 2000;
     let max_substr_len = 1000;
@@ -912,9 +908,8 @@ As of some one gently rapping, rapping at my chamber door.
 }
 
 #[test]
-fn check_substr_inclusion_poly_small_test() {
-    let circuit_handle =
-        TestCircuitHandle::new("arrays/check_substr_inclusion_poly_test.circom").unwrap();
+fn assert_is_substring_small_test() {
+    let circuit_handle = TestCircuitHandle::new("arrays/assert_is_substring_test.circom").unwrap();
 
     let max_str_len = 100;
     let max_substr_len = 20;
@@ -941,8 +936,8 @@ fn check_substr_inclusion_poly_small_test() {
 }
 
 #[test]
-fn check_substr_inclusion_poly_edge_case_test() {
-    let circuit_handle = TestCircuitHandle::new("check_substr_inclusion_poly_test.circom").unwrap();
+fn assert_is_substring_edge_case_test() {
+    let circuit_handle = TestCircuitHandle::new("assert_is_substring_test.circom").unwrap();
 
     let test_str: &'static [u8] = &[
         4u8, 233, 24, 159, 105, 83, 145, 69, 245, 99, 150, 28, 197, 219, 186, 204, 47, 219, 5, 139,

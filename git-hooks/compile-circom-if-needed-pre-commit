@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Run cargo fmt in check mode
-cargo fmt --manifest-path circuit/Cargo.toml -- --check
-cargo fmt --manifest-path prover-service/Cargo.toml -- --check
-cargo fmt --manifest-path keyless-common/Cargo.toml -- --check
-cargo fmt --manifest-path vk-diff/Cargo.toml -- --check
+cargo fmt --manifest-path circuit/Cargo.toml -- --check || { echo "Please run 'cargo fmt' in circuit/"; exit 1; }
+cargo fmt --manifest-path prover-service/Cargo.toml -- --check || { echo "Please run 'cargo fmt' in prover-service/"; exit 1; }
+cargo fmt --manifest-path keyless-common/Cargo.toml -- --check || { echo "Please run 'cargo fmt' in keyless-common/"; exit 1; }
+cargo fmt --manifest-path vk-diff/Cargo.toml -- --check || { echo "Please run 'cargo fmt' in vk-diff/"; exit 1; }
 
 # Check the result
 if [ $? -ne 0 ]; then

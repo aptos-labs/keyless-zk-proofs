@@ -95,7 +95,7 @@ template Sha2PaddingVerify(maxInputLen) {
 
     signal in_hash <== HashBytesToFieldWithLen(maxInputLen)(in, num_blocks*64);
     // 4.1.a
-    CheckSubstrInclusionPoly(maxInputLen, 64)(in, in_hash, padding_without_len, (1+K)/8, padding_start);
+    AssertIsSubstring(maxInputLen, 64)(in, in_hash, padding_without_len, (1+K)/8, padding_start);
     padding_without_len[0] === 128; // 10000000
 
     // 4.1.b
@@ -104,7 +104,7 @@ template Sha2PaddingVerify(maxInputLen) {
     }
 
     // 4.1.c
-    CheckSubstrInclusionPoly(maxInputLen, 8)(in, in_hash, L_byte_encoded, 8, padding_start+(K+1)/8);
+    AssertIsSubstring(maxInputLen, 8)(in, in_hash, L_byte_encoded, 8, padding_start+(K+1)/8);
     signal L_bits[64] <== BytesToBits(8)(L_byte_encoded);
     signal L_decoded <== Bits2NumBigEndian(64)(L_bits);
     L_decoded === 8*padding_start;
