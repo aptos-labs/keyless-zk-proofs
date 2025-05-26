@@ -6,7 +6,7 @@ template check_are_ascii_digits_test(maxNumDigits) {
     signal input in[maxNumDigits];
     signal input len;
     
-    CheckAreASCIIDigits(maxNumDigits)(in, len);
+    AssertIsAsciiDigits(maxNumDigits)(in, len);
 }
 
 component main = check_are_ascii_digits_test(

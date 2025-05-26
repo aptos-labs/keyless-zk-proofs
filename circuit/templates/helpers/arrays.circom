@@ -24,7 +24,7 @@ include "../stdlib/functions/min_num_bits.circom";
 
 // Enforces that every value in `in` between 0 and len-1 are valid ASCII digits, i.e. are between
 // 48 and 57 inclusive
-template CheckAreASCIIDigits(maxNumDigits) {
+template AssertIsAsciiDigits(maxNumDigits) {
     signal input in[maxNumDigits];
     signal input len;
 
@@ -52,7 +52,7 @@ template ASCIIDigitsToField(maxLen) {
     signal input len; 
     signal output out;
 
-    CheckAreASCIIDigits(maxLen)(digits, len);
+    AssertIsAsciiDigits(maxLen)(digits, len);
     // Set to 0 everywhere except len-1, which is 1
     signal index_eq[maxLen - 1];
 

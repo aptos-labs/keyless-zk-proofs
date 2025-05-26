@@ -1362,9 +1362,9 @@ fn assert_is_concatenation_large_test() {
 }
 
 #[test]
-fn check_are_ascii_digits_test() {
+fn assert_is_ascii_digits_test() {
     let circuit_handle =
-        TestCircuitHandle::new("arrays/check_are_ascii_digits_test.circom").unwrap();
+        TestCircuitHandle::new("arrays/assert_is_ascii_digits_test.circom").unwrap();
     let max_input_len = 20;
 
     let mut rng = rand::thread_rng();
@@ -1386,9 +1386,9 @@ fn check_are_ascii_digits_test() {
 }
 
 #[test]
-fn check_are_ascii_digits_out_of_bounds_test() {
+fn assert_is_ascii_digits_out_of_bounds_test() {
     let circuit_handle =
-        TestCircuitHandle::new("arrays/check_are_ascii_digits_test.circom").unwrap();
+        TestCircuitHandle::new("arrays/assert_is_ascii_digits_test.circom").unwrap();
     let max_input_len = 20;
 
     let mut rng = rand::thread_rng();
@@ -1408,9 +1408,9 @@ fn check_are_ascii_digits_out_of_bounds_test() {
 }
 
 #[test]
-fn check_are_ascii_digits_max_len_test() {
+fn assert_is_ascii_digits_max_len_test() {
     let circuit_handle =
-        TestCircuitHandle::new("arrays/check_are_ascii_digits_max_len_test.circom").unwrap();
+        TestCircuitHandle::new("arrays/assert_is_ascii_digits_max_len_test.circom").unwrap();
     let max_input_len = 8;
     let mut rng = rand::thread_rng();
     let digits: Vec<u8> = (0..8).map(|_| rng.gen_range(0, 9)).collect();
@@ -1428,9 +1428,9 @@ fn check_are_ascii_digits_max_len_test() {
 }
 
 #[test]
-fn check_are_ascii_digits_small_test() {
+fn assert_is_ascii_digits_small_test() {
     let circuit_handle =
-        TestCircuitHandle::new("arrays/check_are_ascii_digits_test.circom").unwrap();
+        TestCircuitHandle::new("arrays/assert_is_ascii_digits_test.circom").unwrap();
     let max_input_len = 20;
     let mut rng = rand::thread_rng();
     let digits: Vec<u8> = (0..1).map(|_| rng.gen_range(0, 9)).collect();
@@ -1448,9 +1448,9 @@ fn check_are_ascii_digits_small_test() {
 }
 
 #[test]
-fn check_are_ascii_digits_large_test() {
+fn assert_is_ascii_digits_large_test() {
     let circuit_handle =
-        TestCircuitHandle::new("arrays/check_are_ascii_digits_large_test.circom").unwrap();
+        TestCircuitHandle::new("arrays/assert_is_ascii_digits_large_test.circom").unwrap();
     let max_input_len = 2000;
     let mut rng = rand::thread_rng();
     let digits: Vec<u8> = (0..1523).map(|_| rng.gen_range(0, 9)).collect();
