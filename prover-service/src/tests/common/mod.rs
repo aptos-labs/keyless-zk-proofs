@@ -101,8 +101,14 @@ pub async fn convert_prove_and_verify(
 
     DECODING_KEY_CACHE.insert(String::from("test.oidc.provider"), dm);
 
-    println!("Prover service resources dir: {}", testcase.prover_service_config.resources_dir);
-    println!("Prover service setup dir: {}", testcase.prover_service_config.setup_dir);
+    println!(
+        "Prover service resources dir: {}",
+        testcase.prover_service_config.resources_dir
+    );
+    println!(
+        "Prover service setup dir: {}",
+        testcase.prover_service_config.setup_dir
+    );
 
     let state = ProverServiceState {
         config: testcase.prover_service_config.clone(),
