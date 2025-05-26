@@ -23,14 +23,6 @@ function log_ceil(n) {
    return 254;
 }
 
-function SplitFn(in, n, m) {
-    return [in % (1 << n), (in \ (1 << n)) % (1 << m)];
-}
-
-function SplitThreeFn(in, n, m, k) {
-    return [in % (1 << n), (in \ (1 << n)) % (1 << m), (in \ (1 << n + m)) % (1 << k)];
-}
-
 // m bits per overflowed register (values are potentially negative)
 // n bits per properly-sized register
 // in has k registers
