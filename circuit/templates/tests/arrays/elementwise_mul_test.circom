@@ -1,6 +1,6 @@
 pragma circom 2.2.2;
 
-include "helpers/arrays.circom";
+include "stdlib/circuits/ElementwiseMul.circom";
 
 template elementwise_mul_test(len) {
     signal input left[len];

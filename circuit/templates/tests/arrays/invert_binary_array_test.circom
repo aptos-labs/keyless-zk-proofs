@@ -1,6 +1,6 @@
 pragma circom 2.2.2;
 
-include "helpers/arrays.circom";
+include "stdlib/circuits/InvertBinaryArray.circom";
 
 template invert_binary_array_test(len) {
     signal input in[len];
