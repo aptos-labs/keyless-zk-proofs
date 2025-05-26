@@ -1,7 +1,10 @@
 pragma circom 2.2.2;
 
+include "./arrays/IsSubstring.circom";
+include "./arrays/SelectArrayValue.circom";
+include "./arrays/ArraySelectorComplex.circom";
+
 include "./misc.circom";
-include "./arrays.circom";
 include "./hashtofield.circom";
 include "./packing.circom";
 include "circomlib/circuits/gates.circom";

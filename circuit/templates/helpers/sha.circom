@@ -1,5 +1,7 @@
 pragma circom 2.2.2;
 
+include "./arrays/SingleOneArray.circom";
+
 include "circomlib/circuits/sha256/constants.circom";
 include "circomlib/circuits/sha256/sha256compression.circom";
 include "circomlib/circuits/comparators.circom";

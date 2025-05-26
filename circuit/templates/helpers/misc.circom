@@ -1,10 +1,12 @@
 pragma circom 2.2.2;
 
+include "./arrays/ArraySelector.circom";
+
 include "./strings/IsWhitespace.circom";
 
-include "./arrays.circom";
 include "./hashtofield.circom";
 include "./packing.circom";
+include "circomlib/circuits/multiplexer.circom";
 include "circomlib/circuits/gates.circom";
 include "circomlib/circuits/bitify.circom";
 

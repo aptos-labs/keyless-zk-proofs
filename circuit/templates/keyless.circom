@@ -17,8 +17,9 @@
  */
 pragma circom 2.2.2;
 
+
+include "helpers/arrays/AssertIsConcatenation.circom";
 include "helpers/base64url.circom";
-include "helpers/arrays.circom";
 include "helpers/misc.circom";
 include "helpers/packing.circom";
 include "helpers/hashtofield.circom";
@@ -26,6 +27,7 @@ include "helpers/jwt_field_parsing.circom";
 include "helpers/sha.circom";
 include "helpers/rsa/bigint.circom";
 include "helpers/rsa/rsa_verify.circom";
+include "helpers/strings/AsciiDigitsToScalar.circom";
 
 include "stdlib/circuits/ElementwiseMul.circom";
 include "stdlib/circuits/InvertBinaryArray.circom";

@@ -1,5 +1,8 @@
 pragma circom 2.2.2;
 
+include "./SingleOneArray.circom";
+include "./SingleNegOneArray.circom";
+
 include "../../stdlib/functions/assert_bits_fit_scalar.circom";
 include "../../stdlib/functions/min_num_bits.circom";
 

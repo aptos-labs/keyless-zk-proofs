@@ -10,8 +10,6 @@ pragma circom 2.2.2;
 
 include "../stdlib/functions/assert_bits_fit_scalar.circom";
 
-include "arrays.circom";
-
 include "packing/AssertIsBytes.circom";
 include "packing/AssertIs64BitLimbs.circom";
 include "packing/ChunksToFieldElem.circom";
