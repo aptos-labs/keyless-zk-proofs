@@ -17,9 +17,12 @@ template AssertIsAsciiDigits(MAX_DIGITS) {
         //   to elements after in[len-1], which may not necessarily be 6 bits anymore.
         //   So, we need extra conditional logic here.
         _ <== Num2Bits(9)(in[i]);
-        var is_less_than_max = LessThan(9)([in[i], 58]);
-        var is_greater_than_min = GreaterThan(9)([in[i], 47]);
-        var is_ascii_digit = AND()(is_less_than_max, is_greater_than_min);
+
+        var is_ascii_digit = AND()(
+            GreaterThan(9)([in[i], 47]),
+            LessThan(9)([in[i], 58])
+        );
+
         (1 - is_ascii_digit) * selector[i] === 0;
     }
 }
