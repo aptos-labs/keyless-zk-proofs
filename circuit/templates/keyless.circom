@@ -33,8 +33,8 @@ include "./helpers/packing.circom";
 include "./helpers/rsa/bigint.circom";
 include "./helpers/rsa/rsa_verify.circom";
 
-include "./helpers/sha.circom";
 include "./helpers/sha/SHA2_256_PaddingVerify.circom";
+include "./helpers/sha/SHA2_256_Prepadded_Hash.circom";
 
 include "./helpers/strings/AsciiDigitsToScalar.circom";
 

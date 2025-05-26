@@ -1,6 +1,6 @@
 pragma circom 2.2.2;
 
-include "helpers/sha.circom";
+include "helpers/sha/SHA2_256_Prepadded_Hash.circom";
 
 template sha_test(max_num_blocks) {
     signal input padded_input_bits[max_num_blocks * 512];
