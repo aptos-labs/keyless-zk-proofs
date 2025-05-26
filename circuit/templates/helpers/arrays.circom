@@ -12,32 +12,13 @@ include "./arrays/ArraySelector.circom";
 include "./arrays/LeftArraySelector.circom";
 include "./arrays/RightArraySelector.circom";
 include "./arrays/ArraySelectorComplex.circom";
+include "./arrays/SelectArrayValue.circom";
 
 include "../stdlib/circuits/ElementwiseMul.circom";
 include "../stdlib/circuits/InvertBinaryArray.circom";
 
 include "../stdlib/functions/assert_bits_fit_scalar.circom";
 include "../stdlib/functions/min_num_bits.circom";
-
-// Indexes into an array of signals, returning the value at that index.
-//
-// @param  LEN      the length of the array 
-//
-// @input  arr[LEN] the array of length `LEN`
-// @input  i        the location in the array to be fetched; must have i \in [0, LEN)
-// @output out      arr[i]
-//
-// TODO(Buses): Use an Index(LEN) bus here to ensure `0 <= i < LEN`.
-// TODO: Rename to ArrayGet
-template SelectArrayValue(LEN) {
-    signal input arr[LEN];
-    signal input i;
-    signal output out;
-
-    signal mask[LEN] <== SingleOneArray(LEN)(i);
-
-    out <== EscalarProduct(LEN)(arr, mask);
-}
 
 // Checks that `substr` of length `substr_len` matches `str` beginning at `start_index`
 // Assumes `random_challenge` is computed by the Fiat-Shamir (FS) transform
