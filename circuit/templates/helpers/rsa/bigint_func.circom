@@ -407,12 +407,3 @@ function mod_inv(n, k, a, p) {
     out = mod_exp(n, k, a, pCopy, pMinusTwo);
     return out;
 }
-
-// a, b, p and out are all n bits k registers
-function prod_mod_p(n, k, a, b, p){
-    var tmp[100];
-    var result[2][100];
-    tmp = prod(n, k, a, b);
-    result = long_div(n, k, k, tmp, p);
-    return result[1];
-}
