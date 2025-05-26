@@ -21,17 +21,17 @@ include "packing/ChunksToFieldElems.circom";
 template Num2BitsBE(n) {
     signal input in;
     signal output out[n];
-    var lc1 = 0;
+    var num = 0;
    
     var e2 = 1;
     for (var i = 0; i < n; i++) {
         var idx = (n - 1) - i;
         out[idx] <-- (in >> i) & 1;
         out[idx] * (out[idx] - 1 ) === 0;
-        lc1 += out[idx] * e2;
+        num += out[idx] * e2;
         e2 = e2 + e2;
     }
-    lc1 === in;
+    num === in;
 }
 
 // Converts a bit array of size `n` into a big endian integer in `out`
