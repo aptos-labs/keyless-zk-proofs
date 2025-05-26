@@ -361,61 +361,6 @@ template BigIsEqual(k){
     out <== isEqual[k].out;
 }
 
-// a[i], b[i] in 0... 2**n-1
-// represent a = a[0] + a[1] * 2**n + .. + a[k - 1] * 2**(n * k)
-// assume a >= b
-template BigSub(n, k) {
-    assert(n <= 252);
-    signal input a[k];
-    signal input b[k];
-    signal output out[k];
-    signal output underflow;
-
-    component unit0 = ModSub(n);
-    unit0.a <== a[0];
-    unit0.b <== b[0];
-    out[0] <== unit0.out;
-
-    component unit[k - 1];
-    for (var i = 1; i < k; i++) {
-        unit[i - 1] = ModSubThree(n);
-        unit[i - 1].a <== a[i];
-        unit[i - 1].b <== b[i];
-        if (i == 1) {
-            unit[i - 1].c <== unit0.borrow;
-        } else {
-            unit[i - 1].c <== unit[i - 2].borrow;
-        }
-        out[i] <== unit[i - 1].out;
-    }
-    underflow <== unit[k - 2].borrow;
-}
-
-// calculates (a - b) % p, where a, b < p
-// note: does not assume a >= b
-template BigSubModP(n, k){
-    assert(n <= 252);
-    signal input a[k];
-    signal input b[k];
-    signal input p[k];
-    signal output out[k];
-    component sub = BigSub(n, k);
-    for (var i = 0; i < k; i++){
-        sub.a[i] <== a[i];
-        sub.b[i] <== b[i];
-    }
-    signal flag;
-    flag <== sub.underflow;
-    component add = BigAdd(n, k);
-    for (var i = 0; i < k; i++){
-        add.a[i] <== sub.out[i];
-        add.b[i] <== flag * p[i];
-    }
-    for (var i = 0; i < k; i++){
-        out[i] <== add.out[i];
-    }
-}
-
 // in[i] contains values in the range -2^(m-1) to 2^(m-1)
 // constrain that in[] as a big integer is zero
 // each limbs is n bits
