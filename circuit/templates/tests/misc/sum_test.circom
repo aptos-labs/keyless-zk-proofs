@@ -1,6 +1,6 @@
 pragma circom 2.2.2;
 
-include "stdlib/circuits/sum.circom";
+include "stdlib/circuits/Sum.circom";
 
 template sum_test() {
     var len = 10;

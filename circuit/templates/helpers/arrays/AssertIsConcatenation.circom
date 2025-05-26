@@ -5,7 +5,7 @@ include "../hashtofield/HashBytesToFieldWithLen.circom";
 include "./RightArraySelector.circom";
 include "./SelectArrayValue.circom";
 
-include "../../stdlib/circuits/sum.circom";
+include "../../stdlib/circuits/Sum.circom";
 
 include "circomlib/circuits/comparators.circom";
 include "circomlib/circuits/poseidon.circom";
