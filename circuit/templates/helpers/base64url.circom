@@ -109,8 +109,24 @@ template Base64URLLookup() {
 // @notes
 //    Assumes `in` contains only base64url characters followed by 0-padding.
 template Base64UrlDecode(N) {
-    // The encoded input's maximum length
-    var M = 4*((N + 2) \ 3);
+    // If this was padded base64url, then the encoded input's maximum length is 4 * \ceil{N / 3}.
+    // (We previously implemented it as: 4 * \floor{(N + 2) / 3}.)
+    // Examples:
+    //   N = 0 => M = 0
+    //   N = 1 => M = 4
+    //   N = 2 => M = 4
+    //   N = 3 => M = 4
+    //   N = 4 => M = 8
+    //
+    // If this was *un*padded, as is the case for JWTs, the max encoded length is \ceil{4N / 3}.
+    // Examples:
+    //   N = 0 => M = 0
+    //   N = 1 => M = 2
+    //   N = 2 => M = 3
+    //   N = 3 => M = 4
+    //   N = 4 => M = 6
+    // (We implement this as: \floor{(4*N + 2) / 3}.)
+    var M = (4*N + 2) \ 3;
     signal input in[M];
     signal output out[N];
 
