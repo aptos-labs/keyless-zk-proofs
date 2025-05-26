@@ -26,6 +26,10 @@ include "helpers/jwt_field_parsing.circom";
 include "helpers/sha.circom";
 include "helpers/rsa/bigint.circom";
 include "helpers/rsa/rsa_verify.circom";
+
+include "stdlib/circuits/ElementwiseMul.circom";
+include "stdlib/circuits/InvertBinaryArray.circom";
+
 include "circomlib/circuits/poseidon.circom";
 include "circomlib/circuits/bitify.circom";
 
