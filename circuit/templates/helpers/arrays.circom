@@ -28,7 +28,7 @@ include "../stdlib/functions/min_num_bits.circom";
 // Enforces:
 // - that `left` is 0-padded after `left_len` values
 // - full_string = left || right where || is concatenation
-template ConcatenationCheck(maxFullStringLen, maxLeftStringLen, maxRightStringLen) {
+template AssertIsConcatenation(maxFullStringLen, maxLeftStringLen, maxRightStringLen) {
     signal input full_string[maxFullStringLen];
     signal input left[maxLeftStringLen];
     signal input right[maxRightStringLen];

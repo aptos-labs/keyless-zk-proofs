@@ -9,9 +9,10 @@ template concatenation_check_test(maxFullStringLen, maxLeftStringLen, maxRightSt
     signal input left_len;
     signal input right_len;
     
-    ConcatenationCheck(maxFullStringLen, maxLeftStringLen, maxRightStringLen)(full_string, left, right, left_len, right_len);
+    log("silly test string");
+    AssertIsConcatenation(maxFullStringLen, maxLeftStringLen, maxRightStringLen)(full_string, left, right, left_len, right_len);
 }
 
 component main = concatenation_check_test(
-   2, 1, 1
+   1600, 1000, 1000
 );

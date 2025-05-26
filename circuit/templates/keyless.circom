@@ -84,20 +84,20 @@ template keyless(
 
     // base64url-encoded JWT header + the ASCII dot following it
     // TODO: We need to check 0-padding for the last `MAX_B64U_JWT_HEADER_W_DOT_LEN - b64u_jwt_header_w_dot_len` bytes
-    //   But right now this is done implicitly in ConcatenationCheck (a bit dangerous)
+    //   But right now this is done implicitly in AssertIsConcatenation (a bit dangerous)
     // TODO: Can we leverage tags / buses here to propagate information about having checked the padding?
     signal input b64u_jwt_header_w_dot[MAX_B64U_JWT_HEADER_W_DOT_LEN];
     signal input b64u_jwt_header_w_dot_len;
 
     // base64url-encoded JWT payload with SHA2 padding
     // TODO: We need to check 0-padding for the last `MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN - b64u_jwt_payload_sha2_padded_len` bytes?
-    //   But right now this is done implicitly in ConcatenationCheck (a bit dangerous)
+    //   But right now this is done implicitly in AssertIsConcatenation (a bit dangerous)
     signal input b64u_jwt_payload_sha2_padded[MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN];
     signal input b64u_jwt_payload_sha2_padded_len;
 
     // Checks that the base64url-encoded JWT payload & header are correctly concatenated:
     //   i.e., that `b64u_jwt_no_sig_sha2_padded` is the concatenation of `b64u_jwt_header_w_dot` with` b64u_jwt_payload_sha2_padded`
-    ConcatenationCheck(MAX_B64U_JWT_NO_SIG_LEN, MAX_B64U_JWT_HEADER_W_DOT_LEN, MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN)(
+    AssertIsConcatenation(MAX_B64U_JWT_NO_SIG_LEN, MAX_B64U_JWT_HEADER_W_DOT_LEN, MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN)(
         b64u_jwt_no_sig_sha2_padded,
         b64u_jwt_header_w_dot,
         b64u_jwt_payload_sha2_padded,
@@ -126,7 +126,7 @@ template keyless(
 
     AssertIsSubstring(MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN, MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN)(
         str <== b64u_jwt_payload_sha2_padded,
-        // TODO(Perf): Unnecessarily hashing this a 2nd time here (already hashed for ConcatenationCheck)
+        // TODO(Perf): Unnecessarily hashing this a 2nd time here (already hashed for AssertIsConcatenation)
         str_hash <== HashBytesToFieldWithLen(MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN)(
             b64u_jwt_payload_sha2_padded,
             b64u_jwt_payload_sha2_padded_len

@@ -1160,8 +1160,9 @@ fn is_substring_small_test() {
 }
 
 #[test]
-fn concatenation_check_test() {
-    let circuit_handle = TestCircuitHandle::new("arrays/concatenation_check_test.circom").unwrap();
+fn assert_is_concatenation_test() {
+    let circuit_handle =
+        TestCircuitHandle::new("arrays/assert_is_concatenation_test.circom").unwrap();
 
     let max_full_str_len = 100;
     let max_left_str_len = 70;
@@ -1194,8 +1195,9 @@ fn concatenation_check_test() {
 
 #[test]
 #[should_panic]
-fn concatenation_check_left_len_wrong_test() {
-    let circuit_handle = TestCircuitHandle::new("arrays/concatenation_check_test.circom").unwrap();
+fn assert_is_concatenation_left_len_wrong_test() {
+    let circuit_handle =
+        TestCircuitHandle::new("arrays/assert_is_concatenation_test.circom").unwrap();
 
     let max_full_str_len = 100;
     let max_left_str_len = 70;
@@ -1226,8 +1228,9 @@ fn concatenation_check_left_len_wrong_test() {
 
 #[test]
 #[should_panic]
-fn concatenation_check_left_string_wrong_test() {
-    let circuit_handle = TestCircuitHandle::new("arrays/concatenation_check_test.circom").unwrap();
+fn assert_is_concatenation_left_string_wrong_test() {
+    let circuit_handle =
+        TestCircuitHandle::new("arrays/assert_is_concatenation_test.circom").unwrap();
 
     let max_full_str_len = 100;
     let max_left_str_len = 70;
@@ -1258,8 +1261,9 @@ fn concatenation_check_left_string_wrong_test() {
 
 #[test]
 #[should_panic]
-fn concatenation_check_right_string_wrong_test() {
-    let circuit_handle = TestCircuitHandle::new("arrays/concatenation_check_test.circom").unwrap();
+fn assert_is_concatenation_right_string_wrong_test() {
+    let circuit_handle =
+        TestCircuitHandle::new("arrays/assert_is_concatenation_test.circom").unwrap();
 
     let max_full_str_len = 100;
     let max_left_str_len = 70;
@@ -1290,9 +1294,9 @@ fn concatenation_check_right_string_wrong_test() {
 }
 
 #[test]
-fn concatenation_check_small_test() {
+fn assert_is_concatenation_small_test() {
     let circuit_handle =
-        TestCircuitHandle::new("arrays/concatenation_check_small_test.circom").unwrap();
+        TestCircuitHandle::new("arrays/assert_is_concatenation_small_test.circom").unwrap();
 
     let max_full_str_len = 2;
     let max_left_str_len = 1;
@@ -1322,9 +1326,9 @@ fn concatenation_check_small_test() {
 }
 
 #[test]
-fn concatenation_check_large_test() {
+fn assert_is_concatenation_large_test() {
     let circuit_handle =
-        TestCircuitHandle::new("arrays/concatenation_check_large_test.circom").unwrap();
+        TestCircuitHandle::new("arrays/assert_is_concatenation_large_test.circom").unwrap();
 
     let max_full_str_len = 1600;
     let max_left_str_len = 1000;
