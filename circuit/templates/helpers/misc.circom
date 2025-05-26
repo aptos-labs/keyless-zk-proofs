@@ -10,7 +10,7 @@ include "../stdlib/circuits/Sum.circom";
 
 // Checks if character 'char' is a whitespace character. Returns 1 if so, 0 otherwise
 // Assumes char is a valid ascii character. Does not check for non-ascii unicode whitespace chars.
-template isWhitespace() {
+template IsWhitespace() {
    signal input char;  
                        
    // ASCII bytes in [9, 13] are line break characters:

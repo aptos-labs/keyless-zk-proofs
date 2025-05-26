@@ -6,7 +6,7 @@ include "helpers/misc.circom";
 template is_whitespace_test() {
     signal input char;
     signal input result;
-    component is_whitespace = isWhitespace();
+    component is_whitespace = IsWhitespace();
     is_whitespace.char <== char;
     is_whitespace.is_whitespace === result;
 
