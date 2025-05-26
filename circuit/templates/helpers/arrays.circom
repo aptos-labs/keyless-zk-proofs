@@ -127,10 +127,10 @@ template IsSubstring(maxStrLen, maxSubstrLen) {
     }
 
     // Computes \hat{s}(\alpha)
-    signal str_poly_eval <== CalculateTotal(maxStrLen)(str_poly);
+    signal str_poly_eval <== Sum(maxStrLen)(str_poly);
 
     // Computes t(\alpha)
-    signal substr_poly_eval <== CalculateTotal(maxSubstrLen)(substr_poly);
+    signal substr_poly_eval <== Sum(maxSubstrLen)(substr_poly);
 
     // Returns \alpha^{start_index}
     // TODO: rename to shift_value
@@ -197,9 +197,9 @@ template ConcatenationCheck(maxFullStringLen, maxLeftStringLen, maxRightStringLe
         full_poly[i] <== full_string[i] * challenge_powers[i];
     }
 
-    signal left_poly_eval <== CalculateTotal(maxLeftStringLen)(left_poly);
-    signal right_poly_eval <== CalculateTotal(maxRightStringLen)(right_poly);
-    signal full_poly_eval <== CalculateTotal(maxFullStringLen)(full_poly);
+    signal left_poly_eval <== Sum(maxLeftStringLen)(left_poly);
+    signal right_poly_eval <== Sum(maxRightStringLen)(right_poly);
+    signal full_poly_eval <== Sum(maxFullStringLen)(full_poly);
 
     var distinguishing_value = SelectArrayValue(maxFullStringLen)(challenge_powers, left_len);
 

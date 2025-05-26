@@ -274,8 +274,8 @@ fn string_bodies_test_zjma() {
 }
 
 #[test]
-fn calculate_total_test() {
-    let circuit_handle = TestCircuitHandle::new("misc/calculate_total_test.circom").unwrap();
+fn sum_test() {
+    let circuit_handle = TestCircuitHandle::new("misc/sum_test.circom").unwrap();
 
     let mut rng = rand::thread_rng();
 

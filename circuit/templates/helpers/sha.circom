@@ -64,7 +64,7 @@ template Sha2_256_prepadded_varlen(maxNumBlocks) {
 
     // For each bit of the output
     for(var k = 0; k < 256; k++) {
-        calcTotal[k] = CalculateTotal(maxNumBlocks);
+        calcTotal[k] = Sum(maxNumBlocks);
         
         // For each possible block
         for (var i = 0; i < maxNumBlocks; i++) {

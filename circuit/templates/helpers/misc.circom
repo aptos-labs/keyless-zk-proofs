@@ -6,6 +6,8 @@ include "./packing.circom";
 include "circomlib/circuits/gates.circom";
 include "circomlib/circuits/bitify.circom";
 
+include "../stdlib/circuits/Sum.circom";
+
 // Checks if character 'char' is a whitespace character. Returns 1 if so, 0 otherwise
 // Assumes char is a valid ascii character. Does not check for non-ascii unicode whitespace chars.
 template isWhitespace() {
@@ -25,31 +27,6 @@ template isWhitespace() {
    //   (1) values are either 0 or 1 and
    //   (2) both values CANNOT be 1 at the same time
    signal output is_whitespace <== is_line_break + is_space;
-}
-
-// This circuit returns the sum of an array of signals.
-//
-// @param  N        the size of the array
-//
-// @input  nums[N]  the array of signals
-// @output sum      the sum of the signals in the array
-//
-// @notes:
-//   Originally, Michael implemented it like [this](https://github.com/TheFrozenFire/snark-jwt-verify/blob/master/circuits/calculate_total.circom). But this seems really
-//   inefficient (famous last words) I am not sure that the compiler optimizes it away.
-//   The circom paper clearly shows that a var suffices here (see the MultiAND example
-//   in Section 3.12 of  [the paper](https://www.techrxiv.org/articles/preprint/CIRCOM_A_Robust_and_Scalable_Language_for_Building_Complex_Zero-Knowledge_Circuits/19374986))
-template CalculateTotal(N) {
-    signal input nums[N];
-    signal output sum;
-
-    var lc = 0;
-
-    for (var i = 0; i < N; i++) {
-        lc += nums[i];
-    }
-
-    sum <== lc;
 }
 
 // Given input `in`, enforces that `in[0] === in[1]` if `bool` is 1
