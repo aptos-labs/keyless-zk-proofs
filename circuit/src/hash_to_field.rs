@@ -21,7 +21,7 @@ fn hash_bytes_to_field_with_len() {
     let circuit_src_template = r#"
 pragma circom 2.2.2;
 
-include "helpers/hashtofield.circom";
+include "helpers/hashtofield/HashBytesToFieldWithLen.circom";
 
 template hash_bytes_to_field_with_len_test(max_len) {
     signal input in[max_len];
@@ -81,7 +81,7 @@ fn hash_limbs_to_field_with_len() {
     let circuit_src_template = r#"
 pragma circom 2.2.2;
 
-include "helpers/hashtofield.circom";
+include "helpers/hashtofield/Hash64BitLimbsToFieldWithLen.circom";
 
 template Hash64BitLimbsToFieldWithLenTest(max_len) {
     signal input in[max_len];
@@ -141,7 +141,7 @@ fn assert_is_64bit_limbs_should_pass_with_valid_limbs() {
     let mut rng = thread_rng();
     let circuit_src_template = r#"
 pragma circom 2.2.2;
-include "helpers/hashtofield.circom";
+include "helpers/packing/AssertIs64BitLimbs.circom";
 component main = AssertIs64BitLimbs(__NUM_LIMBS__);
 "#;
 
@@ -167,7 +167,7 @@ component main = AssertIs64BitLimbs(__NUM_LIMBS__);
 fn assert_is_64bit_limbs_should_fail_with_invalid_limbs() {
     let circuit_src_template = r#"
 pragma circom 2.2.2;
-include "helpers/hashtofield.circom";
+include "helpers/packing/AssertIs64BitLimbs.circom";
 component main = AssertIs64BitLimbs(__NUM_LIMBS__);
 "#;
 

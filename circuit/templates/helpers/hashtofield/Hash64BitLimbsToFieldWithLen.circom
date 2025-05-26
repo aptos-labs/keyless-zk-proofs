@@ -3,7 +3,10 @@
  */
 pragma circom 2.2.2;
 
+include "../packing/ChunksToFieldElems.circom";
 include "../packing/AssertIs64BitLimbs.circom";
+
+include "circomlib/circuits/poseidon.circom";
 
 // Hashes multiple 64-bit limbs to a field element using a Poseidon hash.
 //
