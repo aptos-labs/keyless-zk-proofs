@@ -21,14 +21,18 @@ include "packing/ChunksToFieldElems.circom";
 template Num2BitsBE(n) {
     signal input in;
     signal output out[n];
+
     var num = 0;
-   
     var pow2 = 1;
+
     for (var i = 0; i < n; i++) {
         var idx = (n - 1) - i;
+
         out[idx] <-- (in >> i) & 1;
         out[idx] * (out[idx] - 1 ) === 0;
+
         num += out[idx] * pow2;
+
         pow2 = pow2 + pow2;
     }
     num === in;
