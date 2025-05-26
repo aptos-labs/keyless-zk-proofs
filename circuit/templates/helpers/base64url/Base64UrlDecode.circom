@@ -1,19 +1,6 @@
-/**
- * This file implements the base64url scheme as per RFC 7515 (see https://datatracker.ietf.org/doc/html/rfc7515#appendix-C).
- *
- * Most importantly, this base64url flavor does not append = padding characters at the end.
- *
- * For more details, see: http://alinush.org/keyless#base64url.
- *
- * This file started as a modification of zkEmail's base64 libraries:
- *
- *   https://github.com/zkemail/zk-email-verify/blob/main/packages/circuits/helpers/base64.circom
- *
- */
-
 pragma circom 2.2.2;
 
-include "base64url/Base64UrlLookup.circom";
+include "./Base64UrlLookup.circom";
 
 include "circomlib/circuits/bitify.circom";
 

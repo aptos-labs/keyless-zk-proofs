@@ -22,7 +22,7 @@ include "circomlib/circuits/bitify.circom";
 
 include "./helpers/arrays/AssertIsConcatenation.circom";
 
-include "./helpers/base64url.circom";
+include "./helpers/base64url/Base64UrlDecode.circom";
 include "./helpers/base64url/Base64UrlDecodedLength.circom";
 
 include "./helpers/hashtofield/Hash64BitLimbsToFieldWithLen.circom";
