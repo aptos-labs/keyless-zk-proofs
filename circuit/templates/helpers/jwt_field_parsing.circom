@@ -5,7 +5,6 @@ include "./arrays/SelectArrayValue.circom";
 include "./arrays/ArraySelectorComplex.circom";
 
 include "./misc.circom";
-include "./hashtofield.circom";
 include "./packing.circom";
 include "circomlib/circuits/gates.circom";
 include "circomlib/circuits/bitify.circom";

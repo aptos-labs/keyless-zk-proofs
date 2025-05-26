@@ -4,7 +4,6 @@ include "./arrays/ArraySelector.circom";
 
 include "./strings/IsWhitespace.circom";
 
-include "./hashtofield.circom";
 include "./packing.circom";
 include "circomlib/circuits/multiplexer.circom";
 include "circomlib/circuits/gates.circom";

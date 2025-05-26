@@ -21,14 +21,20 @@ include "circomlib/circuits/poseidon.circom";
 include "circomlib/circuits/bitify.circom";
 
 include "./helpers/arrays/AssertIsConcatenation.circom";
+
 include "./helpers/base64url.circom";
+
+include "./helpers/hashtofield/Hash64BitLimbsToFieldWithLen.circom";
+
 include "./helpers/jwt_field_parsing.circom";
-include "./helpers/hashtofield.circom";
 include "./helpers/misc.circom";
 include "./helpers/packing.circom";
+
 include "./helpers/rsa/bigint.circom";
 include "./helpers/rsa/rsa_verify.circom";
+
 include "./helpers/sha.circom";
+
 include "./helpers/strings/AsciiDigitsToScalar.circom";
 
 include "./stdlib/circuits/ElementwiseMul.circom";
