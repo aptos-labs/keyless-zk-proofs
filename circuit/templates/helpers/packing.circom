@@ -54,8 +54,7 @@ template BitsToFieldElems(NUM_BITS, BITS_PER_SCALAR) {
 
     // Assign the last field element
     for (var j = 0; j < NUM_BITS_IN_LAST_SCALAR; j++) {
-        var i = NUM_SCALARS - 1;
-        var index = (i * BITS_PER_SCALAR) + j;
+        var index = ((NUM_SCALARS - 1) * BITS_PER_SCALAR) + j;
         beBits2Num[NUM_SCALARS - 1].in[j] <== in[index];
     }
     beBits2Num[NUM_SCALARS - 1].out ==> elems[NUM_SCALARS - 1];
