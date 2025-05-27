@@ -5,6 +5,9 @@ include "./arrays/SelectArrayValue.circom";
 include "./arrays/ArraySelectorComplex.circom";
 
 include "./misc.circom";
+
+include "../stdlib/circuits/ConditionallyAssertEqual.circom";
+
 include "circomlib/circuits/gates.circom";
 include "circomlib/circuits/bitify.circom";
 
@@ -265,7 +268,7 @@ template EmailVerifiedCheck(maxEVNameLen, maxEVValueLen, maxUIDNameLen) {
     signal input ev_value_len;
     signal input uid_name[maxUIDNameLen];
     signal input uid_name_len;
-    signal output uid_is_email;
+    signal output {binary} uid_is_email;
 
     var email[5] = [101, 109, 97, 105, 108]; // email
 
@@ -285,7 +288,7 @@ template EmailVerifiedCheck(maxEVNameLen, maxEVValueLen, maxUIDNameLen) {
 
     // If uid name is "email", enforce ev_name is "email_verified"
     for (var i = 0; i < 14; i++) {
-        AssertEqualIfTrue()([ev_name[i], required_ev_name[i]], uid_is_email);
+        ConditionallyAssertEqual()([ev_name[i], required_ev_name[i]], uid_is_email);
     }
 
     signal ev_val_len_is_4 <== IsEqual()([ev_value_len, 4]);
@@ -297,14 +300,14 @@ template EmailVerifiedCheck(maxEVNameLen, maxEVValueLen, maxUIDNameLen) {
     is_ok === 1;
     
     var required_ev_val_len_4[4] = [116, 114, 117, 101]; // true
-    signal check_ev_val_bool <== AND()(ev_val_len_is_4, uid_is_email);
+    signal {binary} check_ev_val_bool <== AND()(ev_val_len_is_4, uid_is_email);
     for (var i = 0; i < 4; i ++) {
-        AssertEqualIfTrue()([required_ev_val_len_4[i], ev_value[i]], check_ev_val_bool);
+        ConditionallyAssertEqual()([required_ev_val_len_4[i], ev_value[i]], check_ev_val_bool);
     }
 
     var required_ev_val_len_6[6] = [34, 116, 114, 117, 101, 34]; // "true"
-    signal check_ev_val_str <== AND()(ev_val_len_is_6, uid_is_email);
+    signal {binary} check_ev_val_str <== AND()(ev_val_len_is_6, uid_is_email);
     for (var i = 0; i < 6; i++) {
-        AssertEqualIfTrue()([required_ev_val_len_6[i], ev_value[i]], check_ev_val_str);
+        ConditionallyAssertEqual()([required_ev_val_len_6[i], ev_value[i]], check_ev_val_str);
     }
 }

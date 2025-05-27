@@ -10,14 +10,6 @@ include "circomlib/circuits/bitify.circom";
 
 include "../stdlib/circuits/Sum.circom";
 
-// Given input `in`, enforces that `in[0] === in[1]` if `bool` is 1
-template AssertEqualIfTrue() {
-    signal input in[2];
-    signal input bool;
-
-    (in[0]-in[1]) * bool === 0;
-}
-
 // Given an input `brackets_depth_map`, which must be an output of `BracketsDepthMap` and
 // corresponds to the nested brackets depth of the original JWT, and a `start_index` and `field_len`
 // corresponding to the first index and length of a full field in the JWT, fails if the given field
