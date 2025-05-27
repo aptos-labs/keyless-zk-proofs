@@ -10,36 +10,13 @@ pragma circom 2.2.2;
 
 include "../stdlib/functions/assert_bits_fit_scalar.circom";
 
-include "packing/Num2BigEndianBits.circom";
-include "packing/BigEndianBits2Num.circom";
-
-include "packing/AssertIsBytes.circom";
 include "packing/AssertIs64BitLimbs.circom";
+include "packing/AssertIsBytes.circom";
 include "packing/ChunksToFieldElem.circom";
 include "packing/ChunksToFieldElems.circom";
-
-// Converts a byte array to a bit array, where the each byte is converted into a 
-// big-endian bits.
-//
-// @input  bytes   an array of bytes
-//
-// @output bits    an array of bits, where bits[i * 8], ..., bits[(i * 8) + 7] 
-//                 are the bits in bytes[i], with bits[i * 8] being the MSB
-template Bytes2BigEndianBits(inputLen) {
-    signal input bytes[inputLen];
-    signal output bits[8 * inputLen];
-
-    component num2bits[inputLen];
-    for (var i = 0; i < inputLen; i++) {
-        num2bits[i] = Num2BigEndianBits(8);
-        num2bits[i].in <== bytes[i];
-
-        for (var j = 0; j < 8; j++) {
-            var index = (i * 8) + j;
-            num2bits[i].out[j] ==> bits[index];
-        }
-    }
-}
+include "packing/BigEndianBits2Num.circom";
+include "packing/Bytes2BigEndianBits.circom";
+include "packing/Num2BigEndianBits.circom";
 
 // Converts bit array 'in' into an array of field elements of size `bitsPerFieldElem` each
 // Example: with inputLen=11, bitsPerFieldElem=4, [0,0,0,0, 0,0,0,1, 0,1,1,] ==> [0, 1, 6]
