@@ -25,20 +25,20 @@ template BitsToFieldElems(NUM_BITS, BITS_PER_SCALAR) {
     // '\' is the quotient operation - we add 1 if there are extra bits past the full bytes
     var NUM_SCALARS = NUM_BITS % BITS_PER_SCALAR == 0 ? NUM_BITS \ BITS_PER_SCALAR : (NUM_BITS\BITS_PER_SCALAR) + 1;
 
-    signal input in[NUM_BITS];
-    signal output elems[NUM_SCALARS];
-
-    component beBits2Num[NUM_SCALARS]; 
-    for (var i = 0; i < NUM_SCALARS - 1; i++) {
-        beBits2Num[i] = BigEndianBits2Num(BITS_PER_SCALAR); // assign circuit component
-    }
-
     // If we have an extra byte that isn't full of bits, we truncate the BigEndianBits2Num component size for that byte. This is equivalent to 0 padding the end of the array
     var NUM_BITS_IN_LAST_SCALAR;
     if (NUM_BITS % BITS_PER_SCALAR == 0) {
         NUM_BITS_IN_LAST_SCALAR = BITS_PER_SCALAR; // The last field element is full
     } else {
         NUM_BITS_IN_LAST_SCALAR = NUM_BITS % BITS_PER_SCALAR;
+    }
+
+    signal input in[NUM_BITS];
+    signal output elems[NUM_SCALARS];
+
+    component beBits2Num[NUM_SCALARS];
+    for (var i = 0; i < NUM_SCALARS - 1; i++) {
+        beBits2Num[i] = BigEndianBits2Num(BITS_PER_SCALAR); // assign circuit component
     }
 
     // Assign all but the last field element
