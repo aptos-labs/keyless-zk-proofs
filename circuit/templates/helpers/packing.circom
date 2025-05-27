@@ -11,32 +11,12 @@ pragma circom 2.2.2;
 include "../stdlib/functions/assert_bits_fit_scalar.circom";
 
 include "packing/Num2BigEndianBits.circom";
+include "packing/BigEndianBits2Num.circom";
 
 include "packing/AssertIsBytes.circom";
 include "packing/AssertIs64BitLimbs.circom";
 include "packing/ChunksToFieldElem.circom";
 include "packing/ChunksToFieldElems.circom";
-
-// Like Bits2Num in [circomlib](https://github.com/iden3/circomlib/blob/master/circuits/bitify.circom),
-// except assumes bits[0] is the MSB while bits[n-1] is the LSB.
-template BigEndianBits2Num(n) { 
-    signal input in[n];
-    signal output out;
-
-    var acc = 0;
-    var pow2 = 1;
-
-    for (var i = 0; i < n; i++) {
-        var index = (n-1) - i;
-
-        acc += in[index] * pow2;
-
-        pow2 = pow2 + pow2;
-    }
-
-    acc ==> out;
-}
-
 
 // Converts byte array `in` into a bit array. All values in `in` are
 // assumed to be one byte each, i.e. between 0 and 255 inclusive.
