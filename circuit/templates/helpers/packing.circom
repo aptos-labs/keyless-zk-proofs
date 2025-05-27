@@ -19,7 +19,7 @@ include "packing/ChunksToFieldElems.circom";
 
 // Like Bits2Num in [circomlib](https://github.com/iden3/circomlib/blob/master/circuits/bitify.circom),
 // except assumes bits[0] is the MSB while bits[n-1] is the LSB.
-template Bits2NumBigEndian(n) { 
+template BigEndianBits2Num(n) { 
     signal input in[n];
     signal output out;
 
@@ -66,16 +66,16 @@ template BitsToFieldElems(inputLen, bitsPerFieldElem) {
     signal output elems[num_elems];
     component bits_2_num_be[num_elems]; 
     for (var i = 0; i < num_elems-1; i++) {
-        bits_2_num_be[i] = Bits2NumBigEndian(bitsPerFieldElem); // assign circuit component
+        bits_2_num_be[i] = BigEndianBits2Num(bitsPerFieldElem); // assign circuit component
     }
 
-    // If we have an extra byte that isn't full of bits, we truncate the Bits2NumBigEndian component size for that byte. This is equivalent to 0 padding the end of the array
+    // If we have an extra byte that isn't full of bits, we truncate the BigEndianBits2Num component size for that byte. This is equivalent to 0 padding the end of the array
     var num_extra_bits = inputLen % bitsPerFieldElem;
     if (num_extra_bits == 0) {
         num_extra_bits = bitsPerFieldElem; // The last field element is full
-        bits_2_num_be[num_elems-1] = Bits2NumBigEndian(bitsPerFieldElem);
+        bits_2_num_be[num_elems-1] = BigEndianBits2Num(bitsPerFieldElem);
     } else {
-        bits_2_num_be[num_elems-1] = Bits2NumBigEndian(num_extra_bits);
+        bits_2_num_be[num_elems-1] = BigEndianBits2Num(num_extra_bits);
     }
 
     // Assign all but the last field element

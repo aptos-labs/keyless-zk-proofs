@@ -36,6 +36,6 @@ template SHA2_256_PaddingVerify(maxInputLen) {
     // 4.1.c
     AssertIsSubstring(maxInputLen, 8)(in, in_hash, L_byte_encoded, 8, padding_start+(K+1)/8);
     signal L_bits[64] <== BytesToBits(8)(L_byte_encoded);
-    signal L_decoded <== Bits2NumBigEndian(64)(L_bits);
+    signal L_decoded <== BigEndianBits2Num(64)(L_bits);
     L_decoded === 8*padding_start;
 }

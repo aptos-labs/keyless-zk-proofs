@@ -8,7 +8,7 @@ template bits2num_big_endian_test() {
     var max_bits_len = 64;
     signal input bits_in[max_bits_len];
     signal input num_out;
-    component num2bits_be = Bits2NumBigEndian(max_bits_len);
+    component num2bits_be = BigEndianBits2Num(max_bits_len);
     num2bits_be.in <== bits_in;
     for (var i = 0; i < max_bits_len; i++ ) {
       log(num2bits_be.in[i]);
