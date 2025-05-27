@@ -22,13 +22,13 @@ fn expected_num2bits_be(n: u64, size: usize) -> Vec<bool> {
     bits_le.into_iter().rev().collect()
 }
 
-fn bits_to_field_elems(bits: &[bool], bits_per_field_elem: usize) -> Vec<Fr> {
+fn big_endian_bits_to_scalars(bits: &[bool], bits_per_field_elem: usize) -> Vec<Fr> {
     bits.chunks(bits_per_field_elem)
-        .map(bits_to_field_elem)
+        .map(big_endian_bits_to_scalar)
         .collect()
 }
 
-fn bits_to_field_elem(bits: &[bool]) -> Fr {
+fn big_endian_bits_to_scalar(bits: &[bool]) -> Fr {
     let bigint = BigInteger::from_bits_be(bits);
     Fr::from_bigint(bigint).unwrap()
 }
@@ -110,8 +110,9 @@ fn bytes_to_bits_test() {
 }
 
 #[test]
-fn bits_to_field_elems_test() {
-    let circuit_handle = TestCircuitHandle::new("packing/bits_to_field_elems_test.circom").unwrap();
+fn big_endian_bits_to_scalars_test() {
+    let circuit_handle =
+        TestCircuitHandle::new("packing/big_endian_bits_to_scalars_test.circom").unwrap();
 
     let mut rng = ChaCha20Rng::seed_from_u64(TEST_RNG_SEED);
 
@@ -130,7 +131,7 @@ fn bits_to_field_elems_test() {
             .flat_map(|byte| expected_num2bits_be(*byte as u64, 8))
             .collect();
 
-        let expected_field_elems = bits_to_field_elems(&bits, BITS_PER_FIELD_ELEM);
+        let expected_field_elems = big_endian_bits_to_scalars(&bits, BITS_PER_FIELD_ELEM);
         println!("{}", expected_field_elems.len());
 
         let config = CircuitConfig::new()
