@@ -15,7 +15,12 @@ include "circomlib/circuits/poseidon.circom";
 // Assumes `len` is the length [in bytes?] of the provided input. It is used only for hashing and is not
 // verified by this template.
 //
-// Warning: `NUM_LIMBS` cannot be 0.
+// @param   NUM_LIMBS     the max number of limbs in the input array
+//
+// @input   in {maxbits}  an array of already-range-checked, 64-bit limbs
+// @input   len           the total # of bytes in the limbs (TODO: NUM_LIMBS*8 ==> redundant, so remove)
+//
+// @output  hash          a collision-resistant hash of the 64-bit limbs
 template Hash64BitLimbsToFieldWithLen(NUM_LIMBS) {
     assert(NUM_LIMBS != 0);
 
