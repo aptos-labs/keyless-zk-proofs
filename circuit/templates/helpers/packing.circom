@@ -18,19 +18,24 @@ include "packing/AssertIs64BitLimbs.circom";
 include "packing/ChunksToFieldElem.circom";
 include "packing/ChunksToFieldElems.circom";
 
-// Converts byte array `in` into a bit array. All values in `in` are
-// assumed to be one byte each, i.e. between 0 and 255 inclusive.
-// These bytes are also assumed to be in big endian order
+// Converts a byte array to a bit array, where the each byte is converted into a 
+// big-endian bits.
+//
+// @input  bytes   an array of bytes
+//
+// @output bits    an array of bits, where bits[i * 8], ..., bits[(i * 8) + 7] 
+//                 are the bits in bytes[i], with bits[i * 8] being the MSB
 template BytesToBits(inputLen) {
-    signal input in[inputLen];
-    var byte_len = 8;
-    signal output bits[byte_len*inputLen];
+    signal input bytes[inputLen];
+    signal output bits[8 * inputLen];
+
     component num2bits[inputLen];
     for (var i = 0; i < inputLen; i++) {
-        num2bits[i] = Num2BigEndianBits(byte_len);
-        num2bits[i].in <== in[i];
-        for (var j = 0; j < byte_len; j++) {
-            var index = (i*byte_len)+j;
+        num2bits[i] = Num2BigEndianBits(8);
+        num2bits[i].in <== bytes[i];
+
+        for (var j = 0; j < 8; j++) {
+            var index = (i * 8) + j;
             num2bits[i].out[j] ==> bits[index];
         }
     }
