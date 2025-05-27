@@ -8,7 +8,7 @@ template bytes_to_bits_test() {
     signal input bytes_in[max_bytes_len];
     signal input bits_out[max_bits_len];
     component bytes_to_bits = Bytes2BigEndianBits(max_bytes_len);
-    bytes_to_bits.in <== bytes_in;
+    bytes_to_bits.bytes <== bytes_in;
     bytes_to_bits.bits === bits_out;
 
 }
