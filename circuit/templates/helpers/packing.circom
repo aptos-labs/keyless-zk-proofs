@@ -34,7 +34,7 @@ include "packing/Num2BigEndianBits.circom";
 // @example
 //    NUM_BITS = 11, BITS_PER_SCALAR = 4, in = [0,0,0,0, 0,0,0,1, 0,1,1,]
 //                                   ==> out = [0,       1,       6]
-template BitsToFieldElems(NUM_BITS, BITS_PER_SCALAR) {
+template BigEndianBitsToScalars(NUM_BITS, BITS_PER_SCALAR) {
     var NUM_SCALARS;
     var NUM_BITS_IN_LAST_SCALAR;
     if (NUM_BITS % BITS_PER_SCALAR == 0) {
