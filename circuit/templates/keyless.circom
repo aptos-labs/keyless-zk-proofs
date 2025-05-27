@@ -34,7 +34,7 @@ include "./helpers/misc.circom";
 
 include "./helpers/packing/BigEndianBitsToScalars.circom";
 
-include "./helpers/rsa/rsa_verify.circom";
+include "./helpers/rsa/RSA_PKCS1_v1_5_Verify.circom";
 
 include "./helpers/sha/SHA2_256_PaddingVerify.circom";
 include "./helpers/sha/SHA2_256_Prepadded_Hash.circom";
