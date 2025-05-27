@@ -86,7 +86,7 @@ template keyless(
     // Global variables
     //
 
-    // RSA signatures and pubkeys are stored as 64-bit (8-byte) limbs
+    // RSA-2048 signatures and pubkeys are stored as 32 limbs of 64 bits (8 bytes) each
     var SIGNATURE_NUM_LIMBS = 32;
 
     // The maximum length of a base64url-decoded JWT payload.
