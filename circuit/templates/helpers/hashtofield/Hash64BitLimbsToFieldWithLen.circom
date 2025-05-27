@@ -19,10 +19,10 @@ include "circomlib/circuits/poseidon.circom";
 template Hash64BitLimbsToFieldWithLen(NUM_LIMBS) {
     assert(NUM_LIMBS != 0);
 
-    signal input in[NUM_LIMBS];
+    signal input {maxbits} in[NUM_LIMBS];
     signal input len;
 
-    AssertIs64BitLimbs(NUM_LIMBS)(in);
+    assert(in.maxbits <= 64);
 
     var NUM_ELEMS = NUM_LIMBS % 3 == 0 ? NUM_LIMBS \ 3 : NUM_LIMBS \ 3 + 1;
 

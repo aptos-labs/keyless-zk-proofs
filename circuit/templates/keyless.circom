@@ -493,9 +493,14 @@ template keyless(
     // Check public inputs are correct
     //
 
+    AssertIs64BitLimbs(SIGNATURE_NUM_LIMBS)(pubkey_modulus);
+    signal {maxbits} pubkey_modulus_tagged[SIGNATURE_NUM_LIMBS];
+    pubkey_modulus_tagged.maxbits = 64;
+    pubkey_modulus_tagged <== pubkey_modulus;
+
     signal override_aud_val_hashed <== HashBytesToFieldWithLen(maxAudValueLen)(override_aud_value, override_aud_value_len);
     signal hashed_jwt_header <== HashBytesToFieldWithLen(MAX_B64U_JWT_HEADER_W_DOT_LEN)(b64u_jwt_header_w_dot, b64u_jwt_header_w_dot_len);
-    signal hashed_pubkey_modulus <== Hash64BitLimbsToFieldWithLen(SIGNATURE_NUM_LIMBS)(pubkey_modulus, 256); // 256 bytes per signature
+    signal hashed_pubkey_modulus <== Hash64BitLimbsToFieldWithLen(SIGNATURE_NUM_LIMBS)(pubkey_modulus_tagged, 256);
     signal hashed_iss_value <== HashBytesToFieldWithLen(maxIssValueLen)(iss_value, iss_value_len);
     signal hashed_extra_field <== HashBytesToFieldWithLen(maxEFKVPairLen)(extra_field, extra_field_len);
     signal computed_public_inputs_hash <== Poseidon(14)([
