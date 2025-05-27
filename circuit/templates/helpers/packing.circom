@@ -17,21 +17,24 @@ include "packing/AssertIs64BitLimbs.circom";
 include "packing/ChunksToFieldElem.circom";
 include "packing/ChunksToFieldElems.circom";
 
-// Converts a bit array of size `n` into a big endian integer in `out`
-// Assumes `in` contains only 1s and 0s
-// Inspired by Bits2Num in https://github.com/iden3/circomlib/blob/master/circuits/bitify.circom
+// Like Bits2Num in [circomlib](https://github.com/iden3/circomlib/blob/master/circuits/bitify.circom),
+// except assumes bits[0] is the MSB while bits[n-1] is the LSB.
 template Bits2NumBigEndian(n) { 
     signal input in[n];
     signal output out;
-    var lc1=0;
-    
-    var e2 = 1;
+
+    var acc = 0;
+    var pow2 = 1;
+
     for (var i = 0; i < n; i++) {
-        var index = n-1-i;
-        lc1 += in[index] * e2;
-        e2 = e2 + e2;
+        var index = (n-1) - i;
+
+        acc += in[index] * pow2;
+
+        pow2 = pow2 + pow2;
     }
-    lc1 ==> out;
+
+    acc ==> out;
 }
 
 
