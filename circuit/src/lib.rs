@@ -121,5 +121,5 @@ impl TestCircuitHandle {
 
 #[test]
 fn main_template_should_compile() {
-    TestCircuitHandle::new("../main.circom").unwrap();
+    TestCircuitHandle::new("../templates/main.circom").unwrap();
 }
