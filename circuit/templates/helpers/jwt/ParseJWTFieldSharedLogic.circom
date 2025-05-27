@@ -1,7 +1,7 @@
 pragma circom 2.2.2;
 
 include "../arrays/SelectArrayValue.circom";
-include "../arrays/IsSubstring.circom";
+include "../strings/IsSubstring.circom";
 include "../hashtofield/HashBytesToFieldWithLen.circom";
 
 include "circomlib/circuits/comparators.circom";
