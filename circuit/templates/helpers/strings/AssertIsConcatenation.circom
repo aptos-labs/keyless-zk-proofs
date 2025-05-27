@@ -2,8 +2,8 @@ pragma circom 2.2.2;
 
 include "../hashtofield/HashBytesToFieldWithLen.circom";
 
-include "./RightArraySelector.circom";
-include "./SelectArrayValue.circom";
+include "../arrays/RightArraySelector.circom";
+include "../arrays/SelectArrayValue.circom";
 
 include "../../stdlib/circuits/Sum.circom";
 
