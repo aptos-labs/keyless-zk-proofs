@@ -1,7 +1,7 @@
 
 pragma circom 2.2.2;
 
-include "helpers/misc.circom";
+include "helpers/strings/IsWhitespace.circom";
 
 template is_whitespace_test() {
     signal input char;

@@ -29,8 +29,14 @@ include "./helpers/bigint/BigLessThan.circom";
 
 include "./helpers/hashtofield/Hash64BitLimbsToFieldWithLen.circom";
 
-include "./helpers/jwt_field_parsing.circom";
-include "./helpers/misc.circom";
+include "./helpers/jwt/BracketsMap.circom";
+include "./helpers/jwt/BracketsDepthMap.circom";
+include "./helpers/jwt/EmailVerifiedCheck.circom";
+include "./helpers/jwt/EnforceNotNested.circom";
+include "./helpers/jwt/ParseEmailVerifiedField.circom";
+include "./helpers/jwt/ParseJWTFieldWithQuotedValue.circom";
+include "./helpers/jwt/ParseJWTFieldWithUnquotedValue.circom";
+include "./helpers/jwt/StringBodies.circom";
 
 include "./helpers/packing/BigEndianBitsToScalars.circom";
 

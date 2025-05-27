@@ -2,7 +2,7 @@
 
 pragma circom 2.2.2;
 
-include "helpers/misc.circom";
+include "helpers/jwt/StringBodies.circom";
 
 template string_bodies_test() {
     var len = 13;

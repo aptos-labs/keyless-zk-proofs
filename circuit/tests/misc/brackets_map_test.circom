@@ -1,6 +1,6 @@
 pragma circom 2.2.2;
 
-include "helpers/misc.circom";
+include "helpers/jwt/BracketsMap.circom";
 
 template brackets_map_test() {
     var len = 13;

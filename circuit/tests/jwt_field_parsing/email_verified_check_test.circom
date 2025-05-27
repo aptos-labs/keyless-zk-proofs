@@ -1,7 +1,7 @@
 
 pragma circom 2.2.2;
 
-include "helpers/jwt_field_parsing.circom";
+include "helpers/jwt/EmailVerifiedCheck.circom";
 
 template email_verified_check_test() {
     var maxEVNameLen = 20;
