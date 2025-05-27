@@ -37,7 +37,7 @@ include "packing/ChunksToFieldElems.circom";
  *    $bits[i] \in \{0, 1\}$
  *    $num = \sum_{i = 0}^{N-1} 2^{(N-1)-i} bits[i]$
  */
-template Num2BitsBE(n) {
+template Num2BigEndianBits(n) {
     signal input in;
     signal output out[n];
 
@@ -89,7 +89,7 @@ template BytesToBits(inputLen) {
     signal output bits[byte_len*inputLen];
     component num2bits[inputLen];
     for (var i = 0; i < inputLen; i++) {
-        num2bits[i] = Num2BitsBE(byte_len);
+        num2bits[i] = Num2BigEndianBits(byte_len);
         num2bits[i].in <== in[i];
         for (var j = 0; j < byte_len; j++) {
             var index = (i*byte_len)+j;
