@@ -1,48 +1,12 @@
 pragma circom 2.2.2;
 
-// File copied and modified from https://github.com/zkp-application/circom-rsa-verify/blob/main/circuits/rsa_verify.circom, except for the `FpPow65537Mod` template. The only difference is using `FpPow65537Mod` for exponentiation instead of the tempalte provided in the original repo, as it is more efficient
+// File copied and modified from https://github.com/zkp-application/circom-rsa-verify/blob/main/circuits/rsa_verify.circom,
+// except we are using the `FpPow65537Mod` for exponentiation instead, as it is more efficient.
 
 include "./FpMul.circom";
+include "./FpPow65537Mod.circom";
 
 include "circomlib/circuits/bitify.circom";
-
-// Template copied from https://github.com/doubleblind-xyz/circom-rsa/blob/master/circuits/rsa.circom
-template FpPow65537Mod(n, k) {
-    signal input base[k];
-    // Exponent is hardcoded at 65537
-    signal input modulus[k];
-    signal output out[k];
-
-    component doublers[16];
-    component adder = FpMul(n, k);
-    for (var i = 0; i < 16; i++) {
-        doublers[i] = FpMul(n, k);
-    }
-
-    for (var j = 0; j < k; j++) {
-        adder.p[j] <== modulus[j];
-        for (var i = 0; i < 16; i++) {
-            doublers[i].p[j] <== modulus[j];
-        }
-    }
-    for (var j = 0; j < k; j++) {
-        doublers[0].a[j] <== base[j];
-        doublers[0].b[j] <== base[j];
-    }
-    for (var i = 0; i + 1 < 16; i++) {
-        for (var j = 0; j < k; j++) {
-            doublers[i + 1].a[j] <== doublers[i].out[j];
-            doublers[i + 1].b[j] <== doublers[i].out[j];
-        }
-    }
-    for (var j = 0; j < k; j++) {
-        adder.a[j] <== base[j];
-        adder.b[j] <== doublers[15].out[j];
-    }
-    for (var j = 0; j < k; j++) {
-        out[j] <== adder.out[j];
-    }
-}
 
 // Pkcs1v15 + Sha256
 // exp 65537
