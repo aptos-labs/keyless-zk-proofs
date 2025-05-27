@@ -87,10 +87,14 @@ template Hash64BitLimbsToFieldWithLenTest(max_len) {
     signal input in[max_len];
     signal input len;
     signal input expected_output;
-    component c1 = Hash64BitLimbsToFieldWithLen(max_len);
-    c1.in <== in;
-    c1.len <== len;
-    expected_output === c1.hash;
+
+    signal {maxbits} in_tagged[max_len];
+    in_tagged.maxbits = 64;
+    in_tagged <== in;
+
+    var hash = Hash64BitLimbsToFieldWithLen(max_len)(in_tagged, len);
+
+    expected_output === hash;
 }
 
 component main = Hash64BitLimbsToFieldWithLenTest(__MAX_LEN__);
