@@ -10,7 +10,7 @@ include "circomlib/circuits/bitify.circom";
 
 // Pkcs1v15 + Sha256
 // exp 65537
-template RsaVerifyPkcs1v15(w, nb) {
+template RSA_PKCS1_v1_5_Verify(w, nb) {
     //signal input exp[nb];
     signal input sign[nb];      // least-significant-limb first
     signal input modulus[nb];   // least-significant-limb first

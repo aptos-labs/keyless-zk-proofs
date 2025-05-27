@@ -537,7 +537,7 @@ template RSA_2048_e_65537_PKCS1_V1_5_Verify(SIGNATURE_LIMB_BIT_WIDTH, SIGNATURE_
         message_limbs_le[i] = message_limbs[3 - i];
     }
 
-    RsaVerifyPkcs1v15(SIGNATURE_LIMB_BIT_WIDTH, SIGNATURE_NUM_LIMBS)(
+    RSA_PKCS1_v1_5_Verify(SIGNATURE_LIMB_BIT_WIDTH, SIGNATURE_NUM_LIMBS)(
         signature, pubkey_modulus, message_limbs_le
     );
 }
