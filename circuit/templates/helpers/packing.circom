@@ -34,12 +34,12 @@ template BitsToFieldElems(NUM_BITS, BITS_PER_SCALAR) {
     }
 
     // If we have an extra byte that isn't full of bits, we truncate the BigEndianBits2Num component size for that byte. This is equivalent to 0 padding the end of the array
-    var NUM_LEFTOVER_BITS = NUM_BITS % BITS_PER_SCALAR;
-    if (NUM_LEFTOVER_BITS == 0) {
-        NUM_LEFTOVER_BITS = BITS_PER_SCALAR; // The last field element is full
+    var NUM_BITS_IN_LAST_SCALAR = NUM_BITS % BITS_PER_SCALAR;
+    if (NUM_BITS_IN_LAST_SCALAR == 0) {
+        NUM_BITS_IN_LAST_SCALAR = BITS_PER_SCALAR; // The last field element is full
         beBits2Num[NUM_SCALARS - 1] = BigEndianBits2Num(BITS_PER_SCALAR);
     } else {
-        beBits2Num[NUM_SCALARS - 1] = BigEndianBits2Num(NUM_LEFTOVER_BITS);
+        beBits2Num[NUM_SCALARS - 1] = BigEndianBits2Num(NUM_BITS_IN_LAST_SCALAR);
     }
 
     // Assign all but the last field element
@@ -52,7 +52,7 @@ template BitsToFieldElems(NUM_BITS, BITS_PER_SCALAR) {
     }
 
     // Assign the last field element
-    for (var j = 0; j < NUM_LEFTOVER_BITS; j++) {
+    for (var j = 0; j < NUM_BITS_IN_LAST_SCALAR; j++) {
         var i = NUM_SCALARS - 1;
         var index = (i * BITS_PER_SCALAR) + j;
         beBits2Num[NUM_SCALARS - 1].in[j] <== in[index];
