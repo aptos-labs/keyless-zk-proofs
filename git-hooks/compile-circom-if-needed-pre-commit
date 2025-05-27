@@ -23,7 +23,7 @@ if git diff --cached --name-only | grep -q '^circuit/templates/.*\.circom$'; the
     pushd circuit/templates > /dev/null
 
     # Run your circom command
-    time circom -l "$(npm root -g)" main.circom --r1cs
+    time circom --O0 -l "$(npm root -g)" main.circom --r1cs
 
     # Check if circom command succeeded
     if [ $? -ne 0 ]; then

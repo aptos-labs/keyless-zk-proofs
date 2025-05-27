@@ -18,8 +18,8 @@ def compile(
     circom_file_path: Optional[Path] = typer.Option(
         None, "--circom-file-path", "-c", help="Path to the circom file to be compiled"
     ),
-    o0: bool = typer.Option(
-        False, "--no-optimizations", "-o0", help="Disables optimizations for faster compilation"
+    o: bool = typer.Option(
+        False, "--optimized", "-o", help="Enables optimization passes (--O2) for compiling the circuit to a smaller R1CS"
     ),
 ):
     """Compiles the circuit to R1CS, creating a main.r1cs file next to main.circom. Useful for testing."""
@@ -29,14 +29,14 @@ def compile(
         circom_file_path = templates_dir / "main.circom"
         typer.echo(f"No circom file path provided. Defaulting to main.circom.")
 
-    o0flag = ""
-    if o0 == True:
-        o0flag = "--O0"
+    oFlag = "--O0"
+    if o == True:
+        oFlag = "--O2"
 
     typer.echo(f"Compiling {circom_file_path}...")
     typer.echo()
 
-    circom_cmd = f"circom {o0flag} -l {templates_dir} -l $(. ~/.nvm/nvm.sh; npm root -g) {circom_file_path} --r1cs"
+    circom_cmd = f"circom {oFlag} -l {templates_dir} -l $(. ~/.nvm/nvm.sh; npm root -g) {circom_file_path} --r1cs"
 
     typer.echo("Compiling via:")
     typer.echo(f" {circom_cmd}")
