@@ -1,10 +1,9 @@
 pragma circom 2.2.2;
 
 include "../arrays/IsSubstring.circom";
-
 include "../hashtofield/HashBytesToFieldWithLen.circom";
-
-include "../packing.circom";
+include "../packing/Bytes2BigEndianBits.circom";
+include "../packing/BigEndianBits2Num.circom";
 
 include "circomlib/circuits/bitify.circom";
 

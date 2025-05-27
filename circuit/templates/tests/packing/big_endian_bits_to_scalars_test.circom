@@ -1,7 +1,7 @@
 
 pragma circom 2.2.2;
 
-include "helpers/packing.circom";
+include "helpers/packing/BigEndianBitsToScalars.circom";
 
 template bits_to_field_elems_test() {
     var max_bits_len = 256;

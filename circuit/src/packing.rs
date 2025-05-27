@@ -77,8 +77,9 @@ fn bits2num_big_endian_test() {
 }
 
 #[test]
-fn bytes_to_bits_test() {
-    let circuit_handle = TestCircuitHandle::new("packing/bytes_to_bits_test.circom").unwrap();
+fn bytes_to_big_endian_bits_test() {
+    let circuit_handle =
+        TestCircuitHandle::new("packing/bytes_to_big_endian_bits_test.circom").unwrap();
 
     let mut rng = ChaCha20Rng::seed_from_u64(TEST_RNG_SEED);
     const BYTES_MAX_SIZE: usize = 10;

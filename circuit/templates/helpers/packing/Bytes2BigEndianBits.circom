@@ -1,5 +1,7 @@
 pragma circom 2.2.2;
 
+include "./Num2BigEndianBits.circom";
+
 // Converts a byte array to a bit array, where the each byte is converted into a 
 // big-endian bits.
 //

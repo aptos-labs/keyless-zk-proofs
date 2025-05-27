@@ -1,7 +1,7 @@
 
 pragma circom 2.2.2;
 
-include "helpers/packing.circom";
+include "helpers/packing/Num2BigEndianBits.circom";
 
 template num2bits_be_test() {
     var max_bits_len = 8;

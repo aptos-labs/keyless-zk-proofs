@@ -1,6 +1,6 @@
 pragma circom 2.2.2;
 
-include "helpers/packing.circom";
+include "helpers/packing/Bytes2BigEndianBits.circom";
 
 template bytes_to_bits_test() {
     var max_bytes_len = 10;

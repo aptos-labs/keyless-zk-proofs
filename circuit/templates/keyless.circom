@@ -29,7 +29,8 @@ include "./helpers/hashtofield/Hash64BitLimbsToFieldWithLen.circom";
 
 include "./helpers/jwt_field_parsing.circom";
 include "./helpers/misc.circom";
-include "./helpers/packing.circom";
+
+include "./helpers/packing/BigEndianBitsToScalars.circom";
 
 include "./helpers/rsa/bigint.circom";
 include "./helpers/rsa/rsa_verify.circom";

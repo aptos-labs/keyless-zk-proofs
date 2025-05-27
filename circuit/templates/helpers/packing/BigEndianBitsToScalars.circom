@@ -1,22 +1,8 @@
-/**
- * TODO(Buses): We definitely need a ZeroPaddedBytes(MAX) that has an (1) array of signals, each storing a byte and (2) an actual length signal.
- *
- * TODO(Buses): We also need a PackedBytes(MAX) that can be obtained from a ZeroPaddedBytes
- * (MAX) and once again has (1) an array of signals, each storing a bunch of packed bytes,
- * and (2) an actual length signal. (This length could be stored as the last element of the
- * array of signals in (1)).
- */
 pragma circom 2.2.2;
 
-include "../stdlib/functions/assert_bits_fit_scalar.circom";
+include "./BigEndianBits2Num.circom";
 
-include "packing/AssertIs64BitLimbs.circom";
-include "packing/AssertIsBytes.circom";
-include "packing/ChunksToFieldElem.circom";
-include "packing/ChunksToFieldElems.circom";
-include "packing/BigEndianBits2Num.circom";
-include "packing/Bytes2BigEndianBits.circom";
-include "packing/Num2BigEndianBits.circom";
+include "../../stdlib/functions/assert_bits_fit_scalar.circom";
 
 // Converts bit array 'in' into an array of field elements of size `BITS_PER_SCALAR` each
 //
@@ -35,6 +21,8 @@ include "packing/Num2BigEndianBits.circom";
 //    NUM_BITS = 11, BITS_PER_SCALAR = 4, in = [0,0,0,0, 0,0,0,1, 0,1,1,]
 //                                   ==> out = [0,       1,       6]
 template BigEndianBitsToScalars(NUM_BITS, BITS_PER_SCALAR) {
+    _ = assert_bits_fit_scalar(BITS_PER_SCALAR);
+
     var NUM_SCALARS;
     var NUM_BITS_IN_LAST_SCALAR;
     if (NUM_BITS % BITS_PER_SCALAR == 0) {
