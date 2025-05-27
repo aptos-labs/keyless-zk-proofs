@@ -5,7 +5,7 @@ pragma circom 2.2.2;
 
 include "ChunksToFieldElem.circom";
 
-// Tightly-packs many chunks into a many scalars.
+// Tightly-packs many chunks into many scalars.
 //
 // @param   NUM_CHUNKS         the number of chunks to pack; cannot be 0
 // @param   BITS_PER_CHUNK     the max size of each chunk in bits
