@@ -18,31 +18,31 @@ include "packing/BigEndianBits2Num.circom";
 include "packing/Bytes2BigEndianBits.circom";
 include "packing/Num2BigEndianBits.circom";
 
-// Converts bit array 'in' into an array of field elements of size `bitsPerFieldElem` each
-// Example: with inputLen=11, bitsPerFieldElem=4, [0,0,0,0, 0,0,0,1, 0,1,1,] ==> [0, 1, 6]
+// Converts bit array 'in' into an array of field elements of size `BITS_PER_SCALAR` each
+// Example: with inputLen=11, BITS_PER_SCALAR=4, [0,0,0,0, 0,0,0,1, 0,1,1,] ==> [0, 1, 6]
 // Assumes all values in `in` are 0 or 1
-template BitsToFieldElems(inputLen, bitsPerFieldElem) {
+template BitsToFieldElems(inputLen, BITS_PER_SCALAR) {
     signal input in[inputLen];
-    var num_elems = inputLen%bitsPerFieldElem == 0 ? inputLen \ bitsPerFieldElem : (inputLen\bitsPerFieldElem) + 1; // '\' is the quotient operation - we add 1 if there are extra bits past the full bytes
+    var num_elems = inputLen%BITS_PER_SCALAR == 0 ? inputLen \ BITS_PER_SCALAR : (inputLen\BITS_PER_SCALAR) + 1; // '\' is the quotient operation - we add 1 if there are extra bits past the full bytes
     signal output elems[num_elems];
     component bits_2_num_be[num_elems]; 
     for (var i = 0; i < num_elems-1; i++) {
-        bits_2_num_be[i] = BigEndianBits2Num(bitsPerFieldElem); // assign circuit component
+        bits_2_num_be[i] = BigEndianBits2Num(BITS_PER_SCALAR); // assign circuit component
     }
 
     // If we have an extra byte that isn't full of bits, we truncate the BigEndianBits2Num component size for that byte. This is equivalent to 0 padding the end of the array
-    var num_extra_bits = inputLen % bitsPerFieldElem;
+    var num_extra_bits = inputLen % BITS_PER_SCALAR;
     if (num_extra_bits == 0) {
-        num_extra_bits = bitsPerFieldElem; // The last field element is full
-        bits_2_num_be[num_elems-1] = BigEndianBits2Num(bitsPerFieldElem);
+        num_extra_bits = BITS_PER_SCALAR; // The last field element is full
+        bits_2_num_be[num_elems-1] = BigEndianBits2Num(BITS_PER_SCALAR);
     } else {
         bits_2_num_be[num_elems-1] = BigEndianBits2Num(num_extra_bits);
     }
 
     // Assign all but the last field element
     for (var i = 0; i < num_elems-1; i++) {
-        for (var j = 0; j < bitsPerFieldElem; j++) {
-            var index = (i * bitsPerFieldElem) + j;
+        for (var j = 0; j < BITS_PER_SCALAR; j++) {
+            var index = (i * BITS_PER_SCALAR) + j;
             bits_2_num_be[i].in[j] <== in[index];
         }
         bits_2_num_be[i].out ==> elems[i];
@@ -51,7 +51,7 @@ template BitsToFieldElems(inputLen, bitsPerFieldElem) {
     // Assign the last field element
     for (var j = 0; j < num_extra_bits; j++) {
         var i = num_elems-1;
-        var index = (i*bitsPerFieldElem) + j;
+        var index = (i*BITS_PER_SCALAR) + j;
         bits_2_num_be[num_elems-1].in[j] <== in[index];
     }
     bits_2_num_be[num_elems-1].out ==> elems[num_elems-1];
