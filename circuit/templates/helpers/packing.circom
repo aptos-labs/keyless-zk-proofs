@@ -37,10 +37,8 @@ template BitsToFieldElems(NUM_BITS, BITS_PER_SCALAR) {
     var NUM_BITS_IN_LAST_SCALAR;
     if (NUM_BITS % BITS_PER_SCALAR == 0) {
         NUM_BITS_IN_LAST_SCALAR = BITS_PER_SCALAR; // The last field element is full
-        beBits2Num[NUM_SCALARS - 1] = BigEndianBits2Num(NUM_BITS_IN_LAST_SCALAR);
     } else {
         NUM_BITS_IN_LAST_SCALAR = NUM_BITS % BITS_PER_SCALAR;
-        beBits2Num[NUM_SCALARS - 1] = BigEndianBits2Num(NUM_BITS_IN_LAST_SCALAR);
     }
 
     // Assign all but the last field element
@@ -53,6 +51,7 @@ template BitsToFieldElems(NUM_BITS, BITS_PER_SCALAR) {
     }
 
     // Assign the last field element
+    beBits2Num[NUM_SCALARS - 1] = BigEndianBits2Num(NUM_BITS_IN_LAST_SCALAR);
     for (var j = 0; j < NUM_BITS_IN_LAST_SCALAR; j++) {
         var index = ((NUM_SCALARS - 1) * BITS_PER_SCALAR) + j;
         beBits2Num[NUM_SCALARS - 1].in[j] <== in[index];
