@@ -19,8 +19,21 @@ include "packing/Bytes2BigEndianBits.circom";
 include "packing/Num2BigEndianBits.circom";
 
 // Converts bit array 'in' into an array of field elements of size `BITS_PER_SCALAR` each
-// Example: with NUM_BITS=11, BITS_PER_SCALAR=4, [0,0,0,0, 0,0,0,1, 0,1,1,] ==> [0, 1, 6]
-// Assumes all values in `in` are 0 or 1
+//
+// @param  NUM_BITS         the total number of bits in the `in` input
+// @param  BITS_PER_SCALAR  the number of bits to fit inside each scalar
+//
+// @input  in     an array of bits
+// @output elems  an array of scalars, where scalar[i] = 2^0 * in[i * BITS_PER_SCALAR + (BITS_PER_SCALAR - 1)]
+//                                                     + 2^1 * in[i * BITS_PER_SCALAR + (BITS_PER_SCALAR - 2)]
+//                                                     + ..
+//                                                     + 2^{BITS_PER_SCALAR - 2} * in[i * BITS_PER_SCALAR + 1]
+//                                                     + 2^{BITS_PER_SCALAR - 1} * in[i * BITS_PER_SCALAR + 0]
+//                except for the last scalar, which will have less bits if NUM_BITS % BITS_PER_SCALAR != 0
+//
+// @example
+//    NUM_BITS = 11, BITS_PER_SCALAR = 4, in = [0,0,0,0, 0,0,0,1, 0,1,1,]
+//                                   ==> out = [0,       1,       6]
 template BitsToFieldElems(NUM_BITS, BITS_PER_SCALAR) {
     var NUM_SCALARS;
     var NUM_BITS_IN_LAST_SCALAR;
