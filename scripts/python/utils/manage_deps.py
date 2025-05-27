@@ -19,8 +19,9 @@ def install_node():
 
 def install_circom():
     eprint("Installing circom")
+    # de2212a7aa6a070c636cc73382a3deba8c658ad5 fixes a bug related to tag propagation
     # TODO: replace to v2.2.3 once released (because v2.2.2 has a bug related to tags, which we want to use)
-    utils.cargo_install_from_git("https://github.com/iden3/circom", "v2.2.2")
+    utils.cargo_install_from_git("https://github.com/iden3/circom", "de2212a7aa6a070c636cc73382a3deba8c658ad5")
     eprint("Installation of circom succeeded")
 
 def install_circomlib():
