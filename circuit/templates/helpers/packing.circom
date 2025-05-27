@@ -25,7 +25,7 @@ include "packing/ChunksToFieldElems.circom";
 //
 // @output bits    an array of bits, where bits[i * 8], ..., bits[(i * 8) + 7] 
 //                 are the bits in bytes[i], with bits[i * 8] being the MSB
-template BytesToBits(inputLen) {
+template Bytes2BigEndianBits(inputLen) {
     signal input bytes[inputLen];
     signal output bits[8 * inputLen];
 
@@ -40,7 +40,6 @@ template BytesToBits(inputLen) {
         }
     }
 }
-
 
 // Converts bit array 'in' into an array of field elements of size `bitsPerFieldElem` each
 // Example: with inputLen=11, bitsPerFieldElem=4, [0,0,0,0, 0,0,0,1, 0,1,1,] ==> [0, 1, 6]
