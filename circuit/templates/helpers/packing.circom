@@ -22,15 +22,15 @@ include "packing/Num2BigEndianBits.circom";
 // Example: with NUM_BITS=11, BITS_PER_SCALAR=4, [0,0,0,0, 0,0,0,1, 0,1,1,] ==> [0, 1, 6]
 // Assumes all values in `in` are 0 or 1
 template BitsToFieldElems(NUM_BITS, BITS_PER_SCALAR) {
-    // '\' is the quotient operation - we add 1 if there are extra bits past the full bytes
-    var NUM_SCALARS = NUM_BITS % BITS_PER_SCALAR == 0 ? NUM_BITS \ BITS_PER_SCALAR : (NUM_BITS\BITS_PER_SCALAR) + 1;
-
     // If we have an extra byte that isn't full of bits, we truncate the BigEndianBits2Num component size for that byte. This is equivalent to 0 padding the end of the array
+    var NUM_SCALARS;
     var NUM_BITS_IN_LAST_SCALAR;
     if (NUM_BITS % BITS_PER_SCALAR == 0) {
         NUM_BITS_IN_LAST_SCALAR = BITS_PER_SCALAR; // The last field element is full
+        NUM_SCALARS = NUM_BITS \ BITS_PER_SCALAR;
     } else {
         NUM_BITS_IN_LAST_SCALAR = NUM_BITS % BITS_PER_SCALAR;
+        NUM_SCALARS = 1 + (NUM_BITS \ BITS_PER_SCALAR);
     }
 
     signal input in[NUM_BITS];
