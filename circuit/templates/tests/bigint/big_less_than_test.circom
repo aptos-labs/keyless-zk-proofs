@@ -1,6 +1,6 @@
 pragma circom 2.2.2;
 
-include "helpers/rsa/bigint.circom";
+include "helpers/bigint/BigLessThan.circom";
 
 template big_less_than_test() {
     signal input a[32];

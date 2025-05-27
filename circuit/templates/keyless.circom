@@ -25,6 +25,8 @@ include "./helpers/arrays/AssertIsConcatenation.circom";
 include "./helpers/base64url/Base64UrlDecode.circom";
 include "./helpers/base64url/Base64UrlDecodedLength.circom";
 
+include "./helpers/bigint/BigLessThan.circom";
+
 include "./helpers/hashtofield/Hash64BitLimbsToFieldWithLen.circom";
 
 include "./helpers/jwt_field_parsing.circom";
@@ -32,7 +34,6 @@ include "./helpers/misc.circom";
 
 include "./helpers/packing/BigEndianBitsToScalars.circom";
 
-include "./helpers/rsa/bigint.circom";
 include "./helpers/rsa/rsa_verify.circom";
 
 include "./helpers/sha/SHA2_256_PaddingVerify.circom";
