@@ -27,8 +27,9 @@ template BitsToFieldElems(NUM_BITS, BITS_PER_SCALAR) {
 
     signal input in[NUM_BITS];
     signal output elems[NUM_SCALARS];
+
     component bits_2_num_be[NUM_SCALARS]; 
-    for (var i = 0; i < NUM_SCALARS-1; i++) {
+    for (var i = 0; i < NUM_SCALARS - 1; i++) {
         bits_2_num_be[i] = BigEndianBits2Num(BITS_PER_SCALAR); // assign circuit component
     }
 
@@ -36,13 +37,13 @@ template BitsToFieldElems(NUM_BITS, BITS_PER_SCALAR) {
     var num_extra_bits = NUM_BITS % BITS_PER_SCALAR;
     if (num_extra_bits == 0) {
         num_extra_bits = BITS_PER_SCALAR; // The last field element is full
-        bits_2_num_be[NUM_SCALARS-1] = BigEndianBits2Num(BITS_PER_SCALAR);
+        bits_2_num_be[NUM_SCALARS - 1] = BigEndianBits2Num(BITS_PER_SCALAR);
     } else {
-        bits_2_num_be[NUM_SCALARS-1] = BigEndianBits2Num(num_extra_bits);
+        bits_2_num_be[NUM_SCALARS - 1] = BigEndianBits2Num(num_extra_bits);
     }
 
     // Assign all but the last field element
-    for (var i = 0; i < NUM_SCALARS-1; i++) {
+    for (var i = 0; i < NUM_SCALARS - 1; i++) {
         for (var j = 0; j < BITS_PER_SCALAR; j++) {
             var index = (i * BITS_PER_SCALAR) + j;
             bits_2_num_be[i].in[j] <== in[index];
@@ -52,9 +53,9 @@ template BitsToFieldElems(NUM_BITS, BITS_PER_SCALAR) {
 
     // Assign the last field element
     for (var j = 0; j < num_extra_bits; j++) {
-        var i = NUM_SCALARS-1;
-        var index = (i*BITS_PER_SCALAR) + j;
-        bits_2_num_be[NUM_SCALARS-1].in[j] <== in[index];
+        var i = NUM_SCALARS - 1;
+        var index = (i * BITS_PER_SCALAR) + j;
+        bits_2_num_be[NUM_SCALARS - 1].in[j] <== in[index];
     }
-    bits_2_num_be[NUM_SCALARS-1].out ==> elems[NUM_SCALARS-1];
+    bits_2_num_be[NUM_SCALARS - 1].out ==> elems[NUM_SCALARS - 1];
 }
