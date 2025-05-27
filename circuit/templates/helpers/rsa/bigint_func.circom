@@ -63,6 +63,7 @@ function poly_eval(len, a, x) {
 }
 
 // Interpolate a degree len-1 polynomial given its evaluations at 0..len-1
+// TODO(Perf): Would it be faster to interpolate this polynomial faster via an iFFT at our scales (I believe len = 100.)
 function poly_interp(len, v) {
     assert(len <= 200);
     var out[200];
