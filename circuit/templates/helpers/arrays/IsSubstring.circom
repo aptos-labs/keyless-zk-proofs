@@ -67,8 +67,7 @@ template IsSubstring(maxStrLen, maxSubstrLen) {
     // \alpha^0, \alpha^1, \ldots, \alpha^N (where N = maxStrLen)
     signal challenge_powers[maxStrLen];
     challenge_powers[0] <== 1;
-    challenge_powers[1] <== random_challenge;
-    for (var i = 2; i < maxStrLen; i++) {
+    for (var i = 1; i < maxStrLen; i++) {
         challenge_powers[i] <== challenge_powers[i-1] * random_challenge;
     }
 
