@@ -1,7 +1,31 @@
 {
-  "name": "tools",
+  "name": "aptos-keyless-circuit-testbed",
   "version": "1.0.0",
-  "type": "commonjs",
-  "dependencies": {
+  "description": "Testing and benchmarking suit for the Aptos Keyless circom circuit",
+  "main": "index.js",
+  "directories": {
+    "test": "benches"
+  },
+  "scripts": {
+    "test": "NODE_OPTIONS=--enable-source-maps CIRCOMLIB_PATH=`npm root -g` mocha 'benches/*.js' 'benches/**/*.js' --max-old-space-size=4000"
+  },
+  "keywords": [
+    "circuit",
+    "circom",
+    "zksnark",
+    "testing",
+    "benchmarks"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aptos-labs/keyless-zk-proofs.git"
+  },
+  "author": "Alin Tomescu",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@noble/hashes": "^1.7.1",
+    "chai": "^4.3.4",
+    "circom_tester": "0.0.21",
+    "mocha": "^11.1.0"
   }
 }

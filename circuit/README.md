@@ -27,6 +27,24 @@ cd circuit
 cargo test
 ```
 
+## Running circuit benchmarks
+
+First, do a:
+```
+# From the repo root
+npm install
+```
+
+To run all benchmarks:
+```
+npm test
+```
+
+To filter by benchmark names:
+```
+npm test -- g "your_bench_name"
+```
+
 ## Generating the proving key
 
 To generate a sample prover and verifier key pair, run the following command from the repo root:

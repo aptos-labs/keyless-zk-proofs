@@ -1,4 +1,5 @@
 aptos-keyless-trusted-setup-contributions-may-2024
+node_modules/
 templates/main.r1cs
 templates/main.sym
 templates/main_js
