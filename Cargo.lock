@@ -281,9 +281,11 @@ dependencies = [
  "aptos-types",
  "ark-bn254",
  "ark-ff",
+ "ark-serialize",
  "base64 0.13.1",
  "hex",
  "num-bigint 0.4.4",
+ "num-traits",
  "serde",
  "serde_json",
  "tempfile",
@@ -294,23 +296,10 @@ dependencies = [
 name = "aptos-keyless-vk-diff"
 version = "0.1.0"
 dependencies = [
- "anyhow",
- "aptos-types",
- "ark-bn254",
- "ark-ff",
- "ark-serialize",
- "base64 0.13.1",
+ "aptos-keyless-common",
  "clap 3.2.25",
- "hex",
- "num-bigint 0.4.4",
- "num-traits",
- "once_cell",
- "serde",
  "serde_json",
- "strum 0.24.1",
  "strum_macros 0.24.3",
- "tempfile",
- "tracing",
  "ureq",
  "url",
 ]
@@ -4526,6 +4515,15 @@ name = "regex-syntax"
 version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c08c74e62047bb2de4ff487b251e4a92e24f48745648451635cec7d591162d9f"
+
+[[package]]
+name = "release-helper"
+version = "0.1.0"
+dependencies = [
+ "aptos-keyless-common",
+ "clap 3.2.25",
+ "serde_json",
+]
 
 [[package]]
 name = "reqwest"

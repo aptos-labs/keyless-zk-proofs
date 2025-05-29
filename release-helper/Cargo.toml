@@ -1,6 +1,6 @@
 [package]
-name = "aptos-keyless-vk-diff"
-description = "Aptos Keyless VK diff tool"
+name = "release-helper"
+description = "Aptos Keyless Release Helper"
 version = "0.1.0"
 
 # Workspace inherited keys
@@ -16,6 +16,3 @@ rust-version = { workspace = true }
 aptos-keyless-common = { workspace = true }
 clap = { workspace = true }
 serde_json = { workspace = true }
-strum_macros = { workspace = true }
-ureq = { workspace = true }
-url = { workspace = true }

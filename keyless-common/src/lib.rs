@@ -1,6 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+pub mod groth16_vk;
 pub mod input_processing;
 
 pub type EphemeralPublicKeyBlinder = Vec<u8>;
