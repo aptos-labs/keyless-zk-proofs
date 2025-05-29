@@ -24,7 +24,7 @@ describe("AssertIsConcatenation", function ()  {
             path.join(__dirname, "AssertIsConcatenation_Bench.circom"),
             {
                 "prime": "bn128",
-                "O": 1,
+                "O": 2, //according to Oleksandr from iden3/circom, default was --O2 actually
                 "include": [ INCLUDE_PATH, CIRCOMLIB_PATH ],
             },
         );

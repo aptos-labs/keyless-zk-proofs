@@ -119,7 +119,9 @@ template keyless(
     // Checks that the base64url-encoded JWT payload & header are correctly concatenated:
     //   i.e., that `b64u_jwt_no_sig_sha2_padded` is the concatenation of `b64u_jwt_header_w_dot` with` b64u_jwt_payload_sha2_padded`
     //
-    // Note: With --O1 via circom_tester, this takes 55,910 constraints and 55,611 vars
+    // Notes:
+    //   With --O2 via circom_tester, this takes 40,458 constraints, 40,159 vars
+    //   With --O1 via circom_tester, this takes 55,910 constraints and 55,611 vars
     AssertIsConcatenation(MAX_B64U_JWT_NO_SIG_LEN, MAX_B64U_JWT_HEADER_W_DOT_LEN, MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN)(
         b64u_jwt_no_sig_sha2_padded,
         b64u_jwt_header_w_dot,

@@ -25,7 +25,7 @@
   "devDependencies": {
     "@noble/hashes": "^1.7.1",
     "chai": "^4.3.4",
-    "circom_tester": "0.0.21",
+    "circom_tester": "0.0.23",
     "mocha": "^11.1.0"
   }
 }

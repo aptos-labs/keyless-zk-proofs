@@ -24,7 +24,7 @@ describe("SHA2-256", function ()  {
             path.join(__dirname, "SHA2_256_Compression_Bench.circom"),
             {
                 "prime": "bn128",
-                "O": 1,
+                "O": 2, //according to Oleksandr from iden3/circom, default was --O2 actually
                 "include": [ INCLUDE_PATH, CIRCOMLIB_PATH ],
             },
         );
