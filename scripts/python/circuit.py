@@ -1,5 +1,8 @@
 import utils
+import json
 import typer
+import tempfile
+import contextlib
 from pathlib import Path
 from typing import Optional
 
@@ -22,7 +25,7 @@ def compile(
         False, "--optimized", "-o", help="Enables optimization passes (--O2) for compiling the circuit to a smaller R1CS"
     ),
 ):
-    """Compiles the circuit to R1CS, creating a main.r1cs file next to main.circom. Useful for testing."""
+    """Compiles the circuit to R1CS, creating a main.r1cs, main_constraints.json, and main.sym file next to main.circom. Useful for testing."""
     templates_dir = utils.repo_root() / "circuit/templates"
 
     if circom_file_path is None:
@@ -36,9 +39,40 @@ def compile(
     typer.echo(f"Compiling {circom_file_path}...")
     typer.echo()
 
-    circom_cmd = f"circom {oFlag} -l {templates_dir} -l $(. ~/.nvm/nvm.sh; npm root -g) {circom_file_path} --r1cs"
+    circom_cmd = f"circom {oFlag} -l {templates_dir} -l $(. ~/.nvm/nvm.sh; npm root -g) {circom_file_path} --r1cs --json --sym"
 
     typer.echo("Compiling via:")
     typer.echo(f" {circom_cmd}")
     typer.echo()
     utils.run_shell_command(f"time {circom_cmd}")
+
+
+@app.command()
+def count_r1cs_nonzero_terms():
+    """Compiles the circuit with optimizations on, then counts the number of nonzero constraints in each of the R1CS matrices."""
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        with contextlib.chdir(temp_dir):
+            compile(o=True, circom_file_path=None)
+
+            a_nonzero = b_nonzero = c_nonzero = 0
+
+            with open("main_constraints.json") as f:
+                constraints = json.load(f)["constraints"]
+                for [a,b,c] in constraints:
+                    a_nonzero += len(a)
+                    b_nonzero += len(b)
+                    c_nonzero += len(c)
+
+            total_nonzero = a_nonzero + b_nonzero + c_nonzero
+
+            print("")
+            print("")
+            print("")
+
+            print(f"The matrix A has {a_nonzero:,} nonzero terms.")
+            print(f"The matrix B has {b_nonzero:,} nonzero terms.")
+            print(f"The matrix C has {c_nonzero:,} nonzero terms.")
+            print("-------------------------------------------------")
+            print(f"Total number of nonzero terms: {total_nonzero :,} .")
+
