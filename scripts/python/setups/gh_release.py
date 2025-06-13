@@ -1,7 +1,6 @@
+import urllib
 import utils
 from datetime import datetime
-
-GH_RELEASES_URL = "https://api.github.com/repos/aptos-labs/keyless-zk-proofs/releases"
 
 class ReleaseNotFound(Exception):
     def __init__(self, release_name):
@@ -18,8 +17,9 @@ class ReleaseMissingRequiredAsset(Exception):
 
 class Releases:
 
-    def __init__(self, auth_token=None):
-        self.data = utils.read_json_from_url(GH_RELEASES_URL, auth_token)
+    def __init__(self, repo='keyless-zk-proofs', auth_token=None):
+        self.auth_token = auth_token
+        self.data = utils.read_json_from_url(f"https://api.github.com/repos/aptos-labs/{repo}/releases", auth_token)
         # Convert the 'created_at' field to a datetime so that we can
         # sort based on it
         for release in self.data:
@@ -63,6 +63,12 @@ class Releases:
 
         assets = self.get_assets(release_name, asset_names)
         for asset in assets:
-            utils.download_file(asset['browser_download_url'], install_dir / asset['name'])
+            if self.auth_token:
+                req = urllib.request.Request(asset['url'])
+                req.add_header("Authorization", f"token {self.auth_token}")
+                req.add_header("Accept", "Accept: application/octet-stream")
+                utils.download_file(req, install_dir / asset['name'])
+            else:
+                utils.download_file(asset['browser_download_url'], install_dir / asset['name'])
 
 

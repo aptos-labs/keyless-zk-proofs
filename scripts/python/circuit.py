@@ -77,5 +77,8 @@ def count_r1cs_nonzero_terms():
             print(f"The matrix C has {c_nonzero:,} nonzero terms.")
             print("-------------------------------------------------")
             print(f"Total number of nonzero terms: {total_nonzero :,} .")
+<<<<<<< HEAD
             print(f"Union of nonzero terms count: {union_nonzero :,} .")
+=======
+>>>>>>> main
 
