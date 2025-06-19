@@ -101,26 +101,13 @@ def download_ceremonies_for_releases(release_tag,
 
     - Download these assets and install them in the correct place so that running `cargo test -p prover-service` will use this setup.
     """
-
     eprint("Deleting old ceremonies...")
     utils.delete_contents_of_dir(ceremony_setup.CEREMONIES_DIR)
-    
-
     ceremony = CeremonySetup(release_tag, repo, auth_token)
-
-    try:
-        eprint("Downloading default ceremony...")
-        ceremony.download(witness_gen_type)
-        eprint("Finished downloading ceremonies.")
-
-        ceremony.set_default()
-    except gh_release.ReleaseNotFound as rnf:
-        eprint("ERROR: Release \"" + rnf.release_name + "\" not found.")
-    except gh_release.ReleaseMissingRequiredAsset as ma:
-        eprint("ERROR: Release \"" + ma.release_name + "\" is missing required asset \"" + ma.required_asset + "\".")
-
-
-
+    eprint("Downloading default ceremony...")
+    ceremony.download(witness_gen_type)
+    eprint("Finished downloading ceremonies.")
+    ceremony.set_default()
 
 
 @app.command()
