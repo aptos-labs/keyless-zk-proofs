@@ -91,16 +91,7 @@ def download_ceremonies_for_releases(release_tag,
                                      repo: Annotated[str, typer.Option(help="A keyless-zk-proofs fork.")]='keyless-zk-proofs',
                                      witness_gen_type: Annotated[str, typer.Option(help="If set to 'wasm', 'c', or 'both', downloads the corresponding witness gen binaries.")]='none',
                                      auth_token: Annotated[str, typer.Option(help="Auth token to provide for the github API. Not necessary for normal use, but used during GH actions to avoid rate-limiting.")]=None):
-    """Download two ceremonies corresponding to `default` and `new` in the prover service, installing in RESOURCES_DIR. If RESOURCES_DIR is not set, uses the default location `~/.local/share/aptos-keyless`.
-
-    Specifically, does the following:
-
-    - Use `https://api.github.com/repos/aptos-labs/keyless-zk-proofs/releases` to get a list of releases for `keyless-zk-proofs`
-
-    - Verify that `<default-release>` and `<new-release>` exist, and they have the required assets. Depending on the value of `--witness-gen-type`, this could include c or wasm witness gen binaries, or both
-
-    - Download these assets and install them in the correct place so that running `cargo test -p prover-service` will use this setup.
-    """
+    """Download the assets of a circuit release and install them in the correct place so that running `cargo test -p prover-service` will use this setup."""
     eprint("Deleting old ceremonies...")
     utils.delete_contents_of_dir(ceremony_setup.CEREMONIES_DIR)
     ceremony = CeremonySetup(release_tag, repo, auth_token)

@@ -1,5 +1,7 @@
 // Copyright © Aptos Foundation
 
+use std::path::PathBuf;
+use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use super::{gen_test_ephemeral_pk, gen_test_ephemeral_pk_blinder, get_test_pepper};
@@ -16,6 +18,7 @@ use aptos_types::{
 };
 use ark_ff::{BigInteger, PrimeField};
 use jsonwebtoken::{Algorithm, Header};
+use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -76,7 +79,7 @@ impl Default for TestJWTPayload {
         locale: String::from("en"),
         iss: String::from("test.oidc.provider"),
         iat: 0,
-        exp: since_the_epoch.as_secs() + 100,
+        exp: since_the_epoch.as_secs() + 3600,
         nonce: String::from(""),
     }
     }
@@ -169,6 +172,7 @@ impl<T: Serialize + WithNonce + Clone> ProofTestCase<T> {
         uid_key: String,
         idc_aud: Option<String>,
     ) -> Self {
+        assert!(*LOCAL_SETUP_PROCURED);
         let prover_service_config = get_config();
         let circuit_metadata = prover_service_config.load_circuit_params();
         let epk = gen_test_ephemeral_pk();
@@ -192,6 +196,7 @@ impl<T: Serialize + WithNonce + Clone> ProofTestCase<T> {
     }
 
     pub fn default_with_payload(jwt_payload: T) -> Self {
+        assert!(*LOCAL_SETUP_PROCURED);
         let epk = gen_test_ephemeral_pk();
         let epk_blinder = gen_test_ephemeral_pk_blinder();
         let pepper = get_test_pepper();
@@ -212,6 +217,7 @@ impl<T: Serialize + WithNonce + Clone> ProofTestCase<T> {
     }
 
     pub fn compute_nonce(self) -> Self {
+        assert!(*LOCAL_SETUP_PROCURED);
         let circuit_metadata = self.prover_service_config.load_circuit_params();
         let nonce = compute_nonce(
             self.epk_expiry_time_secs,
@@ -246,3 +252,19 @@ impl<T: Serialize + WithNonce + Clone> ProofTestCase<T> {
         }
     }
 }
+
+static LOCAL_SETUP_PROCURED: Lazy<bool> = Lazy::new(|| {
+    let mut repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let repo_root_found = repo_root.pop();
+    if repo_root_found {
+        Command::new("bash")
+            .arg("scripts/task.sh")
+            .arg("setup")
+            .arg("procure-testing-setup")
+            .current_dir(repo_root)
+            .status()
+            .is_ok()
+    } else {
+        false
+    }
+});
