@@ -55,7 +55,9 @@ class TestingSetup(setups.Setup):
         shutil.copytree(utils.repo_root() / "circuit/templates", "./", dirs_exist_ok=True)
         utils.manage_deps.add_cargo_to_path()
         start_time = time.time()
+        print("CKPT0", flush=True)
         utils.run_shell_command('circom -l . -l $(. ~/.nvm/nvm.sh; npm root -g) main.circom --r1cs --wasm --c --sym')
+        print("CKPT1", flush=True)
         eprint("Compilation took %s seconds" % (time.time() - start_time))
 
 
