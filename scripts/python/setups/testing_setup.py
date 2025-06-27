@@ -53,6 +53,7 @@ class TestingSetup(setups.Setup):
     def compile_circuit(self):
         eprint("Compiling circuit...")
         shutil.copytree(utils.repo_root() / "circuit/templates", "./", dirs_exist_ok=True)
+        assert False
         eprint("CKPT0", flush=True)
         utils.manage_deps.add_cargo_to_path()
         eprint("CKPT00", flush=True)
