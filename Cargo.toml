@@ -47,6 +47,7 @@ backtrace = "0.3.69"
 base64 = "0.13.0"
 bcs = { git = "https://github.com/aptos-labs/bcs.git", rev = "d31fab9d81748e2594be5cd5cdf845786a30562d" }
 bindgen = "0.69.2"
+chrono = "0.4.41"
 clap = { version = "3.1.8", features = ["derive"] }
 dashmap = "5.5.3"
 figment = { version = "0.10.14", features = ["yaml", "env"] }
@@ -63,6 +64,7 @@ itertools = "0.13"
 jsonwebtoken = "8.1"
 lazy_static = "1.4.0"
 log = "0.4.20"
+maplit2 = "1.0.5"
 num-bigint = "0.4.4"
 num-traits = "0.2.17"
 once_cell = "1.19.0"
@@ -94,6 +96,7 @@ ureq = { version = "1.5.4", features = [
   "native-tls",
 ], default-features = false }
 url = { version = "2.5.4" }
+uuid = { version = "1.17.0", features = ["v4"] }
 
 [patch.crates-io]
 merlin = { git = "https://github.com/aptos-labs/merlin" }

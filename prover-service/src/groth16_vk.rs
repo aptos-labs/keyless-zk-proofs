@@ -1,4 +1,3 @@
-use crate::watcher::ExternalResource;
 use anyhow::{anyhow, Result};
 use ark_bn254::{Fq, Fq2, G1Projective, G2Projective};
 use ark_ff::PrimeField;
@@ -108,12 +107,6 @@ pub struct OnChainGroth16VerificationKey {
     /// Some type info returned by node API.
     pub r#type: String,
     pub data: VKeyData,
-}
-
-impl ExternalResource for OnChainGroth16VerificationKey {
-    fn resource_name() -> String {
-        "OnChainGroth16VerificationKey".to_string()
-    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]

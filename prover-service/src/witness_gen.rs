@@ -2,10 +2,10 @@
 
 use crate::config::ProverServiceConfig;
 use anyhow::{anyhow, bail, Result};
+use aptos_keyless_common::logging;
 use std::fs;
 use std::process::Command;
 use tempfile::NamedTempFile;
-use tracing::info_span;
 
 pub trait PathStr {
     fn path_str(&self) -> Result<&str>;
@@ -18,8 +18,7 @@ impl PathStr for NamedTempFile {
 }
 
 pub fn witness_gen(config: &ProverServiceConfig, body: &str) -> Result<NamedTempFile> {
-    let span = info_span!("Generating witness");
-    let _enter = span.enter();
+    let _span = logging::new_span("GenerateWitness");
 
     let input_file = NamedTempFile::new()?;
     let witness_file = NamedTempFile::new()?;

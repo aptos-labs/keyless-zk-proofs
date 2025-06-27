@@ -12,6 +12,7 @@ use self::{
 };
 use crate::input_processing::types::Input;
 use anyhow::Result;
+use aptos_keyless_common::logging;
 use aptos_keyless_common::{
     input_processing::{
         circuit_input_signals::{CircuitInputSignals, Padded},
@@ -21,16 +22,13 @@ use aptos_keyless_common::{
     },
     PoseidonHash,
 };
-use std::time::Instant;
-use tracing::info_span;
 
 pub fn derive_circuit_input_signals(
     input: Input,
     config: &CircuitConfig,
 ) -> Result<(CircuitInputSignals<Padded>, PoseidonHash), anyhow::Error> {
     // TODO add metrics instead of just printing out elapsed time
-    let _start_time = Instant::now();
-    let _span = info_span!("Deriving circuit input signals");
+    let _span = logging::new_span("DeriveCircuitInputSignals");
 
     let jwt_parts = &input.jwt_parts;
     let epk_blinder_fr = input.epk_blinder_fr;

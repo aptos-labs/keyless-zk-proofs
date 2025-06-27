@@ -4,9 +4,9 @@ use super::{types::Input, JwtHeader, JwtPayload};
 use crate::{api::RequestInput, jwk_fetching};
 use anyhow::Context;
 use aptos_keyless_common::input_processing::encoding::{AsFr as _, FromB64 as _, JwtParts};
+use aptos_keyless_common::logging;
 use aptos_types::jwks::rsa::RSA_JWK;
 use std::sync::Arc;
-use tracing::debug;
 
 pub fn decode_and_add_jwk(
     rqi: RequestInput,
@@ -20,8 +20,8 @@ pub fn decode_and_add_jwk(
     let payload_decoded = jwt_parts.payload_decoded()?;
     let payload_struct: JwtPayload = serde_json::from_str(&payload_decoded)?;
 
-    debug!("header decoded: {:?}", header_decoded);
-    debug!("payload decoded: {}", payload_decoded);
+    logging::info(format!("header decoded: {:?}", header_decoded));
+    logging::info(format!("payload decoded: {}", payload_decoded));
 
     let jwk = match maybe_jwk {
         Some(x) => Arc::new(x.clone()),

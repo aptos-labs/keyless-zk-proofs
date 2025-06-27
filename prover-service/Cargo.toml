@@ -28,6 +28,7 @@ axum-server = { workspace = true }
 backtrace = { workspace = true }
 base64 = { workspace = true }
 bcs = { workspace = true }
+chrono = { workspace = true }
 dashmap = { workspace = true }
 figment = { workspace = true }
 futures = { workspace = true }
@@ -40,6 +41,7 @@ init-tracing-opentelemetry = { workspace = true }
 jsonwebtoken = { workspace = true }
 lazy_static = { workspace = true }
 log = { workspace = true }
+maplit2 = { workspace = true }
 num-bigint = { workspace = true }
 num-traits = { workspace = true }
 once_cell = { workspace = true }
@@ -64,6 +66,7 @@ tower = { workspace = true }
 tower-http = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
+uuid = { workspace = true }
 
 [patch.crates-io]
 merlin = { git = "https://github.com/aptos-labs/merlin" }

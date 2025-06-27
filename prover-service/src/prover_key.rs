@@ -3,7 +3,6 @@
 // Import AsyncWriteExt for async writing
 
 use crate::config::ProverServiceConfig;
-use crate::watcher::ExternalResource;
 use aptos_crypto::ed25519::{Ed25519PrivateKey, Ed25519PublicKey};
 use aptos_crypto::ValidCryptoMaterialStringExt;
 use serde::{Deserialize, Serialize};
@@ -46,12 +45,6 @@ impl OnChainKeylessConfiguration {
                 training_wheels_pubkey: TrainingWheelsPubKey { vec },
             },
         }
-    }
-}
-
-impl ExternalResource for OnChainKeylessConfiguration {
-    fn resource_name() -> String {
-        "OnChainTrainingWheelVerificationKey".to_string()
     }
 }
 

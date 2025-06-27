@@ -3,6 +3,7 @@
 
 pub mod groth16_vk;
 pub mod input_processing;
+pub mod logging;
 
 pub type EphemeralPublicKeyBlinder = Vec<u8>;
 
