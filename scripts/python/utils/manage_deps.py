@@ -194,6 +194,5 @@ def install_dep(dep):
 
 
 def install_deps(deps):
-    utils.run_shell_command('echo J001543; . ~/.nvm/nvm.sh; npm root -g')
     for dep in deps:
         install_dep(dep)
