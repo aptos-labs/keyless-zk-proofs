@@ -57,6 +57,8 @@ class TestingSetup(setups.Setup):
         utils.manage_deps.add_cargo_to_path()
         eprint("CKP1")
         start_time = time.time()
+        utils.run_shell_command('hostname')
+        utils.run_shell_command('cat ~/.nvm/nvm.sh')
         utils.run_shell_command('npm root -g')
         eprint("CKP2")
         utils.run_shell_command('circom -l . -l $(. ~/.nvm/nvm.sh; npm root -g) main.circom --r1cs --wasm --c --sym')
