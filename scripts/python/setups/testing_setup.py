@@ -115,6 +115,7 @@ class TestingSetup(setups.Setup):
                 utils.delete_contents_of_dir(TESTING_SETUPS_DIR)
                 require_ptau_file()
                 self.mkdir()
+                utils.run_shell_command('echo J005188; npm root -g')
 
                 with tempfile.TemporaryDirectory() as temp_dir:
                     with contextlib.chdir(temp_dir):
