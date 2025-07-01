@@ -14,7 +14,7 @@ def install_node():
     """Install nvm, and then use it to install nodejs."""
     eprint("Installing node")
     install_nvm()
-    utils.run_shell_command("set -x; . ~/.nvm/nvm.sh; nvm install node")
+    utils.run_shell_command("export; set -x; . ~/.nvm/nvm.sh; nvm install node")
     eprint("Installation of node succeeded")
 
 def install_circom():
