@@ -53,17 +53,13 @@ class TestingSetup(setups.Setup):
     def compile_circuit(self):
         eprint("Compiling circuit...")
         shutil.copytree(utils.repo_root() / "circuit/templates", "./", dirs_exist_ok=True)
-        eprint("CKP0")
         utils.manage_deps.add_cargo_to_path()
-        eprint("CKP1")
         start_time = time.time()
         utils.run_shell_command('echo hihi')
-        utils.run_shell_command('hostname')
         utils.run_shell_command('find ~ -name circomlib')
-        utils.run_shell_command('echo hoho')
         utils.run_shell_command('npm root -g')
-        eprint("CKP2")
-        utils.run_shell_command('circom -l . -l $(. ~/.nvm/nvm.sh; npm root -g) main.circom --r1cs --wasm --c --sym')
+        utils.run_shell_command('echo hoho')
+        utils.run_shell_command('circom -l . -l $(set -x; . ~/.nvm/nvm.sh; npm root -g) main.circom --r1cs --wasm --c --sym')
         eprint("Compilation took %s seconds" % (time.time() - start_time))
 
 
