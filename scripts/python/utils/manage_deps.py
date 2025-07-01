@@ -60,7 +60,7 @@ def add_cargo_to_path():
         os.environ['PATH'] += ":" + os.path.expanduser("~/.cargo/bin")
 
 def install_npm_package(package):
-    utils.run_shell_command("echo J004607; export; ls -la .venv/bin; . ~/.nvm/nvm.sh; npm root -g; npm install -g " + package)
+    utils.run_shell_command("echo J004607; . ~/.nvm/nvm.sh; npm root -g; npm install -g " + package)
 
 def platform_package_manager():
     if platform.system() == 'Linux':
@@ -194,6 +194,6 @@ def install_dep(dep):
 
 
 def install_deps(deps):
-    utils.run_shell_command('echo J001543; export')
+    utils.run_shell_command('echo J001543; . ~/.nvm/nvm.sh; npm root -g')
     for dep in deps:
         install_dep(dep)

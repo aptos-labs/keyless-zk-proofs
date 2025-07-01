@@ -56,8 +56,8 @@ class TestingSetup(setups.Setup):
         utils.manage_deps.add_cargo_to_path()
         start_time = time.time()
         utils.run_shell_command('find ~ -name circomlib')
-        utils.run_shell_command('echo J005613; export; npm root -g')
-        utils.run_shell_command('circom -l . -l $(npm root -g) main.circom --r1cs --wasm --c --sym')
+        utils.run_shell_command('echo J005613; . ~/.nvm/nvm.sh; npm root -g')
+        utils.run_shell_command('circom -l . -l $(. ~/.nvm/nvm.sh; npm root -g) main.circom --r1cs --wasm --c --sym')
         eprint("Compilation took %s seconds" % (time.time() - start_time))
 
 
@@ -115,7 +115,7 @@ class TestingSetup(setups.Setup):
                 utils.delete_contents_of_dir(TESTING_SETUPS_DIR)
                 require_ptau_file()
                 self.mkdir()
-                utils.run_shell_command('echo J005188; npm root -g')
+                utils.run_shell_command('echo J005188; . ~/.nvm/nvm.sh; npm root -g')
 
                 with tempfile.TemporaryDirectory() as temp_dir:
                     with contextlib.chdir(temp_dir):
