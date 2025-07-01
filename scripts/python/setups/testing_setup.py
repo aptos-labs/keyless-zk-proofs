@@ -56,7 +56,7 @@ class TestingSetup(setups.Setup):
         utils.manage_deps.add_cargo_to_path()
         start_time = time.time()
         utils.run_shell_command('find ~ -name circomlib')
-        utils.run_shell_command('echo J005613; npm root -g')
+        utils.run_shell_command('echo J005613; export; npm root -g')
         utils.run_shell_command('circom -l . -l $(npm root -g) main.circom --r1cs --wasm --c --sym')
         eprint("Compilation took %s seconds" % (time.time() - start_time))
 
