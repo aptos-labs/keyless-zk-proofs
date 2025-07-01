@@ -14,7 +14,7 @@ def install_node():
     """Install nvm, and then use it to install nodejs."""
     eprint("Installing node")
     install_nvm()
-    utils.run_shell_command(". ~/.nvm/nvm.sh; nvm install node")
+    utils.run_shell_command(". ~/.nvm/nvm.sh; nvm install node; echo J001724; npm root -g")
     eprint("Installation of node succeeded")
 
 def install_circom():
@@ -194,5 +194,6 @@ def install_dep(dep):
 
 
 def install_deps(deps):
+    utils.run_shell_command('echo J001543; export')
     for dep in deps:
         install_dep(dep)
