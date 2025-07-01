@@ -57,7 +57,7 @@ class TestingSetup(setups.Setup):
         start_time = time.time()
         utils.run_shell_command('echo hihi')
         utils.run_shell_command('find ~ -name circomlib')
-        utils.run_shell_command('echo J005613; set -x; . ~/.nvm/nvm.sh; npm root -g')
+        utils.run_shell_command('echo J005613; ls -la .venv/bin; . ~/.nvm/nvm.sh; npm root -g')
         utils.run_shell_command('echo hoho')
         utils.run_shell_command('circom -l . -l $(export; set -x; . ~/.nvm/nvm.sh; npm root -g) main.circom --r1cs --wasm --c --sym')
         eprint("Compilation took %s seconds" % (time.time() - start_time))
