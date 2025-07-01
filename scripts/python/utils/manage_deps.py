@@ -60,7 +60,7 @@ def add_cargo_to_path():
         os.environ['PATH'] += ":" + os.path.expanduser("~/.cargo/bin")
 
 def install_npm_package(package):
-    utils.run_shell_command("echo J004607; . ~/.nvm/nvm.sh; npm root -g; npm install -g " + package)
+    utils.run_shell_command("echo J004607; set -x; . ~/.nvm/nvm.sh; npm root -g; npm install -g " + package)
 
 def platform_package_manager():
     if platform.system() == 'Linux':
