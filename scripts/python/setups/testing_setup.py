@@ -55,8 +55,6 @@ class TestingSetup(setups.Setup):
         shutil.copytree(utils.repo_root() / "circuit/templates", "./", dirs_exist_ok=True)
         utils.manage_deps.add_cargo_to_path()
         start_time = time.time()
-        utils.run_shell_command('find ~ -name circomlib')
-        utils.run_shell_command('echo J005613; . ~/.nvm/nvm.sh; npm root -g')
         utils.run_shell_command('circom -l . -l $(. ~/.nvm/nvm.sh; npm root -g) main.circom --r1cs --wasm --c --sym')
         eprint("Compilation took %s seconds" % (time.time() - start_time))
 
@@ -93,8 +91,6 @@ class TestingSetup(setups.Setup):
 
     def c_witness_gen_from_scratch():
         eprint("Setup doesn't contain c witness gen binaries, and you are on x86-64. Going to compile them now.")
-        # with tempfile.TemporaryDirectory() as temp_dir:
-        #     with contextlib.chdir(temp_dir):
         self.compile_circuit()
         self.compile_c_witness_gen_binaries()
         shutil.move("main_c_cpp/main_c", self.path())
@@ -115,10 +111,6 @@ class TestingSetup(setups.Setup):
                 utils.delete_contents_of_dir(TESTING_SETUPS_DIR)
                 require_ptau_file()
                 self.mkdir()
-                utils.run_shell_command('echo J005188; . ~/.nvm/nvm.sh; npm root -g')
-
-                # with tempfile.TemporaryDirectory() as temp_dir:
-                #     with contextlib.chdir(temp_dir):
                 self.compile_circuit()
                 self.run_setup()
                 if platform.machine() == 'x86_64':
