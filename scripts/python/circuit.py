@@ -11,7 +11,7 @@ app = typer.Typer(no_args_is_help=True)
 @app.command()
 def install_deps():
     """Install the dependencies required for compiling the circuit and building witness-generation binaries."""
-    utils.manage_deps.install_deps(["node", "circom", "snarkjs", "circomlib", "nlohmann-json"])
+    utils.manage_deps.install_deps(["node", "circom", "snarkjs", "circomlib", "nlohmann-json", "nasm"])
 
 # TODO: Do we want to make the compilation here and the one in testing_setups.py both work via a common
 # utility function that calls circom. Otherwise, we may have disagreement on the optimizations enabled,
