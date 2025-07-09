@@ -2,6 +2,7 @@
 
 use chrono::Utc;
 use std::collections::HashMap;
+use std::fmt::Debug;
 use std::future::Future;
 use std::sync::RwLock;
 use std::time::Instant;
@@ -110,5 +111,21 @@ fn emit(level: impl ToString, message: impl ToString) {
             context.insert("message".to_string(), message.to_string());
             println!("{}", serde_json::to_string(&context).unwrap());
         })
+    }
+}
+
+pub trait HasLoggableError {
+    fn log_err(self) -> Self;
+}
+
+impl<T, E: Debug> HasLoggableError for Result<T, E> {
+    fn log_err(self) -> Self {
+        match &self {
+            Err(e) => {
+                error(format!("{e:?}"));
+            }
+            _ => {}
+        }
+        self
     }
 }

@@ -13,6 +13,7 @@ pub mod load_vk;
 pub mod logging;
 pub mod metrics;
 pub mod prover_key;
+pub mod proving;
 pub mod state;
 pub mod training_wheels;
 pub mod watcher;

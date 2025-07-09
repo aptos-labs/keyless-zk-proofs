@@ -1,8 +1,8 @@
 // Copyright © Aptos Foundation
 
-use crate::{api::RequestInput, config::OidcProvider};
+use crate::config::OidcProvider;
 use anyhow::{anyhow, Result};
-use aptos_keyless_common::input_processing::encoding::{FromB64, JwtHeader, JwtParts, JwtPayload};
+use aptos_keyless_common::input_processing::encoding::DecodedJWT;
 use aptos_types::jwks::rsa::RSA_JWK;
 use dashmap::DashMap;
 use once_cell::sync::Lazy;
@@ -28,19 +28,11 @@ static COGNITO_REGEX: Lazy<Regex> = Lazy::new(|| {
 pub static DECODING_KEY_CACHE: Lazy<DashMap<Issuer, DashMap<KeyID, Arc<RSA_JWK>>>> =
     Lazy::new(DashMap::new);
 
-pub async fn get_federated_jwk(rqi: &RequestInput) -> Result<Arc<RSA_JWK>> {
-    let jwt_parts = JwtParts::from_b64(&rqi.jwt_b64)?;
-
-    let header_decoded = jwt_parts.header_decoded()?;
-    let header_struct: JwtHeader = serde_json::from_str(&header_decoded)?;
-
-    let payload_decoded = jwt_parts.payload_decoded()?;
-    let payload_struct: JwtPayload = serde_json::from_str(&payload_decoded)?;
-
-    let jwk_url = if AUTH_0_REGEX.is_match(&payload_struct.iss) {
-        format!("{}.well-known/jwks.json", payload_struct.iss)
-    } else if COGNITO_REGEX.is_match(&payload_struct.iss) {
-        format!("{}/.well-known/jwks.json", payload_struct.iss)
+pub async fn get_federated_jwk(jwt: &DecodedJWT) -> Result<Arc<RSA_JWK>> {
+    let jwk_url = if AUTH_0_REGEX.is_match(&jwt.payload.iss) {
+        format!("{}.well-known/jwks.json", jwt.payload.iss)
+    } else if COGNITO_REGEX.is_match(&jwt.payload.iss) {
+        format!("{}/.well-known/jwks.json", jwt.payload.iss)
     } else {
         return Err(anyhow!("not a federated iss"));
     };
@@ -48,20 +40,16 @@ pub async fn get_federated_jwk(rqi: &RequestInput) -> Result<Arc<RSA_JWK>> {
     let keys = fetch_jwks(&jwk_url).await?;
 
     let key = keys
-        .get(&header_struct.kid)
-        .ok_or_else(|| anyhow!("unknown kid: {}", header_struct.kid))?;
+        .get(&jwt.header.kid)
+        .ok_or_else(|| anyhow!("unknown kid: {}", jwt.header.kid))?;
     Ok(key.clone())
 }
 
-pub async fn get_jwk(jwt: &str, jwk_url: &str) -> Result<Arc<RSA_JWK>> {
-    let jwt_parts = JwtParts::from_b64(jwt)?;
-    let header_decoded = jwt_parts.header_decoded()?;
-    let header_struct: JwtHeader = serde_json::from_str(&header_decoded)?;
+pub async fn fetch_jwk(jwt: &DecodedJWT, jwk_url: &str) -> Result<Arc<RSA_JWK>> {
     let keys = fetch_jwks(jwk_url).await?;
-
     let key = keys
-        .get(&header_struct.kid)
-        .ok_or_else(|| anyhow!("unknown kid: {}", header_struct.kid))?;
+        .get(&jwt.header.kid)
+        .ok_or_else(|| anyhow!("unknown kid: {}", jwt.header.kid))?;
     Ok(key.clone())
 }
 
