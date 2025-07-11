@@ -32,7 +32,7 @@ pub fn derive_circuit_input_signals(
     let epk_blinder_fr = input.epk_blinder_fr;
     let unsigned_jwt_with_padding =
         with_sha_padding_bytes(input.jwt_parts.unsigned_undecoded().as_bytes());
-    let (temp_pubkey_frs, temp_pubkey_len) =
+    let (ephemeral_pubkey_frs, ephemeral_pubkey_len) =
         public_inputs_hash::compute_ephemeral_pubkey_frs(&input)?;
     let public_inputs_hash = compute_public_inputs_hash(&input, config)?;
 
@@ -71,8 +71,8 @@ pub fn derive_circuit_input_signals(
         .limbs_input("pubkey_modulus", &input.jwk.as_64bit_limbs())
         .u64_input("exp_date", input.exp_date_secs)
         .u64_input("exp_horizon", input.exp_horizon_secs)
-        .frs_input("epk", &temp_pubkey_frs)
-        .fr_input("epk_len", temp_pubkey_len)
+        .frs_input("epk", &ephemeral_pubkey_frs)
+        .fr_input("epk_len", ephemeral_pubkey_len)
         .fr_input("epk_blinder", epk_blinder_fr)
         .fr_input("pepper", input.pepper_fr)
         .bool_input("use_extra_field", input.use_extra_field());
