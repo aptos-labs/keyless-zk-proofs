@@ -12,6 +12,7 @@ use anyhow::Result;
 pub fn validate_jwt_sig(jwk: &RSA_JWK, jwt: &str, config: &ProverServiceConfig) -> Result<()> {
     let mut validation = Validation::new(Algorithm::RS256);
     if !config.enable_jwt_exp_not_in_the_past_check {
+        //TODO: should it be always enabled?
         validation.validate_exp = false;
     }
     let key = &DecodingKey::from_rsa_components(&jwk.n, &jwk.e)?;
