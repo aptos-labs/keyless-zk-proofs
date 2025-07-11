@@ -35,6 +35,7 @@ pub async fn preprocess_and_validate_request(
     }
 
     if prover.config.enable_jwt_iat_not_in_future_check {
+        //TODO: should it be always enabled?
         let _span = logging::new_span("CheckIatNotInFuture");
         let now_unix_secs = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
         ensure!(
