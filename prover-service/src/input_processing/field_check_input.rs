@@ -130,11 +130,7 @@ pub fn private_aud_value(input: &VerifiedInput) -> Result<String> {
         (true, None) => Ok("".to_string()),
         (false, Some(v)) => Ok(v.clone()),
         (false, None) => {
-            let aud = input
-                .jwt
-                .payload
-                .aud
-                .clone();
+            let aud = input.jwt.payload.aud.clone();
             Ok(aud)
         }
     }
@@ -142,11 +138,7 @@ pub fn private_aud_value(input: &VerifiedInput) -> Result<String> {
 
 pub fn override_aud_value(input: &VerifiedInput) -> String {
     if let Some(_v) = &input.idc_aud {
-        input
-            .jwt
-            .payload
-            .aud
-            .clone()
+        input.jwt.payload.aud.clone()
     } else {
         String::from("")
     }

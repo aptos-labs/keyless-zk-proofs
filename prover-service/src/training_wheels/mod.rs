@@ -38,9 +38,12 @@ pub async fn preprocess_and_validate_request(
     {
         // Keyless relation condition 8 captured: https://github.com/aptos-foundation/AIPs/blob/f133e29d999adf31c4f41ce36ae1a808339af71e/aips/aip-108.md?plain=1#L92
         let _span = logging::new_span("EnsureEpkNotExpired");
-        ensure!((req.exp_date_secs as u128) < (jwt.payload.iat as u128) + (req.exp_horizon_secs as u128));
+        ensure!(
+            (req.exp_date_secs as u128)
+                < (jwt.payload.iat as u128) + (req.exp_horizon_secs as u128)
+        );
     }
-    
+
     if prover.config.enable_jwt_iat_not_in_future_check {
         //TODO: should it be always enabled?
         let _span = logging::new_span("CheckIatNotInFuture");
@@ -70,12 +73,11 @@ pub async fn preprocess_and_validate_request(
             "email" => {
                 // Keyless relation condition 3 captured: https://github.com/aptos-foundation/AIPs/blob/f133e29d999adf31c4f41ce36ae1a808339af71e/aips/aip-108.md?plain=1#L74
                 ensure!(Some(true) == jwt.payload.email_verified);
-                jwt
-                    .payload
+                jwt.payload
                     .email
                     .clone()
                     .ok_or_else(|| anyhow!("Missing email in jwt payload"))?
-            },
+            }
             "sub" => jwt
                 .payload
                 .sub
