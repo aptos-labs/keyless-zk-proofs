@@ -27,7 +27,7 @@ pub async fn preprocess_and_validate_request(
 ) -> anyhow::Result<VerifiedInput> {
     let _span = logging::new_span("TrainingWheelChecks");
     let jwt = DecodedJWT::from_b64(&req.jwt_b64).log_err()?;
-    let jwk = finalize_jwk(&prover.config, &jwt).await.log_err()?;
+    let jwk = get_jwk(&prover.config, &jwt).await.log_err()?;
 
     {
         let _span = logging::new_span("VerifyJWTSignature");
@@ -76,11 +76,15 @@ pub async fn preprocess_and_validate_request(
     VerifiedInput::new(req, jwk, jwt, uid_val).log_err()
 }
 
-async fn finalize_jwk(
+/// This function returns the same JWK that the Aptos validators would expect for this JWT.
+/// Specifically, it first checks if there is a "global" JWK for that `iss` "installed" by JWK consensus
+/// (as per AIP-96 https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-96.md#high-level-overview).
+/// If there is no "global" JWK installed, it manually fetches the JWK from the JWK URL endpoint associated with the `iss`.
+async fn get_jwk(
     prover_config: &ProverServiceConfig,
     jwt: &DecodedJWT,
 ) -> anyhow::Result<Arc<RSA_JWK>> {
-    let _span = logging::new_span("FinalizeJWK");
+    let _span = logging::new_span("GetJWK");
     let default_jwk = jwk_fetching::cached_decoding_key(&jwt.payload.iss, &jwt.header.kid);
     if default_jwk.is_ok() {
         return default_jwk;
