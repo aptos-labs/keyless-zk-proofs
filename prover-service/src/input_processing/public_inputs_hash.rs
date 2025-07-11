@@ -70,7 +70,7 @@ pub fn compute_public_inputs_hash(input: &VerifiedInput, config: &CircuitConfig)
     let extra_field = field_check_input::parsed_extra_field_or_default(input)?;
 
     let override_aud_val_hashed = poseidon_bn254::pad_and_hash_string(
-        &field_check_input::override_aud_value(input)?,
+        &field_check_input::override_aud_value(input),
         IdCommitment::MAX_AUD_VAL_BYTES,
     )?;
     let use_override_aud = if input.idc_aud.is_some() {

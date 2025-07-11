@@ -19,7 +19,7 @@ async fn test_federated_jwk_fetch() {
     let jwk_keypair = gen_test_jwk_keypair_with_kid_override(kid);
     let prover_request_input = testcase.convert_to_prover_request(&jwk_keypair);
     let jwt = DecodedJWT::from_b64(&prover_request_input.jwt_b64).unwrap();
-    assert!(get_federated_jwk(&&jwt).await.is_ok());
+    assert!(get_federated_jwk(&jwt).await.is_ok());
 }
 
 #[tokio::test]

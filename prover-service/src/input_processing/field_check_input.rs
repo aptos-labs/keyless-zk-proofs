@@ -2,7 +2,7 @@
 
 use super::{field_parser::ParsedField, types::VerifiedInput};
 use crate::input_processing::field_parser::FieldParser;
-use anyhow::{anyhow, bail, Result};
+use anyhow::{bail, Result};
 use aptos_keyless_common::input_processing::circuit_input_signals::{
     CircuitInputSignals, Unpadded,
 };
@@ -129,25 +129,26 @@ pub fn private_aud_value(input: &VerifiedInput) -> Result<String> {
         (true, Some(_)) => bail!("there is no aud-based recovery in aud-less mode"),
         (true, None) => Ok("".to_string()),
         (false, Some(v)) => Ok(v.clone()),
-        (false, None) => input
-            .jwt
-            .payload
-            .aud
-            .clone()
-            .ok_or_else(|| anyhow!("aud not found in input JWT")),
+        (false, None) => {
+            let aud = input
+                .jwt
+                .payload
+                .aud
+                .clone();
+            Ok(aud)
+        }
     }
 }
 
-pub fn override_aud_value(input: &VerifiedInput) -> Result<String> {
+pub fn override_aud_value(input: &VerifiedInput) -> String {
     if let Some(_v) = &input.idc_aud {
         input
             .jwt
             .payload
             .aud
             .clone()
-            .ok_or_else(|| anyhow!("missing aud in JWT"))
     } else {
-        Ok(String::from(""))
+        String::from("")
     }
 }
 
@@ -156,7 +157,7 @@ pub fn aud_signals(input: &VerifiedInput) -> Result<CircuitInputSignals<Unpadded
         FieldParser::find_and_parse_field(input.jwt_parts.payload_decoded()?.as_str(), "aud")?;
 
     let private_aud_value = private_aud_value(input)?;
-    let override_aud_value = override_aud_value(input)?;
+    let override_aud_value = override_aud_value(input);
 
     let mut result = CircuitInputSignals::new()
         .merge(whole_field_signals(&parsed_field, "aud")?)?

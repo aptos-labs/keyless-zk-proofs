@@ -127,7 +127,7 @@ pub struct JwtPayload {
     pub nonce: String,
     pub sub: Option<String>,
     pub email: Option<String>,
-    pub aud: Option<String>,
+    pub aud: String,
 }
 
 impl JwtPayload {

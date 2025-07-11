@@ -120,11 +120,8 @@ pub trait HasLoggableError {
 
 impl<T, E: Debug> HasLoggableError for Result<T, E> {
     fn log_err(self) -> Self {
-        match &self {
-            Err(e) => {
-                error(format!("{e:?}"));
-            }
-            _ => {}
+        if let Err(e) = &self {
+            error(format!("{e:?}"));
         }
         self
     }
