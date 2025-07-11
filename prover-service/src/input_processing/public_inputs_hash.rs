@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 
-use super::{field_check_input, field_parser::FieldParser};
-use crate::input_processing::types::Input;
+use super::field_check_input;
+use crate::input_processing::types::VerifiedInput;
 use anyhow::{anyhow, Result};
 use aptos_crypto::poseidon_bn254;
 use aptos_keyless_common::input_processing::config::CircuitConfig;
@@ -9,13 +9,10 @@ use aptos_types::keyless::{Configuration, IdCommitment};
 use ark_bn254::Fr;
 
 pub fn compute_idc_hash(
-    input: &Input,
+    input: &VerifiedInput,
     config: &CircuitConfig,
     pepper_fr: Fr,
-    jwt_payload: &str,
 ) -> Result<Fr> {
-    let uid_field = FieldParser::find_and_parse_field(jwt_payload, &input.uid_key)?;
-
     let mut frs: Vec<Fr> = Vec::new();
 
     frs.push(pepper_fr);
@@ -28,7 +25,7 @@ pub fn compute_idc_hash(
     )?;
     frs.push(aud_hash_fr);
     let uid_val_hash_fr = poseidon_bn254::pad_and_hash_string(
-        &uid_field.value,
+        &input.uid_val,
         *config
             .max_lengths
             .get("uid_value")
@@ -36,7 +33,7 @@ pub fn compute_idc_hash(
     )?;
     frs.push(uid_val_hash_fr);
     let uid_key_hash_fr = poseidon_bn254::pad_and_hash_string(
-        &uid_field.key,
+        &input.uid_key,
         *config
             .max_lengths
             .get("uid_name")
@@ -49,34 +46,34 @@ pub fn compute_idc_hash(
 
 pub const RSA_MODULUS_BYTES: usize = 256;
 
-pub fn compute_temp_pubkey_frs(input: &Input) -> Result<([Fr; 3], Fr)> {
-    let temp_pubkey_frs_with_len = poseidon_bn254::keyless::pad_and_pack_bytes_to_scalars_with_len(
-        input.epk.to_bytes().as_slice(),
-        Configuration::new_for_devnet().max_commited_epk_bytes as usize, // TODO should put this in my local config
-    )?;
+pub fn compute_ephemeral_pubkey_frs(input: &VerifiedInput) -> Result<([Fr; 3], Fr)> {
+    let ephemeral_pubkey_frs_with_len =
+        poseidon_bn254::keyless::pad_and_pack_bytes_to_scalars_with_len(
+            input.epk.to_bytes().as_slice(),
+            Configuration::new_for_devnet().max_commited_epk_bytes as usize, // TODO should put this in my local config
+        )?;
 
     Ok((
-        temp_pubkey_frs_with_len[..3]
+        ephemeral_pubkey_frs_with_len[..3]
             .try_into()
             .expect("Length here should always be 3"),
-        temp_pubkey_frs_with_len[3],
+        ephemeral_pubkey_frs_with_len[3],
     ))
 }
 
-pub fn compute_public_inputs_hash(input: &Input, config: &CircuitConfig) -> anyhow::Result<Fr> {
+pub fn compute_public_inputs_hash(input: &VerifiedInput, config: &CircuitConfig) -> Result<Fr> {
     let pepper_fr = input.pepper_fr;
     let jwt_parts = &input.jwt_parts;
     let jwk = &input.jwk;
-    let iss_field = FieldParser::find_and_parse_field(&jwt_parts.payload_decoded()?, "iss")?;
-    let (temp_pubkey_frs, temp_pubkey_len) = compute_temp_pubkey_frs(input)?;
+    let (temp_pubkey_frs, temp_pubkey_len) = compute_ephemeral_pubkey_frs(input)?;
 
     let extra_field = field_check_input::parsed_extra_field_or_default(input)?;
 
     let override_aud_val_hashed = poseidon_bn254::pad_and_hash_string(
-        &field_check_input::override_aud_value(input)?,
+        &field_check_input::override_aud_value(input),
         IdCommitment::MAX_AUD_VAL_BYTES,
     )?;
-    let use_override_aud = if let Some(_override_aud_val) = &input.idc_aud {
+    let use_override_aud = if input.idc_aud.is_some() {
         ark_bn254::Fr::from(1)
     } else {
         ark_bn254::Fr::from(0)
@@ -88,7 +85,7 @@ pub fn compute_public_inputs_hash(input: &Input, config: &CircuitConfig) -> anyh
     frs.push(temp_pubkey_len);
 
     // Add the id_commitment as a scalar
-    let addr_idc_fr = compute_idc_hash(input, config, pepper_fr, &jwt_parts.payload_decoded()?)?;
+    let addr_idc_fr = compute_idc_hash(input, config, pepper_fr)?;
     frs.push(addr_idc_fr);
 
     // Add the exp_timestamp_secs as a scalar
@@ -98,7 +95,7 @@ pub fn compute_public_inputs_hash(input: &Input, config: &CircuitConfig) -> anyh
     frs.push(Fr::from(input.exp_horizon_secs));
 
     let iss_val_hash = poseidon_bn254::pad_and_hash_string(
-        &iss_field.value,
+        &input.jwt.payload.iss,
         *config
             .max_lengths
             .get("iss_value")
@@ -164,12 +161,13 @@ pub fn compute_public_inputs_hash(input: &Input, config: &CircuitConfig) -> anyh
 #[cfg(test)]
 mod tests {
     use super::compute_public_inputs_hash;
-    use crate::input_processing::types::Input;
+    use crate::input_processing::types::VerifiedInput;
     use aptos_crypto::{
         ed25519::{Ed25519PrivateKey, Ed25519PublicKey},
         encoding_type::EncodingType,
         poseidon_bn254,
     };
+    use aptos_keyless_common::input_processing::encoding::DecodedJWT;
     use aptos_keyless_common::input_processing::{
         config::CircuitConfig,
         encoding::{FromB64, JwtParts},
@@ -200,8 +198,10 @@ mod tests {
         let ephemeral_public_key_unwrapped: Ed25519PublicKey =
             Ed25519PublicKey::from(&ephemeral_private_key);
         let epk = EphemeralPublicKey::ed25519(ephemeral_public_key_unwrapped);
-
-        let input = Input {
+        let jwt = DecodedJWT::from_b64(jwt_b64).unwrap();
+        let uid_val = jwt.payload.sub.clone().unwrap();
+        let input = VerifiedInput {
+            jwt,
             jwt_parts: JwtParts::from_b64(jwt_b64).unwrap(),
             jwk: Arc::new(jwk),
             epk,
@@ -210,6 +210,7 @@ mod tests {
             exp_horizon_secs: 100255944,
             pepper_fr: Fr::from_str("76").unwrap(),
             uid_key: String::from("sub"),
+            uid_val,
             extra_field: Some(String::from("family_name")),
             idc_aud: None,
             skip_aud_checks: false,

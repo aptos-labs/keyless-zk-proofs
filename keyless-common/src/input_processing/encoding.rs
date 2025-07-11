@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::{EphemeralPublicKeyBlinder, PoseidonHash};
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, ensure, Result};
 use aptos_types::{
     jwks::rsa::RSA_JWK, keyless::Pepper, transaction::authenticator::EphemeralPublicKey,
 };
@@ -106,19 +106,63 @@ pub struct JwtParts {
     signature: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct JwtHeader {
     pub kid: String,
 }
 
-#[derive(Serialize, Deserialize)]
+impl JwtHeader {
+    pub fn from_b64url(s: &str) -> Result<Self> {
+        let bytes = base64::decode_config(s, base64::URL_SAFE_NO_PAD)?;
+        let json = String::from_utf8(bytes)?;
+        let header: JwtHeader = serde_json::from_str(&json)?;
+        Ok(header)
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct JwtPayload {
     pub iss: String,
     pub iat: u64,
     pub nonce: String,
     pub sub: Option<String>,
     pub email: Option<String>,
-    pub aud: Option<String>,
+    pub email_verified: Option<bool>,
+    pub aud: String,
+}
+
+impl JwtPayload {
+    pub fn from_b64(s: &str) -> Result<Self> {
+        let bytes = base64::decode_config(s, base64::URL_SAFE_NO_PAD)?;
+        let json = String::from_utf8(bytes)?;
+        let payload: JwtPayload = serde_json::from_str(&json)?;
+        Ok(payload)
+    }
+}
+
+#[derive(Debug)]
+pub struct DecodedJWT {
+    pub header: JwtHeader,
+    pub payload: JwtPayload,
+    pub signature: RsaSignature,
+}
+
+impl DecodedJWT {
+    pub fn from_b64(s: &str) -> Result<Self> {
+        let jwt_parts: Vec<&str> = s.split('.').collect();
+        ensure!(jwt_parts.len() == 3);
+        let header_b64 = jwt_parts[0];
+        let payload_b64 = jwt_parts[1];
+        let signature_b64 = jwt_parts[2];
+        let header = JwtHeader::from_b64url(header_b64)?;
+        let payload = JwtPayload::from_b64(payload_b64)?;
+        let signature = RsaSignature::from_b64(signature_b64)?;
+        Ok(Self {
+            header,
+            payload,
+            signature,
+        })
+    }
 }
 
 impl FromB64 for JwtParts {

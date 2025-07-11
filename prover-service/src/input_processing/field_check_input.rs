@@ -1,6 +1,6 @@
 // Copyright © Aptos Foundation
 
-use super::{field_parser::ParsedField, types::Input};
+use super::{field_parser::ParsedField, types::VerifiedInput};
 use crate::input_processing::field_parser::FieldParser;
 use anyhow::{bail, Result};
 use aptos_keyless_common::input_processing::circuit_input_signals::{
@@ -30,7 +30,7 @@ fn calc_string_bodies(s: &str) -> Vec<bool> {
     string_bodies
 }
 
-pub fn field_check_input_signals(input: &Input) -> Result<CircuitInputSignals<Unpadded>> {
+pub fn field_check_input_signals(input: &VerifiedInput) -> Result<CircuitInputSignals<Unpadded>> {
     let result = CircuitInputSignals::new()
         // "default" behavior
         .merge(signals_for_field(input, "iss")?)?
@@ -91,7 +91,10 @@ pub fn field_components_signals(
     Ok(result)
 }
 
-pub fn signals_for_field(input: &Input, name: &str) -> Result<CircuitInputSignals<Unpadded>> {
+pub fn signals_for_field(
+    input: &VerifiedInput,
+    name: &str,
+) -> Result<CircuitInputSignals<Unpadded>> {
     let parsed_field =
         FieldParser::find_and_parse_field(input.jwt_parts.payload_decoded()?.as_str(), name)?;
 
@@ -103,7 +106,7 @@ pub fn signals_for_field(input: &Input, name: &str) -> Result<CircuitInputSignal
 }
 
 pub fn signals_for_field_with_key(
-    input: &Input,
+    input: &VerifiedInput,
     name: &str,
     key_in_jwt: &str,
 ) -> Result<CircuitInputSignals<Unpadded>> {
@@ -121,37 +124,32 @@ pub fn signals_for_field_with_key(
 // These signals have custom logic
 //
 
-pub fn private_aud_value(input: &Input) -> Result<String> {
+pub fn private_aud_value(input: &VerifiedInput) -> Result<String> {
     match (input.skip_aud_checks, &input.idc_aud) {
         (true, Some(_)) => bail!("there is no aud-based recovery in aud-less mode"),
         (true, None) => Ok("".to_string()),
         (false, Some(v)) => Ok(v.clone()),
         (false, None) => {
-            let parsed_field = FieldParser::find_and_parse_field(
-                input.jwt_parts.payload_decoded()?.as_str(),
-                "aud",
-            )?;
-            Ok(parsed_field.value)
+            let aud = input.jwt.payload.aud.clone();
+            Ok(aud)
         }
     }
 }
 
-pub fn override_aud_value(input: &Input) -> Result<String> {
+pub fn override_aud_value(input: &VerifiedInput) -> String {
     if let Some(_v) = &input.idc_aud {
-        let parsed_field =
-            FieldParser::find_and_parse_field(input.jwt_parts.payload_decoded()?.as_str(), "aud")?;
-        Ok(parsed_field.value)
+        input.jwt.payload.aud.clone()
     } else {
-        Ok(String::from(""))
+        String::from("")
     }
 }
 
-pub fn aud_signals(input: &Input) -> Result<CircuitInputSignals<Unpadded>> {
+pub fn aud_signals(input: &VerifiedInput) -> Result<CircuitInputSignals<Unpadded>> {
     let parsed_field =
         FieldParser::find_and_parse_field(input.jwt_parts.payload_decoded()?.as_str(), "aud")?;
 
     let private_aud_value = private_aud_value(input)?;
-    let override_aud_value = override_aud_value(input)?;
+    let override_aud_value = override_aud_value(input);
 
     let mut result = CircuitInputSignals::new()
         .merge(whole_field_signals(&parsed_field, "aud")?)?
@@ -171,7 +169,7 @@ pub fn aud_signals(input: &Input) -> Result<CircuitInputSignals<Unpadded>> {
     Ok(result)
 }
 
-pub fn email_verified_signals(input: &Input) -> Result<CircuitInputSignals<Unpadded>> {
+pub fn email_verified_signals(input: &VerifiedInput) -> Result<CircuitInputSignals<Unpadded>> {
     let parsed_field = parsed_email_verified_field_or_default(input)?;
 
     let result = CircuitInputSignals::new()
@@ -181,7 +179,7 @@ pub fn email_verified_signals(input: &Input) -> Result<CircuitInputSignals<Unpad
     Ok(result)
 }
 
-pub fn extra_field_signals(input: &Input) -> Result<CircuitInputSignals<Unpadded>> {
+pub fn extra_field_signals(input: &VerifiedInput) -> Result<CircuitInputSignals<Unpadded>> {
     let parsed_field = parsed_extra_field_or_default(input)?;
 
     let result = CircuitInputSignals::new().merge(whole_field_signals(&parsed_field, "extra")?)?;
@@ -189,7 +187,7 @@ pub fn extra_field_signals(input: &Input) -> Result<CircuitInputSignals<Unpadded
     Ok(result)
 }
 
-pub fn parsed_email_verified_field_or_default(input: &Input) -> Result<ParsedField<usize>> {
+pub fn parsed_email_verified_field_or_default(input: &VerifiedInput) -> Result<ParsedField<usize>> {
     if input.uid_key == "email" {
         Ok(FieldParser::find_and_parse_field(
             input.jwt_parts.payload_decoded()?.as_str(),
@@ -200,7 +198,7 @@ pub fn parsed_email_verified_field_or_default(input: &Input) -> Result<ParsedFie
     }
 }
 
-pub fn parsed_extra_field_or_default(input: &Input) -> Result<ParsedField<usize>> {
+pub fn parsed_extra_field_or_default(input: &VerifiedInput) -> Result<ParsedField<usize>> {
     if let Some(extra_field_key) = &input.extra_field {
         Ok(FieldParser::find_and_parse_field(
             input.jwt_parts.payload_decoded()?.as_str(),

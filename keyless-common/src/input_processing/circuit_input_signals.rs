@@ -208,9 +208,9 @@ fn pad_bytes(unpadded_bytes: &[u8], max_size: usize) -> Result<Vec<u8>, anyhow::
 
 /// Can only serialize a CircuitInputSignals struct if padding has been added
 impl CircuitInputSignals<Padded> {
-    pub fn to_json_value(self) -> serde_json::Value {
+    pub fn to_json_value(&self) -> serde_json::Value {
         Value::from(serde_json::Map::from_iter(
-            self.signals.into_iter().map(|(k, v)| (k, stringify(v))),
+            self.signals.iter().map(|(k, v)| (k.clone(), stringify(v))),
         ))
     }
 }
@@ -223,13 +223,13 @@ fn stringify_vec_fr(v: &[Fr]) -> Vec<String> {
     v.iter().map(fr_to_string).collect()
 }
 
-fn stringify(input: CircuitInputSignal) -> Value {
+fn stringify(input: &CircuitInputSignal) -> Value {
     match input {
         CircuitInputSignal::U64(x) => Value::from(x.to_string()),
-        CircuitInputSignal::Fr(x) => Value::from(fr_to_string(&x)),
-        CircuitInputSignal::Frs(x) => Value::from(stringify_vec_fr(&x)),
-        CircuitInputSignal::Limbs(x) => Value::from(stringify_vec(&x)),
-        CircuitInputSignal::Bytes(x) => Value::from(stringify_vec(&x)),
+        CircuitInputSignal::Fr(x) => Value::from(fr_to_string(x)),
+        CircuitInputSignal::Frs(x) => Value::from(stringify_vec_fr(x)),
+        CircuitInputSignal::Limbs(x) => Value::from(stringify_vec(x)),
+        CircuitInputSignal::Bytes(x) => Value::from(stringify_vec(x)),
     }
 }
 

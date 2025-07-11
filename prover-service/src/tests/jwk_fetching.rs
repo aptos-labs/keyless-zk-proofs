@@ -1,6 +1,7 @@
 use crate::jwk_fetching::get_federated_jwk;
 use crate::tests::common::gen_test_jwk_keypair_with_kid_override;
 use crate::tests::common::types::{ProofTestCase, TestJWTPayload};
+use aptos_keyless_common::input_processing::encoding::DecodedJWT;
 
 // This test uses a demo auth0 tenant owned by oliver.he@aptoslabs.com
 #[tokio::test]
@@ -17,8 +18,8 @@ async fn test_federated_jwk_fetch() {
 
     let jwk_keypair = gen_test_jwk_keypair_with_kid_override(kid);
     let prover_request_input = testcase.convert_to_prover_request(&jwk_keypair);
-
-    assert!(get_federated_jwk(&prover_request_input).await.is_ok());
+    let jwt = DecodedJWT::from_b64(&prover_request_input.jwt_b64).unwrap();
+    assert!(get_federated_jwk(&jwt).await.is_ok());
 }
 
 #[tokio::test]
@@ -35,11 +36,8 @@ async fn test_federated_jwk_fetch_fails_for_bad_iss() {
 
     let jwk_keypair = gen_test_jwk_keypair_with_kid_override(kid);
     let prover_request_input = testcase.convert_to_prover_request(&jwk_keypair);
-
-    let error_message = get_federated_jwk(&prover_request_input)
-        .await
-        .unwrap_err()
-        .to_string();
+    let jwt = DecodedJWT::from_b64(&prover_request_input.jwt_b64).unwrap();
+    let error_message = get_federated_jwk(&jwt).await.unwrap_err().to_string();
 
     assert!(error_message.contains("not a federated iss"))
 }
@@ -58,11 +56,8 @@ async fn test_federated_jwk_fetch_fails_for_bad_kid() {
 
     let jwk_keypair = gen_test_jwk_keypair_with_kid_override(kid);
     let prover_request_input = testcase.convert_to_prover_request(&jwk_keypair);
-
-    let error_message = get_federated_jwk(&prover_request_input)
-        .await
-        .unwrap_err()
-        .to_string();
+    let jwt = DecodedJWT::from_b64(&prover_request_input.jwt_b64).unwrap();
+    let error_message = get_federated_jwk(&jwt).await.unwrap_err().to_string();
 
     assert!(error_message.contains("unknown kid"))
 }

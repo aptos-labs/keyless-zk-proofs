@@ -2,7 +2,6 @@
 
 pub mod field_check_input;
 pub mod field_parser;
-pub mod preprocess;
 pub mod public_inputs_hash;
 pub mod rsa;
 pub mod types;
@@ -10,7 +9,7 @@ pub mod types;
 use self::{
     field_check_input::field_check_input_signals, public_inputs_hash::compute_public_inputs_hash,
 };
-use crate::input_processing::types::Input;
+use crate::input_processing::types::VerifiedInput;
 use anyhow::Result;
 use aptos_keyless_common::logging;
 use aptos_keyless_common::{
@@ -24,18 +23,17 @@ use aptos_keyless_common::{
 };
 
 pub fn derive_circuit_input_signals(
-    input: Input,
+    input: VerifiedInput,
     config: &CircuitConfig,
 ) -> Result<(CircuitInputSignals<Padded>, PoseidonHash), anyhow::Error> {
-    // TODO add metrics instead of just printing out elapsed time
     let _span = logging::new_span("DeriveCircuitInputSignals");
 
     let jwt_parts = &input.jwt_parts;
     let epk_blinder_fr = input.epk_blinder_fr;
     let unsigned_jwt_with_padding =
         with_sha_padding_bytes(input.jwt_parts.unsigned_undecoded().as_bytes());
-    let signature = jwt_parts.signature()?;
-    let (temp_pubkey_frs, temp_pubkey_len) = public_inputs_hash::compute_temp_pubkey_frs(&input)?;
+    let (ephemeral_pubkey_frs, ephemeral_pubkey_len) =
+        public_inputs_hash::compute_ephemeral_pubkey_frs(&input)?;
     let public_inputs_hash = compute_public_inputs_hash(&input, config)?;
 
     let mut circuit_input_signals = CircuitInputSignals::new()
@@ -69,12 +67,12 @@ pub fn derive_circuit_input_signals(
             &compute_sha_padding_without_len(jwt_parts.unsigned_undecoded().as_bytes())
                 .as_bytes()?,
         )
-        .limbs_input("signature", &signature.as_64bit_limbs())
+        .limbs_input("signature", &input.jwt.signature.as_64bit_limbs())
         .limbs_input("pubkey_modulus", &input.jwk.as_64bit_limbs())
         .u64_input("exp_date", input.exp_date_secs)
         .u64_input("exp_horizon", input.exp_horizon_secs)
-        .frs_input("epk", &temp_pubkey_frs)
-        .fr_input("epk_len", temp_pubkey_len)
+        .frs_input("epk", &ephemeral_pubkey_frs)
+        .fr_input("epk_len", ephemeral_pubkey_len)
         .fr_input("epk_blinder", epk_blinder_fr)
         .fr_input("pepper", input.pepper_fr)
         .bool_input("use_extra_field", input.use_extra_field());

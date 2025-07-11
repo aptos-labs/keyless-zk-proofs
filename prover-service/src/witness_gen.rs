@@ -2,6 +2,7 @@
 
 use crate::config::ProverServiceConfig;
 use anyhow::{anyhow, bail, Result};
+use aptos_keyless_common::input_processing::circuit_input_signals::{CircuitInputSignals, Padded};
 use aptos_keyless_common::logging;
 use std::fs;
 use std::process::Command;
@@ -17,13 +18,24 @@ impl PathStr for NamedTempFile {
     }
 }
 
-pub fn witness_gen(config: &ProverServiceConfig, body: &str) -> Result<NamedTempFile> {
+pub fn witness_gen(
+    config: &ProverServiceConfig,
+    circuit_input_signals: &CircuitInputSignals<Padded>,
+) -> Result<NamedTempFile> {
     let _span = logging::new_span("GenerateWitness");
+
+    let formatted_input_str = serde_json::to_string(&circuit_input_signals.to_json_value())
+        .map_err(anyhow::Error::new)?;
+
+    // Only sensitive values to disk. TODO: do we still need this?
+    if config.enable_dangerous_logging {
+        fs::write("formatted_input.json", &formatted_input_str).unwrap();
+    }
 
     let input_file = NamedTempFile::new()?;
     let witness_file = NamedTempFile::new()?;
 
-    fs::write(input_file.path(), body.as_bytes())?;
+    fs::write(input_file.path(), formatted_input_str.as_bytes())?;
 
     let output =
         get_witness_command(config, input_file.path_str()?, witness_file.path_str()?).output()?;
