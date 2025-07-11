@@ -11,6 +11,8 @@ use std::sync::Arc;
 /// A prover request that has passed training wheel checks and been pre-processed.
 /// Output of prover request handling step `preprocess_and_validate_request()`.
 /// Input of prover request handling step `derive_circuit_input_signals()`.
+/// 
+/// TODO: avoid storing derived data like `uid_val` and ensure only `preprocess_and_validate_request` can construct it?
 #[derive(Debug)]
 pub struct VerifiedInput {
     pub jwt: DecodedJWT,
