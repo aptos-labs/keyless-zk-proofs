@@ -27,7 +27,7 @@ pub fn witness_gen(
     let formatted_input_str = serde_json::to_string(&circuit_input_signals.to_json_value())
         .map_err(anyhow::Error::new)?;
 
-    // Only sensitive values to disk.
+    // Only sensitive values to disk. TODO: do we still need this?
     if config.enable_dangerous_logging {
         fs::write("formatted_input.json", &formatted_input_str).unwrap();
     }
