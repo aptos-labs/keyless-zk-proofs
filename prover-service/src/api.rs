@@ -9,9 +9,6 @@ use aptos_types::{
 };
 use serde::{Deserialize, Serialize};
 
-//#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
-//pub struct EphemeralPublicKeyBlinder(pub(crate) Vec<u8>);
-
 pub type EphemeralPublicKeyBlinder = Vec<u8>;
 
 #[derive(Debug, Serialize, Deserialize, BCSCryptoHash, CryptoHasher)]
