@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -ex
 
 SCRIPT_DIR=$(dirname "$0")
 
