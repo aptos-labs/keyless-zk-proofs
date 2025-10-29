@@ -89,7 +89,7 @@ class TestingSetup(setups.Setup):
             shutil.move("main_c_cpp/main_c.dat", self.path())
 
 
-    def c_witness_gen_from_scratch():
+    def c_witness_gen_from_scratch(self):
         eprint("Setup doesn't contain c witness gen binaries, and you are on x86-64. Going to compile them now.")
         self.compile_circuit()
         self.compile_c_witness_gen_binaries()
