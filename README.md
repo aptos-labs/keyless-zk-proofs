@@ -2,9 +2,8 @@
 
 This repo contains:
 1. The `circom` implementation of the Aptos Keyless ZK relation from AIP-61 in `circuit/templates/`.
-2. An implementation of a ZK proving service in `prover-service/`. Its
-   [README](./prover-service/README.md) contains instructions for building
-   and running tests.
+2. An implementation of a ZK proving service in `prover-service/`. Instructions for building
+   and running tests can be found in the [Run prover service locally](#run-prover-service-locally) section below.
 3. A circom unit testing framework in `circuit/`. Its
    [README](./circuit/README.md) contains instructions for running the
    circuit unit tests.
