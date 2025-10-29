@@ -18,10 +18,8 @@ RUN /root/.cargo/bin/cargo build --release -p prover-service \
 ENV RESOURCES_DIR=/resources
 RUN ./scripts/task.sh setup download-ceremonies-for-releases --witness-gen-type c circuit-v1.0.1
 
-
 # The image that is actually deployed
 FROM debian:bookworm
- 
 
 # need libyaml, gmp, and openssl dylibs to run prover service
 RUN apt-get update \
