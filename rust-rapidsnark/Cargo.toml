@@ -1,14 +1,19 @@
 [package]
 name = "rust-rapidsnark"
+description = "Rust bindings for RapidSnark"
 version = "0.1.0"
-edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+# Workspace inherited keys
+authors = { workspace = true }
+edition = { workspace = true }
+homepage = { workspace = true }
+license = { workspace = true }
+publish = { workspace = true }
+repository = { workspace = true }
+rust-version = { workspace = true }
 
 [dependencies]
-thiserror = { workspace = true } 
-
-[build]
+thiserror = { workspace = true }
 
 [build-dependencies]
 bindgen = { workspace = true }
