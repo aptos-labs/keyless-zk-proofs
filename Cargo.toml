@@ -5,19 +5,12 @@ members = ["circuit", "keyless-common", "prover-service", "vk-diff", "release-he
 
 [workspace.package]
 authors = ["Aptos Labs <opensource@aptoslabs.com>"]
-name = "prover-service"
-version = "0.1.0"
 edition = "2021"
-rust-version = "1.78.0"
-publish = false
 homepage = "https://aptoslabs.com"
 license = "GPL3"
-repository = "https://github.com/aptos-labs/prover-service"
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[profile.release]
-debug = true
-overflow-checks = true
+publish = false
+repository = "https://github.com/aptos-labs/keyless-zk-proofs"
+rust-version = "1.85.0"
 
 [workspace.dependencies]
 anyhow = "1.0.79"
@@ -97,6 +90,10 @@ ureq = { version = "1.5.4", features = [
 ], default-features = false }
 url = { version = "2.5.4" }
 uuid = { version = "1.17.0", features = ["v4"] }
+
+[profile.release]
+debug = true
+overflow-checks = true
 
 [patch.crates-io]
 merlin = { git = "https://github.com/aptos-labs/merlin" }

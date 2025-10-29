@@ -4,7 +4,7 @@ use aptos_keyless_common::groth16_vk::{
 use clap::{Parser, Subcommand};
 use std::fs;
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 #[derive(Parser)]
 #[clap(name = "release-helper")]
@@ -86,17 +86,17 @@ fn main() {
 }
 
 fn generate_governance_proposal(
-    repo_path: &PathBuf,
+    repo_path: &Path,
     circuit_release_tag: &str,
     tw_key_id: &str,
     vk_path: &PathBuf,
     twpk_path: &PathBuf,
 ) {
-    new_release_yaml(&repo_path, circuit_release_tag, tw_key_id);
-    generate_proposal_script(&repo_path, vk_path, twpk_path);
+    new_release_yaml(repo_path, circuit_release_tag, tw_key_id);
+    generate_proposal_script(repo_path, vk_path, twpk_path);
 }
 
-fn new_release_yaml(aptos_core_path: &PathBuf, circuit_release_tag: &str, tw_key_id: &str) {
+fn new_release_yaml(aptos_core_path: &Path, circuit_release_tag: &str, tw_key_id: &str) {
     let target_path =
         aptos_core_path.join("aptos-move/aptos-release-builder/data/keyless-config-update.yaml");
     println!("Writing to {target_path:?}.");
@@ -119,7 +119,7 @@ proposals:
     file.write_all(release_yaml_content.as_bytes()).unwrap();
 }
 
-fn generate_proposal_script(repo_path: &PathBuf, vk_path: &PathBuf, twpk_path: &PathBuf) {
+fn generate_proposal_script(repo_path: &Path, vk_path: &PathBuf, twpk_path: &PathBuf) {
     let script_content =
         generate_script_content(ProposalExecutionMode::ProposalID, vk_path, twpk_path);
     let target_path = repo_path
@@ -159,11 +159,11 @@ fn generate_script_content(
     twpk_path: &PathBuf,
 ) -> String {
     // Read the verification key file
-    let local_vk_json = fs::read_to_string(&vk_path).unwrap();
+    let local_vk_json = fs::read_to_string(vk_path).unwrap();
     let local_vk: SnarkJsGroth16VerificationKey = serde_json::from_str(&local_vk_json).unwrap();
     let vk = OnChainGroth16VerificationKey::try_from(local_vk).unwrap();
     // Read the training wheel public key file
-    let twpk_repr = fs::read_to_string(&twpk_path).unwrap();
+    let twpk_repr = fs::read_to_string(twpk_path).unwrap();
 
     let (main_param, framework_signer_expression) = match mode {
         ProposalExecutionMode::RootSigner => (
