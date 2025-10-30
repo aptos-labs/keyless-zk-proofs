@@ -16,12 +16,18 @@ The tool correctly outputs "different":
 ```
 cargo run -- \
     -j https://raw.githubusercontent.com/aptos-labs/aptos-keyless-trusted-setup-contributions-may-2024/refs/heads/main/verification_key_39f9c44b4342ed5e6941fae36cf6c87c52b1e17f.json \
-    -n devnet
+    -n mainnet
 ```
 
 Or, below we use the tool to match the currently-deployed VK with the latest ceremony:
 ```
 cargo run -- \
     -j https://raw.githubusercontent.com/aptos-labs/aptos-keyless-trusted-setup-contributions-jan-2025/refs/heads/main/verification_key.json \
-    -n devnet
+    -n mainnet
+```
+
+## Help
+Run the tool with `--help` to see usage information:
+```
+cargo run -- --help
 ```
