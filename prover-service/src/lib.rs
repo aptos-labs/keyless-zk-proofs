@@ -16,6 +16,7 @@ pub mod prover_key;
 pub mod proving;
 pub mod state;
 pub mod training_wheels;
+pub mod utils;
 pub mod watcher;
 pub mod witness_gen;
 

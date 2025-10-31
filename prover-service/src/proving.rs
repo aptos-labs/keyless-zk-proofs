@@ -30,7 +30,7 @@ pub async fn prove(
 
     let g16vk = {
         let _span = logging::new_span("PrepareVK");
-        prepared_vk(&state.config.verification_key_path())
+        prepared_vk(&state.config.test_verification_key_file_path())
     };
 
     proof.verify_proof(
