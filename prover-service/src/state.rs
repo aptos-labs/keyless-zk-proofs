@@ -35,9 +35,9 @@ impl ProverServiceState {
         ProverServiceState {
             config: CONFIG.clone(),
             circuit_metadata: CONFIG.load_circuit_params(),
-            groth16_vk: CONFIG.load_vk(),
+            groth16_vk: CONFIG.load_test_verification_key(),
             tw_keys: TrainingWheelsKeyPair::from_sk(private_key),
-            full_prover: Mutex::new(FullProver::new(&CONFIG.zkey_path()).unwrap()),
+            full_prover: Mutex::new(FullProver::new(&CONFIG.zkey_file_path()).unwrap()),
         }
     }
 

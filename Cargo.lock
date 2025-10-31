@@ -4154,6 +4154,7 @@ dependencies = [
  "aptos-crypto",
  "aptos-crypto-derive 0.0.3 (git+https://github.com/aptos-labs/aptos-core?rev=0ce3ac3a3e51c57b7e02ca8ed9010f6eda67d627)",
  "aptos-keyless-common",
+ "aptos-logger",
  "aptos-types",
  "ark-bn254",
  "ark-ff",
