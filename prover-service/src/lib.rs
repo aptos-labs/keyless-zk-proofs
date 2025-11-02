@@ -4,6 +4,7 @@ extern crate core;
 
 pub mod api;
 pub mod config;
+pub mod deployment_information;
 pub mod error;
 pub mod groth16_vk;
 pub mod handlers;

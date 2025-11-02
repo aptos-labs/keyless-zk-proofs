@@ -14,8 +14,10 @@ rust-version = "1.85.0"
 
 [workspace.dependencies]
 anyhow = "1.0.79"
+aptos-build-info = { git = "https://github.com/aptos-labs/aptos-core", rev = "0ce3ac3a3e51c57b7e02ca8ed9010f6eda67d627" }
 aptos-crypto = { git = "https://github.com/aptos-labs/aptos-core", branch = "main" } # TODO: pin to a specific rev
 aptos-crypto-derive = { git = "https://github.com/aptos-labs/aptos-core", rev = "0ce3ac3a3e51c57b7e02ca8ed9010f6eda67d627" }
+aptos-infallible = { git = "https://github.com/aptos-labs/aptos-core", rev = "0ce3ac3a3e51c57b7e02ca8ed9010f6eda67d627" }
 aptos-keyless-common = { path = "keyless-common" }
 aptos-logger = { git = "https://github.com/aptos-labs/aptos-core", rev = "0ce3ac3a3e51c57b7e02ca8ed9010f6eda67d627" }
 aptos-types = { git = "https://github.com/aptos-labs/aptos-core", branch = "main" } # TODO: pin to a specific rev

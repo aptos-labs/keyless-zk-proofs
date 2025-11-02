@@ -32,6 +32,7 @@ use rust_rapidsnark::FullProver;
 use serde::Serialize;
 use std::{marker::PhantomData, str::FromStr, sync::Arc};
 use tokio::sync::Mutex;
+use crate::deployment_information::DeploymentInformation;
 
 pub mod types;
 
@@ -113,6 +114,7 @@ pub async fn convert_prove_and_verify(
     let state = ProverServiceState {
         config: testcase.prover_service_config.clone(),
         circuit_metadata: testcase.prover_service_config.load_circuit_params(),
+        deployment_information: DeploymentInformation::new(),
         groth16_vk: testcase.prover_service_config.load_vk(),
         tw_keys: TrainingWheelsKeyPair::from_sk(tw_sk_default),
         full_prover: Mutex::new(

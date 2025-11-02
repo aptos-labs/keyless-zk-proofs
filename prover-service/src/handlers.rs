@@ -24,7 +24,22 @@ use aptos_keyless_common::logging::HasLoggableError;
 use maplit2::hashmap;
 use serde::Deserialize;
 use std::{sync::Arc, time::Instant};
+use aptos_logger::error;
 use uuid::Uuid;
+
+/// Returns deployment information as a JSON string
+pub async fn about_handler(State(state): State<Arc<ProverServiceState>>) -> (StatusCode, String) {
+    let deployment_information = state.deployment_information().get_deployment_information();
+    match serde_json::to_string_pretty(&deployment_information) {
+        Ok(deployment_information) => (StatusCode::OK, deployment_information),
+        Err(error) => {
+            // Log and return the error
+            let error_string = format!("Failed to serialize deployment information to JSON: {}", error);
+            error!("{}", error_string);
+            (StatusCode::INTERNAL_SERVER_ERROR, error_string)
+        },
+    }
+}
 
 pub async fn prove_handler(
     State(state): State<Arc<ProverServiceState>>,

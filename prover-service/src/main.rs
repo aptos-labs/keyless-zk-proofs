@@ -20,6 +20,13 @@ use prover_service::config::CONFIG;
 use std::{fs, net::SocketAddr, sync::Arc, time::Duration};
 use tower::ServiceBuilder;
 use tower_http::cors::{Any, CorsLayer};
+use prover_service::deployment_information::DeploymentInformation;
+
+// The list of endpoints/paths offered by the Prover Service.
+const ABOUT_PATH: &str = "/about";
+const METADATA_PATH: &str = "/meta";
+const PROVE_PATH: &str = "/v0/prove";
+const HEALTH_CHECK_PATH: &str = "/healthcheck";
 
 #[tokio::main]
 async fn main() {
@@ -31,10 +38,13 @@ async fn main() {
         // allow cross-origin requests
         .allow_headers(Any);
 
+    // Get the deployment information
+    let deployment_information = DeploymentInformation::new();
+
     // init tracing
     logging::init_tracing().expect("Couldn't init tracing.");
     info!("CONFIG={:?}", CONFIG);
-    let state = ProverServiceState::init();
+    let state = ProverServiceState::init(deployment_information);
     let state = Arc::new(state);
 
     let vkey = fs::read_to_string(state.config.verification_key_path())
@@ -65,12 +75,13 @@ async fn main() {
 
     // init axum and serve public routes
     let app = Router::new()
-        .route("/meta", get((StatusCode::OK, Json(CONFIG.clone()))))
+        .route(ABOUT_PATH, get(handlers::about_handler))
+        .route(METADATA_PATH, get((StatusCode::OK, Json(CONFIG.clone()))))
         .route(
-            "/v0/prove",
+            PROVE_PATH,
             post(handlers::prove_handler).fallback(handlers::fallback_handler),
         )
-        .route("/healthcheck", get(handlers::healthcheck_handler))
+        .route(HEALTH_CHECK_PATH, get(handlers::healthcheck_handler))
         .fallback(handlers::fallback_handler)
         .with_state(state.clone())
         .layer(ServiceBuilder::new().layer(cors))
