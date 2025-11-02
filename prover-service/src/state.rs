@@ -7,10 +7,10 @@ use rust_rapidsnark::FullProver;
 use serde::{Deserialize, Serialize};
 
 use crate::config::{ProverServiceConfig, CONFIG};
+use crate::deployment_information::DeploymentInformation;
 use crate::groth16_vk::OnChainGroth16VerificationKey;
 use crate::prover_key::TrainingWheelsKeyPair;
 use tokio::sync::Mutex;
-use crate::deployment_information::DeploymentInformation;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ProverServiceSecrets {
@@ -21,7 +21,7 @@ pub struct ProverServiceSecrets {
 pub struct ProverServiceState {
     pub config: ProverServiceConfig,
     pub circuit_metadata: CircuitConfig,
-    pub deployment_information : DeploymentInformation,
+    pub deployment_information: DeploymentInformation,
     pub groth16_vk: OnChainGroth16VerificationKey,
     pub tw_keys: TrainingWheelsKeyPair,
     pub full_prover: Mutex<FullProver>,

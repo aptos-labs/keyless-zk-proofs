@@ -6,7 +6,7 @@ use crate::{
     input_processing::derive_circuit_input_signals,
     metrics,
     state::ProverServiceState,
-    training_wheels,
+    training_wheels, utils,
     witness_gen::witness_gen,
 };
 use anyhow::Result;
@@ -24,21 +24,24 @@ use aptos_keyless_common::logging::HasLoggableError;
 use maplit2::hashmap;
 use serde::Deserialize;
 use std::{sync::Arc, time::Instant};
-use aptos_logger::error;
 use uuid::Uuid;
 
 /// Returns deployment information as a JSON string
 pub async fn about_handler(State(state): State<Arc<ProverServiceState>>) -> (StatusCode, String) {
     let deployment_information = state.deployment_information().get_deployment_information();
-    match serde_json::to_string_pretty(&deployment_information) {
-        Ok(deployment_information) => (StatusCode::OK, deployment_information),
-        Err(error) => {
-            // Log and return the error
-            let error_string = format!("Failed to serialize deployment information to JSON: {}", error);
-            error!("{}", error_string);
-            (StatusCode::INTERNAL_SERVER_ERROR, error_string)
-        },
-    }
+    utils::to_json_string_pretty(&deployment_information)
+}
+
+/// Returns the prover service configuration as a JSON string
+pub async fn config_handler(State(state): State<Arc<ProverServiceState>>) -> (StatusCode, String) {
+    let prover_service_config = state.config.clone();
+    utils::to_json_string_pretty(&prover_service_config)
+}
+
+/// Returns Ok if the prover service is up and running. This
+/// is useful for kubernetes liveness and readiness probes.
+pub async fn health_check_handler() -> (StatusCode, &'static str) {
+    (StatusCode::OK, "OK")
 }
 
 pub async fn prove_handler(
@@ -93,13 +96,6 @@ pub async fn prove_handler(
         Ok(Json(response))
     })
     .await
-}
-
-/// Added on request by Christian: Kubernetes apparently needs a GET route to check whether
-/// this service is ready for requests.
-pub async fn healthcheck_handler() -> (StatusCode, &'static str) {
-    // TODO: CHECK FOR A REAL STATUS OF PROVER HERE?
-    (StatusCode::OK, "OK")
 }
 
 /// On all unrecognized routes, return 404.

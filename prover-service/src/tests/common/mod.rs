@@ -1,6 +1,7 @@
 // Copyright (c) Aptos Foundation
 
 use self::types::{DefaultTestJWKKeyPair, TestJWKKeyPair, WithNonce};
+use crate::deployment_information::DeploymentInformation;
 use crate::load_vk::prepared_vk;
 use crate::tests::common::types::ProofTestCase;
 use crate::training_wheels;
@@ -32,7 +33,6 @@ use rust_rapidsnark::FullProver;
 use serde::Serialize;
 use std::{marker::PhantomData, str::FromStr, sync::Arc};
 use tokio::sync::Mutex;
-use crate::deployment_information::DeploymentInformation;
 
 pub mod types;
 

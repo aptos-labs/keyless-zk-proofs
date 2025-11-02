@@ -3,7 +3,7 @@
 use axum::{
     http::header,
     routing::{get, post},
-    Json, Router,
+    Router,
 };
 use http::{Method, StatusCode};
 use log::info;
@@ -17,16 +17,16 @@ use axum_prometheus::{
     PrometheusMetricLayerBuilder, AXUM_HTTP_REQUESTS_DURATION_SECONDS,
 };
 use prover_service::config::CONFIG;
+use prover_service::deployment_information::DeploymentInformation;
 use std::{fs, net::SocketAddr, sync::Arc, time::Duration};
 use tower::ServiceBuilder;
 use tower_http::cors::{Any, CorsLayer};
-use prover_service::deployment_information::DeploymentInformation;
 
 // The list of endpoints/paths offered by the Prover Service.
 const ABOUT_PATH: &str = "/about";
-const METADATA_PATH: &str = "/meta";
-const PROVE_PATH: &str = "/v0/prove";
+const CONFIG_PATH: &str = "/config";
 const HEALTH_CHECK_PATH: &str = "/healthcheck";
+const PROVE_PATH: &str = "/v0/prove";
 
 #[tokio::main]
 async fn main() {
@@ -76,12 +76,12 @@ async fn main() {
     // init axum and serve public routes
     let app = Router::new()
         .route(ABOUT_PATH, get(handlers::about_handler))
-        .route(METADATA_PATH, get((StatusCode::OK, Json(CONFIG.clone()))))
+        .route(CONFIG_PATH, get(handlers::config_handler))
+        .route(HEALTH_CHECK_PATH, get(handlers::health_check_handler))
         .route(
             PROVE_PATH,
             post(handlers::prove_handler).fallback(handlers::fallback_handler),
         )
-        .route(HEALTH_CHECK_PATH, get(handlers::healthcheck_handler))
         .fallback(handlers::fallback_handler)
         .with_state(state.clone())
         .layer(ServiceBuilder::new().layer(cors))

@@ -17,6 +17,7 @@ pub mod prover_key;
 pub mod proving;
 pub mod state;
 pub mod training_wheels;
+pub mod utils;
 pub mod witness_gen;
 
 #[cfg(test)]
