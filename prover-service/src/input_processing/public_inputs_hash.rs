@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright (c) Aptos Foundation
 
 use super::field_check_input;
 use crate::input_processing::types::VerifiedInput;

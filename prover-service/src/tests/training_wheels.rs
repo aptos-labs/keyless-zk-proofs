@@ -1,3 +1,5 @@
+// Copyright (c) Aptos Foundation
+
 use crate::config::ProverServiceConfig;
 use crate::config::CONFIG;
 use crate::tests::common::types::{ProofTestCase, TestJWTPayload};

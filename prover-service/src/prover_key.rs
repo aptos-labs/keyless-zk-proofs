@@ -1,6 +1,4 @@
-// Copyright © Aptos Foundation
-
-// Import AsyncWriteExt for async writing
+// Copyright (c) Aptos Foundation
 
 use crate::config::ProverServiceConfig;
 use aptos_crypto::ed25519::{Ed25519PrivateKey, Ed25519PublicKey};

@@ -1,3 +1,5 @@
+// Copyright (c) Aptos Foundation
+
 pub mod common;
 pub mod jwk_fetching;
 pub mod playground;

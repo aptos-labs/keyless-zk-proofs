@@ -1,3 +1,5 @@
+// Copyright (c) Aptos Foundation
+
 use aptos_keyless_common::groth16_vk::{
     OnChainGroth16VerificationKey, SnarkJsGroth16VerificationKey,
 };

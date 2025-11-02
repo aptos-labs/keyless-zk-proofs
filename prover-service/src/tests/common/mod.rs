@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright (c) Aptos Foundation
 
 use self::types::{DefaultTestJWKKeyPair, TestJWKKeyPair, WithNonce};
 use crate::load_vk::prepared_vk;

@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright (c) Aptos Foundation
 
 use crate::config::ProverServiceConfig;
 use anyhow::{anyhow, bail, Result};

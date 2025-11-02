@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright (c) Aptos Foundation
 
 use crate::{api::ProverServiceResponse, logging};
 use axum::{extract::rejection::JsonRejection, http::StatusCode, response::IntoResponse, Json};

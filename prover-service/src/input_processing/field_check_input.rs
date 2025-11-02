@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright (c) Aptos Foundation
 
 use super::{field_parser::ParsedField, types::VerifiedInput};
 use crate::input_processing::field_parser::FieldParser;

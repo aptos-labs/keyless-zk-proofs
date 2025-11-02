@@ -1,3 +1,5 @@
+// Copyright (c) Aptos Foundation
+
 use aptos_crypto::{
     ed25519::{Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature},
     CryptoMaterialError, SigningKey,

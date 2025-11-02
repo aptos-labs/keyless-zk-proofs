@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright (c) Aptos Foundation
 
 use axum::http::StatusCode;
 use init_tracing_opentelemetry::tracing_subscriber_ext::{

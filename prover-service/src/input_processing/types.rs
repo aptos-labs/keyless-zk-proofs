@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright (c) Aptos Foundation
 
 use aptos_keyless_common::input_processing::encoding::{AsFr, DecodedJWT, FromB64, JwtParts};
 

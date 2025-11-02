@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright (c) Aptos Foundation
 
 use crate::handlers::encode_proof;
 use crate::load_vk::prepared_vk;
