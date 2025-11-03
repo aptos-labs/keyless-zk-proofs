@@ -34,7 +34,7 @@ pub async fn preprocess_and_validate_request(
     {
         // Keyless relation condition 10 captured: https://github.com/aptos-foundation/AIPs/blob/f133e29d999adf31c4f41ce36ae1a808339af71e/aips/aip-108.md?plain=1#L95
         let _span = logging::new_span("VerifyJWTSignature");
-        validate_jwt_sig(jwk.as_ref(), &req.jwt_b64, &prover.config).log_err()?;
+        validate_jwt_sig(jwk.as_ref(), &req.jwt_b64).log_err()?;
     }
 
     {
@@ -46,8 +46,8 @@ pub async fn preprocess_and_validate_request(
         );
     }
 
-    if prover.config.enable_jwt_iat_not_in_future_check {
-        //TODO: should it be always enabled?
+    {
+        // Verify that iat is not in the future
         let _span = logging::new_span("CheckIatNotInFuture");
         let now_unix_secs = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
         ensure!(

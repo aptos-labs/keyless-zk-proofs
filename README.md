@@ -45,7 +45,7 @@ cargo run -p prover-service
 ```
 
 ### Interact with the local prover service
-Login to [send-it](https://send-it.aptoslabs.com/home/), find a real prover request payload as below.
+Login to [Aptos Connect](https://aptosconnect.app/), and find a real prover request payload as outlined below:
 1. Open browser developer tools (F12).
 2. Navigate to Network Tab.
 3. Select a request with name `prove`.

@@ -34,9 +34,6 @@ COPY --link --from=build_prover_service ./resources ./resources
 # copy prover service config file
 COPY --link ./prover-service/config.yml ./config.yml
 
-ARG GIT_COMMIT
-ENV GIT_COMMIT=$GIT_COMMIT
-
 EXPOSE 8080
 
 # Add Tini to make sure the binaries receive proper SIGTERM signals when Docker is shut down

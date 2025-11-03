@@ -12,14 +12,9 @@ pub const CONFIG_FILE_PATH: &str = "config.yml";
 pub const LOCAL_TESTING_CONFIG_FILE_PATH: &str = "config_local_testing.yml";
 pub const CONFIG_FILE_PATH_ENVVAR: &str = "CONFIG_FILE";
 
-fn default_true() -> bool {
-    true
-}
-
 #[derive(Debug, Serialize, Deserialize, Clone)]
 //#[serde(deny_unknown_fields)]
 pub struct ProverServiceConfig {
-    pub git_commit: Option<String>,
     pub setup_dir: String,
     /// Directory with prover/verification key and witness gen binary
     pub resources_dir: String,
@@ -31,17 +26,11 @@ pub struct ProverServiceConfig {
     pub jwk_refresh_rate_secs: u64,
     pub port: u16,
     pub metrics_port: u16,
-    // Whether to log sensitive data
-    pub enable_dangerous_logging: bool,
     pub enable_debug_checks: bool,
     #[serde(default)]
     pub enable_test_provider: bool,
     #[serde(default)]
     pub enable_federated_jwks: bool,
-    #[serde(default = "default_true")]
-    pub enable_jwt_iat_not_in_future_check: bool,
-    #[serde(default = "default_true")]
-    pub enable_jwt_exp_not_in_the_past_check: bool,
     #[serde(default)]
     pub use_insecure_jwk_for_test: bool,
 }

@@ -36,12 +36,6 @@ pub fn witness_gen(
     let output = cmd.output()?;
     // Check if the command executed successfully
     if output.status.success() {
-        // if config.enable_dangerous_logging {
-        //     // Convert the output bytes to a string
-        //     let stdout = String::from_utf8_lossy(&output.stdout);
-        //     // Print the output
-        //     println!("Command output:\n{}", stdout);
-        // }
         Ok(witness_file)
     } else {
         // Print the error message if the command failed

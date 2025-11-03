@@ -13,8 +13,5 @@ oidc_providers:
 jwk_refresh_rate_secs: 10
 port: 8080
 metrics_port: 9100
-enable_dangerous_logging: false
 enable_debug_checks: false
 enable_federated_jwks: false
-enable_jwt_exp_not_in_the_past_check: true
-enable_jwt_iat_not_in_future_check: true
