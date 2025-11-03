@@ -1,6 +1,7 @@
 // Copyright (c) Aptos Foundation
 
 use self::types::{DefaultTestJWKKeyPair, TestJWKKeyPair, WithNonce};
+use crate::deployment_information::DeploymentInformation;
 use crate::load_vk::prepared_vk;
 use crate::tests::common::types::ProofTestCase;
 use crate::training_wheels;
@@ -113,6 +114,7 @@ pub async fn convert_prove_and_verify(
     let state = ProverServiceState {
         config: testcase.prover_service_config.clone(),
         circuit_metadata: testcase.prover_service_config.load_circuit_params(),
+        deployment_information: DeploymentInformation::new(),
         groth16_vk: testcase.prover_service_config.load_vk(),
         tw_keys: TrainingWheelsKeyPair::from_sk(tw_sk_default),
         full_prover: Mutex::new(
