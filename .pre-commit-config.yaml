@@ -1,0 +1,23 @@
+# Pre-commit configuration file. For more information, see:
+#  - https://pre-commit.com and https://pre-commit.com/hooks.html
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        files: \.(rs|move)$
+      - id: end-of-file-fixer
+        files: \.(rs|move)$
+      - id: check-added-large-files
+        args:
+          - --maxkb=2000
+  - repo: https://github.com/aptos-labs/pre-commit-hooks
+    rev: a30f0d816e5062a67d87c8de753cfe499672b959 # Fix the revision to the v1.5.5 release commit. See: https://github.com/Lucas-C/pre-commit-hooks/releases/tag/v1.5.5
+    hooks:
+      - id: insert-license
+        files: .*\.rs$
+        args:
+          - --license-filepath
+          - license_header.txt
+          - --comment-style
+          - //

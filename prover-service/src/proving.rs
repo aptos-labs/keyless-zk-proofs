@@ -1,3 +1,5 @@
+// Copyright (c) Aptos Foundation
+
 use crate::error::ErrorWithCode;
 use crate::handlers::encode_proof;
 use crate::load_vk::prepared_vk;

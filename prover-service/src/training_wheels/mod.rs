@@ -1,3 +1,5 @@
+// Copyright (c) Aptos Foundation
+
 mod sign;
 pub mod verification_logic;
 

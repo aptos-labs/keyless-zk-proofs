@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright (c) Aptos Foundation
 
 extern crate core;
 
@@ -16,7 +16,6 @@ pub mod prover_key;
 pub mod proving;
 pub mod state;
 pub mod training_wheels;
-pub mod watcher;
 pub mod witness_gen;
 
 #[cfg(test)]

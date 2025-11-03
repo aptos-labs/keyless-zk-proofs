@@ -1,3 +1,5 @@
+// Copyright (c) Aptos Foundation
+
 use aptos_crypto::ed25519::Ed25519PrivateKey;
 use aptos_keyless_common::input_processing::config::CircuitConfig;
 use figment::{providers::Env, Figment};

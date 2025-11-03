@@ -1,3 +1,5 @@
+// Copyright (c) Aptos Foundation
+
 use aptos_crypto::poseidon_bn254;
 use aptos_keyless_common::input_processing::config::CircuitConfig;
 use aptos_types::{

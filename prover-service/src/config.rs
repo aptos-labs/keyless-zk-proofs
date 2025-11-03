@@ -1,4 +1,4 @@
-// Copyright © Aptos Foundation
+// Copyright (c) Aptos Foundation
 
 use crate::groth16_vk::{OnChainGroth16VerificationKey, SnarkJsGroth16VerificationKey};
 use aptos_keyless_common::input_processing::config::CircuitConfig;

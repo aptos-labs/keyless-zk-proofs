@@ -1,5 +1,4 @@
-// Copyright © Aptos Foundation
-// SPDX-License-Identifier: Apache-2.0
+// Copyright (c) Aptos Foundation
 
 use crate::TestCircuitHandle;
 use aptos_crypto::poseidon_bn254;

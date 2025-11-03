@@ -1,5 +1,4 @@
-// Copyright © Aptos Foundation
-// SPDX-License-Identifier: Apache-2.0
+// Copyright (c) Aptos Foundation
 
 pub mod groth16_vk;
 pub mod input_processing;

@@ -1,3 +1,5 @@
+// Copyright (c) Aptos Foundation
+
 use crate::jwk_fetching::get_federated_jwk;
 use crate::tests::common::gen_test_jwk_keypair_with_kid_override;
 use crate::tests::common::types::{ProofTestCase, TestJWTPayload};

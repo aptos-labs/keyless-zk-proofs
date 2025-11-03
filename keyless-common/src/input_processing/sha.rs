@@ -1,5 +1,4 @@
-// Copyright © Aptos Foundation
-// SPDX-License-Identifier: Apache-2.0
+// Copyright (c) Aptos Foundation
 
 #![allow(non_upper_case_globals)]
 #![allow(non_camel_case_types)]
