@@ -16,8 +16,8 @@ use axum_prometheus::{
     utils::SECONDS_DURATION_BUCKETS,
     PrometheusMetricLayerBuilder, AXUM_HTTP_REQUESTS_DURATION_SECONDS,
 };
-use prover_service::config::CONFIG;
 use prover_service::deployment_information::DeploymentInformation;
+use prover_service::prover_config::CONFIG;
 use std::{fs, net::SocketAddr, sync::Arc, time::Duration};
 use tower::ServiceBuilder;
 use tower_http::cors::{Any, CorsLayer};

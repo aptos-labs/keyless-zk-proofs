@@ -6,9 +6,9 @@ use figment::{providers::Env, Figment};
 use rust_rapidsnark::FullProver;
 use serde::{Deserialize, Serialize};
 
-use crate::config::{ProverServiceConfig, CONFIG};
 use crate::deployment_information::DeploymentInformation;
 use crate::groth16_vk::OnChainGroth16VerificationKey;
+use crate::prover_config::{ProverServiceConfig, CONFIG};
 use crate::prover_key::TrainingWheelsKeyPair;
 use tokio::sync::Mutex;
 

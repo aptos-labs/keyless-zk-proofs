@@ -8,9 +8,9 @@ use crate::tests::common::types::ProofTestCase;
 use crate::training_wheels;
 use crate::{
     api::ProverServiceResponse,
-    config::ProverServiceConfig,
     handlers::prove_handler,
     jwk_fetching::{KeyID, DECODING_KEY_CACHE},
+    prover_config::ProverServiceConfig,
     state::ProverServiceState,
 };
 use aptos_crypto::{

@@ -1,6 +1,6 @@
 // Copyright (c) Aptos Foundation
 
-use crate::config::ProverServiceConfig;
+use crate::prover_config::ProverServiceConfig;
 use anyhow::{anyhow, bail, Result};
 use aptos_keyless_common::input_processing::circuit_input_signals::{CircuitInputSignals, Padded};
 use aptos_keyless_common::logging;
