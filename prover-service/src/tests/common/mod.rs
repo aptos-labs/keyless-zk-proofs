@@ -3,11 +3,12 @@
 use self::types::{DefaultTestJWKKeyPair, TestJWKKeyPair, WithNonce};
 use crate::deployment_information::DeploymentInformation;
 use crate::load_vk::prepared_vk;
+use crate::prover_key::TrainingWheelsKeyPair;
 use crate::tests::common::types::ProofTestCase;
 use crate::training_wheels;
 use crate::{
     api::ProverServiceResponse,
-    config::{self, ProverServiceConfig},
+    config::ProverServiceConfig,
     handlers::prove_handler,
     jwk_fetching::{KeyID, DECODING_KEY_CACHE},
     state::ProverServiceState,
@@ -36,7 +37,8 @@ use tokio::sync::Mutex;
 
 pub mod types;
 
-use crate::prover_key::TrainingWheelsKeyPair;
+// The name of the local testing config file
+const LOCAL_TESTING_CONFIG_FILE_NAME: &str = "config_local_testing.yml";
 
 const TEST_JWK_EXPONENT_STR: &str = "65537";
 
@@ -84,9 +86,10 @@ pub fn get_test_pepper() -> Pepper {
     Pepper::from_number(42)
 }
 
+// TDOO: avoid using figment!
 pub fn get_config() -> ProverServiceConfig {
     Figment::new()
-        .merge(Yaml::file(config::LOCAL_TESTING_CONFIG_FILE_PATH))
+        .merge(Yaml::file(LOCAL_TESTING_CONFIG_FILE_NAME))
         .extract()
         .expect("Couldn't load config file")
 }
@@ -115,10 +118,10 @@ pub async fn convert_prove_and_verify(
         config: testcase.prover_service_config.clone(),
         circuit_metadata: testcase.prover_service_config.load_circuit_params(),
         deployment_information: DeploymentInformation::new(),
-        groth16_vk: testcase.prover_service_config.load_vk(),
+        groth16_vk: testcase.prover_service_config.load_test_verification_key(),
         tw_keys: TrainingWheelsKeyPair::from_sk(tw_sk_default),
         full_prover: Mutex::new(
-            FullProver::new(testcase.prover_service_config.zkey_path().as_str()).unwrap(),
+            FullProver::new(testcase.prover_service_config.zkey_file_path().as_str()).unwrap(),
         ),
     };
 
@@ -145,7 +148,11 @@ pub async fn convert_prove_and_verify(
             public_inputs_hash,
             ..
         } => {
-            let g16vk = prepared_vk(&testcase.prover_service_config.verification_key_path());
+            let g16vk = prepared_vk(
+                &testcase
+                    .prover_service_config
+                    .test_verification_key_file_path(),
+            );
             proof.verify_proof(public_inputs_hash.as_fr(), &g16vk)?;
             training_wheels::verify(&response, &tw_pk)
         }

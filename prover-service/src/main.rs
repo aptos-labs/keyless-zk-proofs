@@ -47,7 +47,7 @@ async fn main() {
     let state = ProverServiceState::init(deployment_information);
     let state = Arc::new(state);
 
-    let vkey = fs::read_to_string(state.config.verification_key_path())
+    let vkey = fs::read_to_string(state.config.test_verification_key_file_path())
         .expect("Unable to read default vkey file");
     info!("Default verifying Key: {}", vkey);
 

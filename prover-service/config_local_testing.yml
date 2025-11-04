@@ -1,4 +1,3 @@
----
 resources_dir: "~/.local/share/aptos-keyless/current_setups"
 setup_dir: "default"
 zkey_filename: "prover_key.zkey"
