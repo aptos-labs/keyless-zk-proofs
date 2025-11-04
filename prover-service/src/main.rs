@@ -1,6 +1,8 @@
 // Copyright (c) Aptos Foundation
 
 use anyhow::Context;
+use aptos_crypto::ed25519::{Ed25519PrivateKey, Ed25519PublicKey};
+use aptos_crypto::ValidCryptoMaterialStringExt;
 use aptos_logger::info;
 use axum::{
     http::header,
@@ -17,10 +19,14 @@ use http::{Method, StatusCode};
 use prometheus::{Encoder, TextEncoder};
 use prover_service::deployment_information::DeploymentInformation;
 use prover_service::prover_config::ProverServiceConfig;
+use prover_service::prover_key::TrainingWheelsKeyPair;
 use prover_service::{state::*, *};
 use std::{fs, net::SocketAddr, sync::Arc, time::Duration};
 use tower::ServiceBuilder;
 use tower_http::cors::{Any, CorsLayer};
+
+// The key used to store the training wheels verification key in the deployment information
+const TRAINING_WHEELS_VERIFICATION_KEY: &str = "training_wheels_verification_key";
 
 // The list of endpoints/paths offered by the Prover Service.
 const ABOUT_PATH: &str = "/about";
@@ -34,6 +40,10 @@ struct Args {
     /// The prover service config file path
     #[arg(long)]
     config_file_path: String,
+
+    /// The training wheels private key file path
+    #[arg(long)]
+    training_wheels_private_key_file_path: String,
 }
 
 #[tokio::main]
@@ -45,14 +55,23 @@ async fn main() {
     aptos_logger::Logger::new().init();
     info!("Starting the Prover service...");
 
-    // Get the deployment information
-    let deployment_information = DeploymentInformation::new();
+    // Load the training wheels key pair
+    let training_wheels_key_pair =
+        load_training_wheels_key_pair(&args.training_wheels_private_key_file_path);
 
     // Load the prover service config
     let prover_service_config = load_prover_service_config(&args.config_file_path);
 
+    // Get the deployment information
+    let deployment_information =
+        get_deployment_information(&training_wheels_key_pair.verification_key);
+
     // Create the prover service state
-    let state = ProverServiceState::init(prover_service_config.clone(), deployment_information);
+    let state = ProverServiceState::init(
+        training_wheels_key_pair,
+        prover_service_config.clone(),
+        deployment_information,
+    );
     let state = Arc::new(state);
 
     let vkey = fs::read_to_string(
@@ -155,6 +174,23 @@ async fn main() {
     );
 }
 
+/// Creates and returns the deployment information for the prover service
+fn get_deployment_information(
+    training_wheels_verification_key: &Ed25519PublicKey,
+) -> DeploymentInformation {
+    // Create the deployment information
+    let mut deployment_information = DeploymentInformation::new();
+
+    // Insert the training wheels verification key into the deployment information.
+    // This is useful for runtime verification (e.g., to ensure the correct key is being used).
+    deployment_information.extend_deployment_information(
+        TRAINING_WHEELS_VERIFICATION_KEY.into(),
+        training_wheels_verification_key.to_string(),
+    );
+
+    deployment_information
+}
+
 /// Loads the prover service config from the specified file path.
 /// If the file cannot be read or parsed, this function will panic.
 fn load_prover_service_config(config_file_path: &str) -> Arc<ProverServiceConfig> {
@@ -182,4 +218,35 @@ fn load_prover_service_config(config_file_path: &str) -> Arc<ProverServiceConfig
     };
 
     Arc::new(prover_service_config)
+}
+
+/// Loads the training wheels key pair from the specified private key file path.
+/// If the file cannot be read or the key cannot be parsed, this function will panic.
+fn load_training_wheels_key_pair(
+    training_wheels_private_key_file_path: &str,
+) -> TrainingWheelsKeyPair {
+    info!(
+        "Loading the training wheels private key from the path: {}",
+        training_wheels_private_key_file_path
+    );
+
+    // Read the private key file contents (hex encoded)
+    let private_key_hex = utils::read_string_from_file_path(training_wheels_private_key_file_path);
+
+    // Parse the private key from the hex string and create the key pair
+    match Ed25519PrivateKey::from_encoded_string(&private_key_hex) {
+        Ok(private_key) => {
+            let training_wheels_key_pair = TrainingWheelsKeyPair::from_sk(private_key);
+            info!(
+                "Loaded the training wheels verification key: {:?}",
+                training_wheels_key_pair.verification_key
+            );
+
+            training_wheels_key_pair
+        }
+        Err(error) => panic!(
+            "Failed to parse the training wheels private key from hex string: {}",
+            error
+        ),
+    }
 }

@@ -120,8 +120,10 @@ pub async fn convert_prove_and_verify(
         prover_service_config,
         circuit_config: testcase.prover_service_config.load_circuit_params(),
         deployment_information: DeploymentInformation::new(),
-        groth16_vk: testcase.prover_service_config.load_test_verification_key(),
-        tw_keys: TrainingWheelsKeyPair::from_sk(tw_sk_default),
+        on_chain_groth16_verification_key: testcase
+            .prover_service_config
+            .load_test_verification_key(),
+        training_wheels_key_pair: TrainingWheelsKeyPair::from_sk(tw_sk_default),
         full_prover: Mutex::new(
             FullProver::new(testcase.prover_service_config.zkey_file_path().as_str()).unwrap(),
         ),

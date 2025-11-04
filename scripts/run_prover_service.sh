@@ -14,4 +14,6 @@ export PRIVATE_KEY_0=$(cat ./prover-service/private_key_for_testing.txt)
 
 # Run the prover service.
 # TODO: handle the libtbb.dylib issue on macOS.
-cargo run -p prover-service -- --config-file-path ./prover-service/config_local_testing.yml
+cargo run -p prover-service -- \
+--config-file-path ./prover-service/config_local_testing.yml \
+--training-wheels-private-key-file-path ./prover-service/private_key_for_testing.txt

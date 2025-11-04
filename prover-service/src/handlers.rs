@@ -79,9 +79,13 @@ pub async fn prove_handler(
         // As a result, whenever the VK changes on-chain, the TW PK must change too.
         // Otherwise, an old proof computed for an old VK will pass the TW signature check, even though this proof will not verify under the new VK.
         let training_wheels_signature = EphemeralSignature::ed25519(
-            training_wheels::sign(&state.tw_keys.signing_key, proof, public_inputs_hash)
-                .map_err(anyhow::Error::from)
-                .log_err()?,
+            training_wheels::sign(
+                &state.training_wheels_key_pair.signing_key,
+                proof,
+                public_inputs_hash,
+            )
+            .map_err(anyhow::Error::from)
+            .log_err()?,
         );
 
         let response = ProverServiceResponse::Success {
@@ -91,7 +95,11 @@ pub async fn prove_handler(
         };
 
         if state.prover_service_config.enable_debug_checks {
-            assert!(training_wheels::verify(&response, &state.tw_keys.verification_key).is_ok());
+            assert!(training_wheels::verify(
+                &response,
+                &state.training_wheels_key_pair.verification_key
+            )
+            .is_ok());
         }
 
         Ok(Json(response))
