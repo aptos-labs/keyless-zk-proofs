@@ -114,9 +114,11 @@ pub async fn convert_prove_and_verify(
         testcase.prover_service_config.setup_dir
     );
 
+    let prover_service_config = Arc::new(testcase.prover_service_config.clone());
+
     let state = ProverServiceState {
-        config: testcase.prover_service_config.clone(),
-        circuit_metadata: testcase.prover_service_config.load_circuit_params(),
+        prover_service_config,
+        circuit_config: testcase.prover_service_config.load_circuit_params(),
         deployment_information: DeploymentInformation::new(),
         groth16_vk: testcase.prover_service_config.load_test_verification_key(),
         tw_keys: TrainingWheelsKeyPair::from_sk(tw_sk_default),

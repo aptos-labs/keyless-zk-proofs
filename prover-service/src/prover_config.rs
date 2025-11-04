@@ -3,40 +3,13 @@
 use crate::groth16_vk::{OnChainGroth16VerificationKey, SnarkJsGroth16VerificationKey};
 use crate::utils;
 use aptos_keyless_common::input_processing::config::CircuitConfig;
-use aptos_logger::info;
-use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 // Constants for the prover service configuration file
 const CIRCUIT_CONFIG_YML_FILE_NAME: &str = "circuit_config.yml";
-const CONFIG_FILE_NAME: &str = "config.yml";
-const CONFIG_FILE_PATH_ENVVAR: &str = "CONFIG_FILE";
 const GENERATE_WITNESS_JS_FILE_NAME: &str = "generate_witness.js";
 const MAIN_WASM_FILE_NAME: &str = "main.wasm";
-
-// TODO: avoid using static global variables!
-pub static CONFIG: Lazy<ProverServiceConfig> = Lazy::new(|| {
-    // Get the config file path
-    let config_file_path = utils::read_environment_variable(CONFIG_FILE_PATH_ENVVAR)
-        .unwrap_or_else(|| String::from(CONFIG_FILE_NAME));
-    info!(
-        "Loading prover service config file from path: {}",
-        config_file_path
-    );
-
-    // Read the config file contents
-    let config_file_contents = utils::read_string_from_file_path(&config_file_path);
-
-    // Parse the config file contents into the config struct
-    match serde_yaml::from_str(&config_file_contents) {
-        Ok(config) => config,
-        Err(error) => panic!(
-            "Failed to parse prover service config yaml file: {}! Error: {}",
-            config_file_path, error
-        ),
-    }
-});
 
 /// A simple struct representing an OIDC provider
 #[derive(Debug, Serialize, Deserialize, Clone)]
