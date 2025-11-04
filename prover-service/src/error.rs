@@ -1,9 +1,9 @@
 // Copyright (c) Aptos Foundation
 
-use crate::{api::ProverServiceResponse, logging};
+use crate::api::ProverServiceResponse;
+use aptos_logger::{error, warn};
 use axum::{extract::rejection::JsonRejection, http::StatusCode, response::IntoResponse, Json};
 use rust_rapidsnark::ProverError;
-use tracing::{error, warn};
 
 // We derive `thiserror::Error`
 #[derive(Debug, thiserror::Error)]
@@ -127,8 +127,6 @@ pub fn make_error(
     code: StatusCode,
     message: &str,
 ) -> (StatusCode, Json<ProverServiceResponse>) {
-    logging::do_tracing(&e, code, message);
-
     let e_description = e.to_string();
     (
         code,

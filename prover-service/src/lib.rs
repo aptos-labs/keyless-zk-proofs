@@ -10,7 +10,6 @@ pub mod handlers;
 pub mod input_processing;
 pub mod jwk_fetching;
 pub mod load_vk;
-pub mod logging;
 pub mod metrics;
 pub mod prover_config;
 pub mod prover_key;

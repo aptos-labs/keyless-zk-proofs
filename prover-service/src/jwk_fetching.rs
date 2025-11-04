@@ -3,13 +3,13 @@
 use crate::prover_config::OidcProvider;
 use anyhow::{anyhow, Result};
 use aptos_keyless_common::input_processing::encoding::DecodedJWT;
+use aptos_logger::{error, info, warn};
 use aptos_types::jwks::rsa::RSA_JWK;
 use dashmap::DashMap;
 use once_cell::sync::Lazy;
 use regex::Regex;
 use serde_json::Value;
 use std::{sync::Arc, time::Duration};
-use tracing::{error, info, warn};
 
 pub type Issuer = String;
 pub type KeyID = String;
@@ -109,7 +109,10 @@ async fn fetch_and_cache_jwk(issuer: &str, jwk_url: &str) {
     match fetch_jwks(jwk_url).await {
         Ok(key_set) => {
             let num_keys = key_set.len();
-            info!(num_keys, issuer, "Updated key set",);
+            info!(
+                "Updated key set. Num keys: {}, Issuer: {}",
+                num_keys, issuer
+            );
             DECODING_KEY_CACHE.insert(issuer.to_string(), key_set);
         }
         Err(msg) => {
