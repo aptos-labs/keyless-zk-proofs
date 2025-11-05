@@ -32,7 +32,12 @@ base64 = "0.13.0"
 bcs = { git = "https://github.com/aptos-labs/bcs.git", rev = "d31fab9d81748e2594be5cd5cdf845786a30562d" }
 bindgen = "0.69.2"
 chrono = "0.4.41"
-clap = { version = "3.1.8", features = ["derive"] }
+clap = { version = "4.5.51", features = [
+  "derive",
+  "env",
+  "unstable-styles",
+  "wrap_help",
+] }
 dashmap = "5.5.3"
 figment = { version = "0.10.14", features = ["yaml", "env"] }
 hex = { version = "0.4.3", features = ["serde"] }
@@ -61,7 +66,7 @@ serial_test = "3.0.0"
 sha2 = "0.10.8"
 shellexpand = "3.1.0"
 strum_macros = "0.24"
-tempfile = "3.10.1"
+tempfile = "3.23.0"
 thiserror = "1.0.57"
 tokio = { version = "1.35.1", features = ["full"] }
 tower = "0.4.13"

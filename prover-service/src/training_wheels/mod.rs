@@ -4,10 +4,10 @@ mod sign;
 pub mod verification_logic;
 
 use crate::api::RequestInput;
-use crate::config::ProverServiceConfig;
 use crate::input_processing::types::VerifiedInput;
 use crate::jwk_fetching;
 use crate::jwk_fetching::get_federated_jwk;
+use crate::prover_config::ProverServiceConfig;
 use crate::state::ProverServiceState;
 use crate::training_wheels::verification_logic::compute_nonce;
 use anyhow::{anyhow, bail, ensure};
@@ -29,7 +29,9 @@ pub async fn preprocess_and_validate_request(
 ) -> anyhow::Result<VerifiedInput> {
     let _span = logging::new_span("TrainingWheelChecks");
     let jwt = DecodedJWT::from_b64(&req.jwt_b64).log_err()?;
-    let jwk = get_jwk(&prover.config, &jwt).await.log_err()?;
+    let jwk = get_jwk(&prover.prover_service_config, &jwt)
+        .await
+        .log_err()?;
 
     {
         // Keyless relation condition 10 captured: https://github.com/aptos-foundation/AIPs/blob/f133e29d999adf31c4f41ce36ae1a808339af71e/aips/aip-108.md?plain=1#L95

@@ -1,6 +1,6 @@
 // Copyright (c) Aptos Foundation
 
-use crate::config::ProverServiceConfig;
+use crate::prover_config::ProverServiceConfig;
 use aptos_crypto::ed25519::{Ed25519PrivateKey, Ed25519PublicKey};
 use aptos_crypto::ValidCryptoMaterialStringExt;
 use serde::{Deserialize, Serialize};

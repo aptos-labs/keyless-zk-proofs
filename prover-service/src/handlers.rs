@@ -34,7 +34,7 @@ pub async fn about_handler(State(state): State<Arc<ProverServiceState>>) -> (Sta
 
 /// Returns the prover service configuration as a JSON string
 pub async fn config_handler(State(state): State<Arc<ProverServiceState>>) -> (StatusCode, String) {
-    let prover_service_config = state.config.clone();
+    let prover_service_config = state.prover_service_config.clone();
     utils::to_json_string_pretty(&prover_service_config)
 }
 
@@ -68,7 +68,8 @@ pub async fn prove_handler(
         let (circuit_input_signals, public_inputs_hash) =
             derive_circuit_input_signals(input, state.circuit_config()).log_err()?;
 
-        let witness_file = witness_gen(&state.config, &circuit_input_signals).log_err()?;
+        let witness_file =
+            witness_gen(&state.prover_service_config, &circuit_input_signals).log_err()?;
 
         let proof = prove(state.as_ref(), witness_file, public_inputs_hash)
             .await
@@ -89,7 +90,7 @@ pub async fn prove_handler(
             training_wheels_signature: bcs::to_bytes(&training_wheels_signature).unwrap(),
         };
 
-        if state.config.enable_debug_checks {
+        if state.prover_service_config.enable_debug_checks {
             assert!(training_wheels::verify(&response, &state.tw_keys.verification_key).is_ok());
         }
 

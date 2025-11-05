@@ -1,6 +1,6 @@
 // Copyright (c) Aptos Foundation
 
-use crate::config::ProverServiceConfig;
+use crate::prover_config::ProverServiceConfig;
 use anyhow::{anyhow, bail, Result};
 use aptos_keyless_common::input_processing::circuit_input_signals::{CircuitInputSignals, Padded};
 use aptos_keyless_common::logging;
@@ -59,8 +59,8 @@ fn get_witness_command(
 ) -> Command {
     let mut c = Command::new("node");
     c.args(&[
-        config.witness_gen_js_path(),
-        config.witness_gen_wasm_path(),
+        config.witness_gen_js_file_path(),
+        config.witness_gen_wasm_file_path(),
         String::from(input_file_path),
         String::from(witness_file_path),
     ]);
@@ -73,7 +73,7 @@ fn get_witness_command(
     input_file_path: &str,
     witness_file_path: &str,
 ) -> Command {
-    let mut c = Command::new(config.witness_gen_binary_path());
+    let mut c = Command::new(config.witness_gen_binary_file_path());
     c.args([input_file_path, witness_file_path]); // Example arguments
     c
 }

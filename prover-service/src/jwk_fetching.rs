@@ -1,6 +1,6 @@
 // Copyright (c) Aptos Foundation
 
-use crate::config::OidcProvider;
+use crate::prover_config::OidcProvider;
 use anyhow::{anyhow, Result};
 use aptos_keyless_common::input_processing::encoding::DecodedJWT;
 use aptos_types::jwks::rsa::RSA_JWK;

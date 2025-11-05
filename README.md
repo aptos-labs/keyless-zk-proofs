@@ -33,15 +33,9 @@ README](./scripts/README.md).
 
 ### Get it running
 Ensure you have done [dev environment setup](#development-environment-setup),
-and run the following steps from a new terminal and with working directory being the repo root.
-```bash
-# Step 0: procure a testing setup to generate the Groth16 proving key. This can take ~10 minutes.
-./scripts/task.sh setup procure-testing-setup
-
-# Step 1: run
-export CONFIG_FILE=./prover-service/config_local_testing.yml
-export PRIVATE_KEY_0=$(cat ./prover-service/private_key_for_testing.txt)
-cargo run -p prover-service
+and run the following command from a new terminal (with the working directory being the repo root):
+```
+./scripts/run_prover_service.sh
 ```
 
 ### Interact with the local prover service
