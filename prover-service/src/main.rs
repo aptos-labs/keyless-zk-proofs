@@ -1,6 +1,7 @@
 // Copyright (c) Aptos Foundation
 
 use anyhow::Context;
+use aptos_logger::info;
 use axum::{
     http::header,
     routing::{get, post},
@@ -13,7 +14,6 @@ use axum_prometheus::{
 };
 use clap::Parser;
 use http::{Method, StatusCode};
-use log::info;
 use prometheus::{Encoder, TextEncoder};
 use prover_service::deployment_information::DeploymentInformation;
 use prover_service::prover_config::ProverServiceConfig;
@@ -50,10 +50,6 @@ async fn main() {
 
     // Load the prover service config
     let prover_service_config = load_prover_service_config(&args.config_file_path);
-
-    // TODO: removing tracing and using aptos_logger only
-    // init tracing
-    //logging::init_tracing().expect("Couldn't init tracing.");
 
     // Create the prover service state
     let state = ProverServiceState::init(prover_service_config.clone(), deployment_information);

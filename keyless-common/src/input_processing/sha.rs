@@ -5,7 +5,7 @@
 #![allow(non_snake_case)]
 
 use super::bits::Bits;
-use tracing::debug;
+use aptos_logger::debug;
 
 pub fn jwt_bit_len(jwt: &[u8]) -> usize {
     jwt.len() * 8
