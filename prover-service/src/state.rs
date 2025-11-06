@@ -1,10 +1,7 @@
 // Copyright (c) Aptos Foundation
 
-use aptos_crypto::ed25519::Ed25519PrivateKey;
 use aptos_keyless_common::input_processing::config::CircuitConfig;
-use figment::{providers::Env, Figment};
 use rust_rapidsnark::FullProver;
-use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
 use crate::deployment_information::DeploymentInformation;
@@ -13,34 +10,21 @@ use crate::prover_config::ProverServiceConfig;
 use crate::prover_key::TrainingWheelsKeyPair;
 use tokio::sync::Mutex;
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ProverServiceSecrets {
-    /// The current training wheel key.
-    pub private_key_0: Ed25519PrivateKey,
-}
-
 pub struct ProverServiceState {
     pub prover_service_config: Arc<ProverServiceConfig>,
     pub circuit_config: CircuitConfig,
     pub deployment_information: DeploymentInformation,
-    pub groth16_vk: OnChainGroth16VerificationKey,
-    pub tw_keys: TrainingWheelsKeyPair,
+    pub on_chain_groth16_verification_key: OnChainGroth16VerificationKey,
+    pub training_wheels_key_pair: TrainingWheelsKeyPair,
     pub full_prover: Mutex<FullProver>,
 }
 
 impl ProverServiceState {
     pub fn init(
+        training_wheels_key_pair: TrainingWheelsKeyPair,
         prover_service_config: Arc<ProverServiceConfig>,
         deployment_information: DeploymentInformation,
     ) -> Self {
-        // TODO: avoid using figment and quietly merging env vars here!
-        let ProverServiceSecrets {
-            private_key_0: private_key,
-        } = Figment::new()
-            .merge(Env::raw())
-            .extract()
-            .expect("Couldn't load private key from environment variable PRIVATE_KEY");
-
         // Load the circuit configuration
         let circuit_configuration = prover_service_config.load_circuit_params();
 
@@ -57,8 +41,8 @@ impl ProverServiceState {
             prover_service_config,
             circuit_config: circuit_configuration,
             deployment_information,
-            groth16_vk: test_verification_key,
-            tw_keys: TrainingWheelsKeyPair::from_sk(private_key),
+            on_chain_groth16_verification_key: test_verification_key,
+            training_wheels_key_pair,
             full_prover: Mutex::new(full_prover),
         }
     }
