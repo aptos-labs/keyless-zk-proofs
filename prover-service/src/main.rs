@@ -21,7 +21,7 @@ use prover_service::deployment_information::DeploymentInformation;
 use prover_service::prover_config::ProverServiceConfig;
 use prover_service::prover_key::TrainingWheelsKeyPair;
 use prover_service::{state::*, *};
-use std::{fs, net::SocketAddr, sync::Arc, time::Duration};
+use std::{net::SocketAddr, sync::Arc, time::Duration};
 use tower::ServiceBuilder;
 use tower_http::cors::{Any, CorsLayer};
 
@@ -67,20 +67,14 @@ async fn main() {
         get_deployment_information(&training_wheels_key_pair.verification_key);
 
     // Create the prover service state
-    let state = ProverServiceState::init(
+    let prover_service_state = Arc::new(ProverServiceState::init(
         training_wheels_key_pair,
         prover_service_config.clone(),
         deployment_information,
-    );
-    let state = Arc::new(state);
+    ));
 
-    let vkey = fs::read_to_string(
-        state
-            .prover_service_config
-            .test_verification_key_file_path(),
-    )
-    .expect("Unable to read default vkey file");
-    info!("Default verifying Key: {}", vkey);
+    // Load the test verification key
+    load_test_verification_key(prover_service_config.clone());
 
     // init jwk fetching job; refresh every `config.jwk_refresh_rate_secs` seconds
     jwk_fetching::init_jwk_fetching(
@@ -121,7 +115,7 @@ async fn main() {
             post(handlers::prove_handler).fallback(handlers::fallback_handler),
         )
         .fallback(handlers::fallback_handler)
-        .with_state(state.clone())
+        .with_state(prover_service_state.clone())
         .layer(ServiceBuilder::new().layer(cors))
         .layer(prometheus_layer);
 
@@ -218,6 +212,16 @@ fn load_prover_service_config(config_file_path: &str) -> Arc<ProverServiceConfig
     };
 
     Arc::new(prover_service_config)
+}
+
+/// Loads and logs the test verification key from the prover service config
+fn load_test_verification_key(prover_service_config: Arc<ProverServiceConfig>) {
+    // TODO: what does this actually do? Is it still useful?
+
+    let test_verification_key_file_path =
+        prover_service_config.test_verification_key_file_path();
+    let test_verification_key = utils::read_string_from_file_path(&test_verification_key_file_path);
+    info!("Loaded default verifying Key: {}", test_verification_key);
 }
 
 /// Loads the training wheels key pair from the specified private key file path.

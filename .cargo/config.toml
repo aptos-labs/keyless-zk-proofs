@@ -15,11 +15,3 @@ xclippy = [
 
 [build]
 rustflags = ["--cfg", "tokio_unstable"]
-
-
-[env]
-# These are required for renaming axum metrics to be specific to prover
-AXUM_HTTP_REQUESTS_TOTAL = "prover_requests_total"
-AXUM_HTTP_REQUESTS_DURATION_SECONDS = "prover_request_duration_secs"
-AXUM_HTTP_REQUESTS_PENDING = "prover_requests_pending"
-AXUM_HTTP_RESPONSE_BODY_SIZE = "prover_response_body_size"
