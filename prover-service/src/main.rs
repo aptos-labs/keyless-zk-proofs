@@ -1,26 +1,21 @@
 // Copyright (c) Aptos Foundation
 
-use anyhow::Context;
 use aptos_crypto::ed25519::{Ed25519PrivateKey, Ed25519PublicKey};
 use aptos_crypto::ValidCryptoMaterialStringExt;
 use aptos_logger::info;
 use axum::{
-    http::header,
     routing::{get, post},
     Router,
 };
-use axum_prometheus::{
-    metrics_exporter_prometheus::{Matcher, PrometheusBuilder},
-    utils::SECONDS_DURATION_BUCKETS,
-    PrometheusMetricLayerBuilder, AXUM_HTTP_REQUESTS_DURATION_SECONDS,
-};
 use clap::Parser;
-use http::{Method, StatusCode};
-use prometheus::{Encoder, TextEncoder};
+use http::Method;
+use hyper::service::{make_service_fn, service_fn};
+use hyper::Server;
 use prover_service::deployment_information::DeploymentInformation;
 use prover_service::prover_config::ProverServiceConfig;
 use prover_service::prover_key::TrainingWheelsKeyPair;
 use prover_service::{state::*, *};
+use std::convert::Infallible;
 use std::{net::SocketAddr, sync::Arc, time::Duration};
 use tower::ServiceBuilder;
 use tower_http::cors::{Any, CorsLayer};
@@ -83,21 +78,6 @@ async fn main() {
     )
     .await;
 
-    let (prometheus_layer, metric_handle) = PrometheusMetricLayerBuilder::new()
-        .with_prefix("prover")
-        .enable_response_body_size(true)
-        .with_metrics_from_fn(|| {
-            PrometheusBuilder::new()
-                .set_buckets_for_metric(
-                    Matcher::Full(AXUM_HTTP_REQUESTS_DURATION_SECONDS.to_string()),
-                    SECONDS_DURATION_BUCKETS,
-                )
-                .unwrap()
-                .install_recorder()
-                .unwrap()
-        })
-        .build_pair();
-
     // init axum and serve public routes
     let cors = CorsLayer::new()
         // allow `GET` and `POST` when accessing the resource
@@ -116,8 +96,7 @@ async fn main() {
         )
         .fallback(handlers::fallback_handler)
         .with_state(prover_service_state.clone())
-        .layer(ServiceBuilder::new().layer(cors))
-        .layer(prometheus_layer);
+        .layer(ServiceBuilder::new().layer(cors));
 
     let addr = SocketAddr::from(([0, 0, 0, 0], prover_service_config.port));
     let app_handle = tokio::spawn(async move {
@@ -125,43 +104,11 @@ async fn main() {
         axum::serve(listener, app).await.unwrap();
     });
 
-    // serve metrics on metrics_port; this is so that we don't have to expose metrics route publicly
-    let app_metrics = Router::new()
-        .route(
-            "/metrics",
-            get(|| async move {
-                // TODO: will this pick up metrics from the `metric_handle`?
-                let metrics = prometheus::gather();
-
-                let mut encode_buffer = vec![];
-                let encoder = TextEncoder::new();
-                // If metrics encoding fails, we want to panic and crash the process.
-                encoder
-                    .encode(&metrics, &mut encode_buffer)
-                    .context("Failed to encode metrics")
-                    .unwrap();
-
-                let res = metric_handle.render();
-                encode_buffer.extend(b"\n\n");
-                encode_buffer.extend(res.as_bytes());
-
-                (
-                    StatusCode::OK,
-                    [(header::CONTENT_TYPE, "text/plain")],
-                    encode_buffer,
-                )
-            }),
-        )
-        .fallback(handlers::fallback_handler);
-
-    let addr = SocketAddr::from(([0, 0, 0, 0], prover_service_config.metrics_port));
-    let metrics_handle = tokio::spawn(async move {
-        let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-        axum::serve(listener, app_metrics).await.unwrap();
-    });
+    // Start the metrics server
+    start_metrics_server(prover_service_config);
 
     // Wait for both serve jobs to finish indefinitely, or until one of them panics
-    let res = tokio::try_join!(app_handle, metrics_handle);
+    let res = tokio::try_join!(app_handle);
     panic!(
         "One of the tasks that weren't meant to end ended unexpectedly: {:?}",
         res
@@ -218,8 +165,7 @@ fn load_prover_service_config(config_file_path: &str) -> Arc<ProverServiceConfig
 fn load_test_verification_key(prover_service_config: Arc<ProverServiceConfig>) {
     // TODO: what does this actually do? Is it still useful?
 
-    let test_verification_key_file_path =
-        prover_service_config.test_verification_key_file_path();
+    let test_verification_key_file_path = prover_service_config.test_verification_key_file_path();
     let test_verification_key = utils::read_string_from_file_path(&test_verification_key_file_path);
     info!("Loaded default verifying Key: {}", test_verification_key);
 }
@@ -253,4 +199,23 @@ fn load_training_wheels_key_pair(
             error
         ),
     }
+}
+
+// Starts a simple metrics server
+fn start_metrics_server(prover_service_config: Arc<ProverServiceConfig>) {
+    let _handle = tokio::spawn(async move {
+        info!("Starting metrics server request handler...");
+
+        // Create a service function that handles the metrics requests
+        let make_service = make_service_fn(|_conn| async {
+            Ok::<_, Infallible>(service_fn(metrics::handle_metrics_request))
+        });
+
+        // Bind the socket address, and start the server
+        let socket_addr = SocketAddr::from(([0, 0, 0, 0], prover_service_config.metrics_port));
+        let server = Server::bind(&socket_addr).serve(make_service);
+        if let Err(error) = server.await {
+            panic!("Metrics server error! Error: {}", error);
+        }
+    });
 }

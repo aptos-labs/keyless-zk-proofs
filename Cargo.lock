@@ -169,9 +169,9 @@ dependencies = [
 
 [[package]]
 name = "anyhow"
-version = "1.0.81"
+version = "1.0.100"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0952808a6c2afd1aa8947271f3a60f1a6763c7b912d210184c5149b5cf147247"
+checksum = "a23eb6b1614318a8071c9b2521f36b424b2c83db5eb3a0fead4a6c0809af6e61"
 
 [[package]]
 name = "aptos-bitvec"
@@ -406,6 +406,17 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-subscriber 0.3.18",
+]
+
+[[package]]
+name = "aptos-metrics-core"
+version = "0.1.0"
+source = "git+https://github.com/aptos-labs/aptos-core?rev=0ce3ac3a3e51c57b7e02ca8ed9010f6eda67d627#0ce3ac3a3e51c57b7e02ca8ed9010f6eda67d627"
+dependencies = [
+ "anyhow",
+ "once_cell",
+ "paste",
+ "prometheus",
 ]
 
 [[package]]
@@ -799,28 +810,6 @@ dependencies = [
  "tower",
  "tower-layer",
  "tower-service",
-]
-
-[[package]]
-name = "axum-prometheus"
-version = "0.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b683cbc43010e9a3d72c2f31ca464155ff4f95819e88a32924b0f47a43898978"
-dependencies = [
- "axum",
- "bytes",
- "futures",
- "futures-core",
- "http 1.1.0",
- "http-body 1.0.0",
- "matchit",
- "metrics",
- "metrics-exporter-prometheus",
- "once_cell",
- "pin-project",
- "tokio",
- "tower",
- "tower-http",
 ]
 
 [[package]]
@@ -3063,48 +3052,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "metrics"
-version = "0.22.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2be3cbd384d4e955b231c895ce10685e3d8260c5ccffae898c96c723b0772835"
-dependencies = [
- "ahash 0.8.11",
- "portable-atomic",
-]
-
-[[package]]
-name = "metrics-exporter-prometheus"
-version = "0.13.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9bf4e7146e30ad172c42c39b3246864bd2d3c6396780711a1baf749cfe423e21"
-dependencies = [
- "base64 0.21.7",
- "hyper 0.14.28",
- "indexmap 2.5.0",
- "ipnet",
- "metrics",
- "metrics-util",
- "quanta",
- "thiserror",
- "tokio",
-]
-
-[[package]]
-name = "metrics-util"
-version = "0.16.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8b07a5eb561b8cbc16be2d216faf7757f9baf3bfb94dbb0fae3df8387a5bb47f"
-dependencies = [
- "crossbeam-epoch",
- "crossbeam-utils",
- "hashbrown 0.14.3",
- "metrics",
- "num_cpus",
- "quanta",
- "sketches-ddsketch",
-]
-
-[[package]]
 name = "mime"
 version = "0.3.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3953,12 +3900,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "portable-atomic"
-version = "1.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7170ef9988bc169ba16dd36a7fa041e5c4cbeb6a35b76d4c03daded371eae7c0"
-
-[[package]]
 name = "poseidon-ark"
 version = "0.0.1"
 source = "git+https://github.com/arnaucube/poseidon-ark.git?rev=6d2487aa1308d9d3860a2b724c485d73095c1c68#6d2487aa1308d9d3860a2b724c485d73095c1c68"
@@ -4096,6 +4037,7 @@ dependencies = [
  "aptos-infallible 0.1.0 (git+https://github.com/aptos-labs/aptos-core?rev=0ce3ac3a3e51c57b7e02ca8ed9010f6eda67d627)",
  "aptos-keyless-common",
  "aptos-logger",
+ "aptos-metrics-core",
  "aptos-types",
  "ark-bn254",
  "ark-ff",
@@ -4103,7 +4045,6 @@ dependencies = [
  "ark-serialize",
  "axum",
  "axum-extra",
- "axum-prometheus",
  "base64 0.13.1",
  "bcs",
  "clap 4.5.51",
@@ -4111,6 +4052,7 @@ dependencies = [
  "figment",
  "hex",
  "http 1.1.0",
+ "hyper 0.14.28",
  "jsonwebtoken",
  "maplit2",
  "num-bigint 0.4.4",
@@ -4142,21 +4084,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d464fae65fff2680baf48019211ce37aaec0c78e9264c84a3e484717f965104e"
 dependencies = [
  "percent-encoding",
-]
-
-[[package]]
-name = "quanta"
-version = "0.12.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9ca0b7bac0b97248c40bb77288fc52029cf1459c0461ea1b05ee32ccf011de2c"
-dependencies = [
- "crossbeam-utils",
- "libc",
- "once_cell",
- "raw-cpuid",
- "wasi 0.11.0+wasi-snapshot-preview1",
- "web-sys",
- "winapi",
 ]
 
 [[package]]
@@ -4286,15 +4213,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d25bf25ec5ae4a3f1b92f929810509a2f53d7dca2f50b794ff57e3face536c8f"
 dependencies = [
  "rand_core 0.6.4",
-]
-
-[[package]]
-name = "raw-cpuid"
-version = "11.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9d86a7c4638d42c44551f4791a20e687dbb4c3de1f33c43dd71e355cd429def1"
-dependencies = [
- "bitflags 2.4.2",
 ]
 
 [[package]]
@@ -4948,12 +4866,6 @@ dependencies = [
  "thiserror",
  "time",
 ]
-
-[[package]]
-name = "sketches-ddsketch"
-version = "0.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "85636c14b73d81f541e525f585c0a2109e6744e1565b5c1668e31c70c10ed65c"
 
 [[package]]
 name = "slab"
