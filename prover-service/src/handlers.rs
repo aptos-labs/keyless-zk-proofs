@@ -1,5 +1,6 @@
 // Copyright (c) Aptos Foundation
 
+use crate::witness_gen::PathStr;
 use crate::{
     api::{ProverServiceResponse, RequestInput},
     error::{self, ErrorWithCode, ThrowCodeOnError},
@@ -10,20 +11,23 @@ use crate::{
     witness_gen::witness_gen,
 };
 use anyhow::Result;
+use aptos_crypto::hash::CryptoHash;
+use aptos_keyless_common::logging::HasLoggableError;
+use aptos_keyless_common::{logging, PoseidonHash};
+use aptos_types::keyless::{g1_projective_str_to_affine, g2_projective_str_to_affine};
 use aptos_types::{
     keyless::{G1Bytes, G2Bytes, Groth16Proof},
     transaction::authenticator::EphemeralSignature,
 };
+use ark_bn254::Bn254;
+use ark_ff::PrimeField;
+use ark_groth16::{PreparedVerifyingKey, VerifyingKey};
 use axum::{extract::State, http::StatusCode, Json};
 use axum_extra::extract::WithRejection;
-
-use crate::proving::prove;
-use aptos_crypto::hash::CryptoHash;
-use aptos_keyless_common::logging;
-use aptos_keyless_common::logging::HasLoggableError;
 use maplit2::hashmap;
-use serde::Deserialize;
-use std::{sync::Arc, time::Instant};
+use serde::{Deserialize, Serialize};
+use std::{fs, sync::Arc, time::Instant};
+use tempfile::NamedTempFile;
 use uuid::Uuid;
 
 /// Returns deployment information as a JSON string
@@ -107,9 +111,96 @@ pub async fn prove_handler(
     .await
 }
 
+pub async fn prove(
+    state: &ProverServiceState,
+    witness_file: NamedTempFile,
+    public_inputs_hash: PoseidonHash,
+) -> Result<Groth16Proof, ErrorWithCode> {
+    let _span = logging::new_span("GenerateProofWithRetry");
+    let prover_unlocked = state.full_prover.lock().await;
+    let witness_file_path = witness_file.path_str().log_err()?;
+    let (proof_json, internal_metrics) = prover_unlocked
+        .prove(witness_file_path)
+        .map_err(error::handle_prover_lib_error)
+        .log_err()?;
+    metrics::GROTH16_TIME_SECS.observe((f64::from(internal_metrics.prover_time)) / 1000.0);
+
+    let rapidsnark_proof = serde_json::from_str(proof_json).map_err(anyhow::Error::from)?;
+    let proof = encode_proof(&rapidsnark_proof)?;
+
+    let g16vk = {
+        let _span = logging::new_span("PrepareVK");
+        prepared_vk(
+            &state
+                .prover_service_config
+                .test_verification_key_file_path(),
+        )
+    };
+
+    proof.verify_proof(
+        ark_bn254::Fr::from_le_bytes_mod_order(&public_inputs_hash),
+        &g16vk,
+    )?;
+
+    Ok(proof)
+}
+
 /// On all unrecognized routes, return 404.
 pub async fn fallback_handler() -> (StatusCode, &'static str) {
     (StatusCode::NOT_FOUND, "Invalid route")
+}
+
+#[allow(non_snake_case)]
+#[derive(Serialize, Deserialize, Debug)]
+struct RawVK {
+    vk_alpha_1: Vec<String>,
+    vk_beta_2: Vec<Vec<String>>,
+    vk_gamma_2: Vec<Vec<String>>,
+    vk_delta_2: Vec<Vec<String>>,
+    IC: Vec<Vec<String>>,
+}
+
+/// This function uses the decimal uncompressed point serialization which is outputted by circom.
+pub fn prepared_vk(vk_file_path: &str) -> PreparedVerifyingKey<Bn254> {
+    let raw_vk: RawVK =
+        serde_yaml::from_str(&fs::read_to_string(vk_file_path).expect("Unable to read file"))
+            .expect("should parse correctly");
+
+    let alpha_g1 =
+        g1_projective_str_to_affine(&raw_vk.vk_alpha_1[0], &raw_vk.vk_alpha_1[1]).unwrap();
+
+    let beta_g2 = g2_projective_str_to_affine(
+        [&raw_vk.vk_beta_2[0][0], &raw_vk.vk_beta_2[0][1]],
+        [&raw_vk.vk_beta_2[1][0], &raw_vk.vk_beta_2[1][1]],
+    )
+    .unwrap();
+
+    let gamma_g2 = g2_projective_str_to_affine(
+        [&raw_vk.vk_gamma_2[0][0], &raw_vk.vk_gamma_2[0][1]],
+        [&raw_vk.vk_gamma_2[1][0], &raw_vk.vk_gamma_2[1][1]],
+    )
+    .unwrap();
+
+    let delta_g2 = g2_projective_str_to_affine(
+        [&raw_vk.vk_delta_2[0][0], &raw_vk.vk_delta_2[0][1]],
+        [&raw_vk.vk_delta_2[1][0], &raw_vk.vk_delta_2[1][1]],
+    )
+    .unwrap();
+
+    let mut gamma_abc_g1 = Vec::new();
+    for p in raw_vk.IC {
+        gamma_abc_g1.push(g1_projective_str_to_affine(&p[0], &p[1]).unwrap());
+    }
+
+    let vk = VerifyingKey {
+        alpha_g1,
+        beta_g2,
+        gamma_g2,
+        delta_g2,
+        gamma_abc_g1,
+    };
+
+    PreparedVerifyingKey::from(vk)
 }
 
 #[derive(Deserialize)]

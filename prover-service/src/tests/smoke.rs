@@ -1,7 +1,6 @@
 // Copyright (c) Aptos Foundation
 
-use crate::handlers::encode_proof;
-use crate::load_vk::prepared_vk;
+use crate::handlers::{encode_proof, prepared_vk};
 use crate::tests::common::{
     convert_prove_and_verify,
     types::{ProofTestCase, TestJWTPayload},

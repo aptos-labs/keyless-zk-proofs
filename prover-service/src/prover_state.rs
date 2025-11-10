@@ -71,6 +71,7 @@ impl TrainingWheelsKeyPair {
     pub fn from_sk(sk: Ed25519PrivateKey) -> Self {
         let verification_key = Ed25519PublicKey::from(&sk);
         let on_chain_repr = OnChainKeylessConfiguration::from_tw_pk(Some(verification_key.clone()));
+
         Self {
             signing_key: sk,
             verification_key,
