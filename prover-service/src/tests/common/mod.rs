@@ -1,17 +1,17 @@
 // Copyright (c) Aptos Foundation
 
 use self::types::{DefaultTestJWKKeyPair, TestJWKKeyPair, WithNonce};
+use crate::config::prover_config::ProverServiceConfig;
 use crate::deployment_information::DeploymentInformation;
-use crate::load_vk::prepared_vk;
-use crate::prover_key::TrainingWheelsKeyPair;
+use crate::handlers::prepared_vk;
+use crate::prover_state::TrainingWheelsKeyPair;
 use crate::tests::common::types::ProofTestCase;
 use crate::training_wheels;
 use crate::{
     api::ProverServiceResponse,
     handlers::prove_handler,
     jwk_fetching::{KeyID, DECODING_KEY_CACHE},
-    prover_config::ProverServiceConfig,
-    state::ProverServiceState,
+    prover_state::ProverServiceState,
 };
 use aptos_crypto::{
     ed25519::{Ed25519PrivateKey, Ed25519PublicKey},

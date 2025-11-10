@@ -3,18 +3,15 @@
 extern crate core;
 
 pub mod api;
+pub mod config;
 pub mod deployment_information;
 pub mod error;
 pub mod groth16_vk;
 pub mod handlers;
 pub mod input_processing;
 pub mod jwk_fetching;
-pub mod load_vk;
 pub mod metrics;
-pub mod prover_config;
-pub mod prover_key;
-pub mod proving;
-pub mod state;
+pub mod prover_state;
 pub mod training_wheels;
 pub mod utils;
 pub mod witness_gen;

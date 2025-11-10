@@ -1,6 +1,6 @@
 // Copyright (c) Aptos Foundation
 
-use crate::prover_config::ProverServiceConfig;
+use crate::config::prover_config::ProverServiceConfig;
 use aptos_logger::{error, info, warn};
 use aptos_metrics_core::{
     register_histogram, register_int_counter_vec, Histogram, IntCounterVec, TextEncoder,
