@@ -20,6 +20,7 @@ aptos-crypto-derive = { workspace = true }
 aptos-infallible = { workspace = true }
 aptos-keyless-common = { workspace = true }
 aptos-logger = { workspace = true }
+aptos-metrics-core = { workspace = true }
 aptos-types = { workspace = true }
 ark-bn254 = { workspace = true }
 ark-ff = { workspace = true }
@@ -27,7 +28,6 @@ ark-groth16 = { workspace = true }
 ark-serialize = { workspace = true }
 axum = { workspace = true }
 axum-extra = { workspace = true }
-axum-prometheus = { workspace = true }
 base64 = { workspace = true }
 bcs = { workspace = true }
 clap = { workspace = true }
@@ -35,6 +35,7 @@ dashmap = { workspace = true }
 figment = { workspace = true }
 hex = { workspace = true }
 http = { workspace = true }
+hyper = { workspace = true }
 jsonwebtoken = { workspace = true }
 maplit2 = { workspace = true }
 num-bigint = { workspace = true }

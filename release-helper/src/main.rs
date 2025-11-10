@@ -6,7 +6,19 @@ use aptos_keyless_common::groth16_vk::{
 use clap::{Parser, Subcommand};
 use std::fs;
 use std::io::Write;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
+
+// Paths to various release builder directories (relative to aptos-core repo root)
+const APTOS_RELEASE_BUILDER_DATA_PATH: &str = "aptos-move/aptos-release-builder/data";
+const APTOS_RELEASE_BUILDER_PROPOSALS_PATH: &str =
+    "aptos-move/aptos-release-builder/data/proposals";
+
+// Prefix for hex strings
+const HEX_PREFIX: &str = "0x";
+
+// File names for the keyless config update files
+const KEYLESS_CONFIG_MOVE_FILE_NAME: &str = "keyless-config-update.move";
+const KEYLESS_CONFIG_YAML_FILE: &str = "keyless-config-update.yaml";
 
 #[derive(Parser)]
 #[clap(name = "release-helper")]
@@ -33,9 +45,9 @@ enum Commands {
         #[clap(long = "out")]
         out: PathBuf,
     },
-    /// Generate a governance proposal in an local aptos-core repo.
+    /// Generate a governance proposal in a local aptos-core repo
     GenerateProposal {
-        /// Path to a local aptos-core repo that this tool will modify.
+        /// Path to a local aptos-core repo that this tool will modify
         #[clap(long = "aptos-core-path")]
         aptos_core_path: PathBuf,
 
@@ -47,65 +59,90 @@ enum Commands {
         #[clap(long = "twpk-path")]
         twpk_path: PathBuf,
 
-        /// Only used in description text.
+        /// The circuit release tag (only used in description text)
         #[clap(long = "circuit-release-tag")]
         circuit_release_tag: String,
 
-        /// Only used in description text.
+        /// The training wheel key ID (only used in description text)
         #[clap(long = "tw-key-id")]
         tw_key_id: String,
+
+        /// The remote endpoint URL (only used in YAML file)
+        #[clap(
+            long = "remote-endpoint",
+            default_value = "https://api.mainnet.aptoslabs.com"
+        )]
+        remote_endpoint: String,
     },
 }
 
+/// The mode for generating the proposal script
 enum ProposalExecutionMode {
     RootSigner,
     ProposalID,
 }
 
 fn main() {
+    // Parse the CLI arguments
     let cli = Cli::parse();
 
+    // Execute the command
     match cli.command {
         Commands::GenerateRootSignerScript {
             vk_path,
             twpk_path,
             out,
-        } => generate_root_signer_script(&vk_path, &twpk_path, &out),
+        } => generate_root_signer_script(vk_path, twpk_path, out),
         Commands::GenerateProposal {
             aptos_core_path,
             circuit_release_tag,
             tw_key_id,
             vk_path,
             twpk_path,
+            remote_endpoint,
         } => generate_governance_proposal(
-            &aptos_core_path,
-            &circuit_release_tag,
-            &tw_key_id,
-            &vk_path,
-            &twpk_path,
+            aptos_core_path,
+            circuit_release_tag,
+            tw_key_id,
+            vk_path,
+            twpk_path,
+            remote_endpoint,
         ),
     }
 }
 
+/// Generates a governance proposal in the specified aptos-core repo
 fn generate_governance_proposal(
-    repo_path: &Path,
-    circuit_release_tag: &str,
-    tw_key_id: &str,
-    vk_path: &PathBuf,
-    twpk_path: &PathBuf,
+    aptos_core_path: PathBuf,
+    circuit_release_tag: String,
+    tw_key_id: String,
+    vk_path: PathBuf,
+    twpk_path: PathBuf,
+    remote_endpoint: String,
 ) {
-    new_release_yaml(repo_path, circuit_release_tag, tw_key_id);
-    generate_proposal_script(repo_path, vk_path, twpk_path);
+    // Create the release YAML file
+    create_release_yaml(
+        aptos_core_path.clone(),
+        circuit_release_tag,
+        tw_key_id,
+        remote_endpoint,
+    );
+
+    // Generate the proposal script
+    generate_proposal_script(aptos_core_path, vk_path, twpk_path);
 }
 
-fn new_release_yaml(aptos_core_path: &Path, circuit_release_tag: &str, tw_key_id: &str) {
-    let target_path =
-        aptos_core_path.join("aptos-move/aptos-release-builder/data/keyless-config-update.yaml");
-    println!("Writing to {target_path:?}.");
-    let mut file = fs::File::create(&target_path).unwrap();
+/// Creates the release YAML file and writes it to the specified aptos-core repo
+fn create_release_yaml(
+    aptos_core_path: PathBuf,
+    circuit_release_tag: String,
+    tw_key_id: String,
+    remote_endpoint: String,
+) {
+    // Create the YAML content
     let release_yaml_content = format!(
         r#"---
-remote_endpoint: https://fullnode.mainnet.aptoslabs.com
+remote_endpoint: {}
 name: "keyless_config_update"
 proposals:
   - name: keyless_config_update
@@ -116,22 +153,31 @@ proposals:
     update_sequence:
       - RawScript: aptos-move/aptos-release-builder/data/proposals/keyless-config-update.move
 "#,
-        circuit_release_tag, tw_key_id
+        remote_endpoint, circuit_release_tag, tw_key_id
     );
-    file.write_all(release_yaml_content.as_bytes()).unwrap();
+
+    // Write the YAML to the output file
+    let target_path = aptos_core_path
+        .join(APTOS_RELEASE_BUILDER_DATA_PATH)
+        .join(KEYLESS_CONFIG_YAML_FILE);
+    write_bytes_to_file(target_path, release_yaml_content);
 }
 
-fn generate_proposal_script(repo_path: &Path, vk_path: &PathBuf, twpk_path: &PathBuf) {
+/// Generates the proposal script and writes it to the specified aptos-core repo
+fn generate_proposal_script(aptos_core_path: PathBuf, vk_path: PathBuf, twpk_path: PathBuf) {
+    // Generate the script content
     let script_content =
         generate_script_content(ProposalExecutionMode::ProposalID, vk_path, twpk_path);
-    let target_path = repo_path
-        .join("aptos-move/aptos-release-builder/data/proposals/keyless-config-update.move");
-    println!("Writing to {target_path:?}.");
-    let mut file = fs::File::create(&target_path).unwrap();
-    file.write_all(script_content.as_bytes()).unwrap();
+
+    // Write the script to the output file
+    let target_path = aptos_core_path
+        .join(APTOS_RELEASE_BUILDER_PROPOSALS_PATH)
+        .join(KEYLESS_CONFIG_MOVE_FILE_NAME);
+    write_bytes_to_file(target_path, script_content);
 }
 
-fn generate_root_signer_script(vk_path: &PathBuf, twpk_path: &PathBuf, out: &PathBuf) {
+/// Generates a root signer script and writes it to the specified output path
+fn generate_root_signer_script(vk_path: PathBuf, twpk_path: PathBuf, out: PathBuf) {
     println!("Generating root signer script...");
     println!("VK path: {}", vk_path.display());
     println!("TWPK path: {}", twpk_path.display());
@@ -141,33 +187,36 @@ fn generate_root_signer_script(vk_path: &PathBuf, twpk_path: &PathBuf, out: &Pat
     let script_content =
         generate_script_content(ProposalExecutionMode::RootSigner, vk_path, twpk_path);
 
-    // Ensure output directory exists
+    // Ensure the output directory exists
     if let Some(parent) = out.parent() {
         fs::create_dir_all(parent).unwrap();
     }
 
     // Write the script to the output file
-    fs::write(out, script_content).unwrap();
+    fs::write(out.clone(), script_content).unwrap();
 
     println!(
-        "Successfully generated root signer script at: {}",
+        "Successfully generated root signer script at path: {}",
         out.display()
     );
 }
 
+/// Generates the Move script content for updating the keyless config (depending on the mode)
 fn generate_script_content(
-    mode: ProposalExecutionMode,
-    vk_path: &PathBuf,
-    twpk_path: &PathBuf,
+    proposal_execution_mode: ProposalExecutionMode,
+    vk_path: PathBuf,
+    twpk_path: PathBuf,
 ) -> String {
-    // Read the verification key file
-    let local_vk_json = fs::read_to_string(vk_path).unwrap();
+    // Read the verification key file and transform it into an on-chain format
+    let local_vk_json = read_file_contents(vk_path);
     let local_vk: SnarkJsGroth16VerificationKey = serde_json::from_str(&local_vk_json).unwrap();
     let vk = OnChainGroth16VerificationKey::try_from(local_vk).unwrap();
-    // Read the training wheel public key file
-    let twpk_repr = fs::read_to_string(twpk_path).unwrap();
 
-    let (main_param, framework_signer_expression) = match mode {
+    // Read the training wheel public key file
+    let twpk_repr = read_file_contents(twpk_path);
+
+    // Determine the main parameter and framework signer expression
+    let (main_param, framework_signer_expression) = match proposal_execution_mode {
         ProposalExecutionMode::RootSigner => (
             "core_resources: &signer",
             "aptos_governance::get_signer_testnet_only(core_resources, @0x1)",
@@ -177,6 +226,8 @@ fn generate_script_content(
             "aptos_governance::resolve_multi_step_proposal(proposal_id, @0x1, {{ script_hash }},)",
         ),
     };
+
+    // Create and return the script content
     format!(
         r#"
 script {{
@@ -204,17 +255,47 @@ script {{
 "#,
         main_param,
         framework_signer_expression,
-        remove_0x(&vk.data.alpha_g1),
-        remove_0x(&vk.data.beta_g2),
-        remove_0x(&vk.data.gamma_g2),
-        remove_0x(&vk.data.delta_g2),
-        remove_0x(&vk.data.gamma_abc_g1[0]),
-        remove_0x(&vk.data.gamma_abc_g1[1]),
-        remove_0x(twpk_repr.as_str()),
+        remove_hex_prefix(&vk.data.alpha_g1),
+        remove_hex_prefix(&vk.data.beta_g2),
+        remove_hex_prefix(&vk.data.gamma_g2),
+        remove_hex_prefix(&vk.data.delta_g2),
+        remove_hex_prefix(&vk.data.gamma_abc_g1[0]),
+        remove_hex_prefix(&vk.data.gamma_abc_g1[1]),
+        remove_hex_prefix(twpk_repr.as_str()),
     )
 }
 
-fn remove_0x(bytes_repr: &str) -> String {
-    assert!(bytes_repr.starts_with("0x"));
-    bytes_repr.trim_start_matches("0x").to_owned()
+/// Reads the contents of the specified file and returns it as a string
+fn read_file_contents(file_path: PathBuf) -> String {
+    fs::read_to_string(file_path.clone()).unwrap_or_else(|error| {
+        panic!(
+            "Failed to read file at path: {:?}. Error: {:?}",
+            file_path, error
+        )
+    })
+}
+
+/// Removes the "0x" prefix from the given hex string
+fn remove_hex_prefix(hex_string: &str) -> String {
+    assert!(hex_string.starts_with(HEX_PREFIX));
+    hex_string.trim_start_matches(HEX_PREFIX).into()
+}
+
+/// Writes the given string to the specified file path (as bytes)
+fn write_bytes_to_file(file_path: PathBuf, file_content: String) {
+    println!("Writing to file path: {:?}...", file_path);
+
+    let mut file = fs::File::create(&file_path).unwrap_or_else(|error| {
+        panic!(
+            "Failed to create file at path: {:?}. Error: {:?}",
+            file_path, error
+        )
+    });
+    file.write_all(file_content.as_bytes())
+        .unwrap_or_else(|error| {
+            panic!(
+                "Failed to write to file at path: {:?}. Error: {:?}",
+                file_path, error
+            )
+        });
 }

@@ -3,8 +3,10 @@
 use crate::groth16_vk::{OnChainGroth16VerificationKey, SnarkJsGroth16VerificationKey};
 use crate::utils;
 use aptos_keyless_common::input_processing::config::CircuitConfig;
+use aptos_logger::info;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
+use std::sync::Arc;
 
 // Constants for the prover service configuration file
 const CIRCUIT_CONFIG_YML_FILE_NAME: &str = "circuit_config.yml";
@@ -135,6 +137,35 @@ impl ProverServiceConfig {
             ),
         }
     }
+}
+
+/// Loads the prover service config from the specified file path.
+/// If the file cannot be read or parsed, this function will panic.
+pub fn load_prover_service_config(config_file_path: &str) -> Arc<ProverServiceConfig> {
+    info!(
+        "Loading the prover service config file from path: {}",
+        config_file_path
+    );
+
+    // Read the config file contents
+    let config_file_contents = utils::read_string_from_file_path(config_file_path);
+
+    // Parse the config file contents into the config struct
+    let prover_service_config = match serde_yaml::from_str(&config_file_contents) {
+        Ok(prover_service_config) => {
+            info!(
+                "Loaded the prover service config: {:?}",
+                prover_service_config
+            );
+            prover_service_config
+        }
+        Err(error) => panic!(
+            "Failed to parse prover service config yaml file: {}! Error: {}",
+            config_file_path, error
+        ),
+    };
+
+    Arc::new(prover_service_config)
 }
 
 /// Expands the tilde in a given path

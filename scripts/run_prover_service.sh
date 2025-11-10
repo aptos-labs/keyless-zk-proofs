@@ -5,9 +5,6 @@
 # Set appropriate script flags.
 set -ex
 
-# Export the private key environment variable (for testing)
-export PRIVATE_KEY_0=$(cat ./prover-service/private_key_for_testing.txt)
-
 # Procure a testing setup to generate the Groth16 proving key.
 # Note: this can take ~10 minutes the first time it is run.
 ./scripts/task.sh setup procure-testing-setup
