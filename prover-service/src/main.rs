@@ -1,6 +1,6 @@
 // Copyright (c) Aptos Foundation
 
-use aptos_crypto::ed25519::{Ed25519PrivateKey, Ed25519PublicKey};
+use aptos_crypto::ed25519::Ed25519PrivateKey;
 use aptos_crypto::ValidCryptoMaterialStringExt;
 use aptos_logger::info;
 use axum::{
@@ -9,19 +9,12 @@ use axum::{
 };
 use clap::Parser;
 use http::Method;
-use hyper::service::{make_service_fn, service_fn};
-use hyper::Server;
-use prover_service::deployment_information::DeploymentInformation;
 use prover_service::prover_config::ProverServiceConfig;
 use prover_service::prover_key::TrainingWheelsKeyPair;
 use prover_service::{state::*, *};
-use std::convert::Infallible;
 use std::{net::SocketAddr, sync::Arc, time::Duration};
 use tower::ServiceBuilder;
 use tower_http::cors::{Any, CorsLayer};
-
-// The key used to store the training wheels verification key in the deployment information
-const TRAINING_WHEELS_VERIFICATION_KEY: &str = "training_wheels_verification_key";
 
 // The list of endpoints/paths offered by the Prover Service.
 const ABOUT_PATH: &str = "/about";
@@ -55,11 +48,12 @@ async fn main() {
         load_training_wheels_key_pair(&args.training_wheels_private_key_file_path);
 
     // Load the prover service config
-    let prover_service_config = load_prover_service_config(&args.config_file_path);
+    let prover_service_config = prover_config::load_prover_service_config(&args.config_file_path);
 
     // Get the deployment information
-    let deployment_information =
-        get_deployment_information(&training_wheels_key_pair.verification_key);
+    let deployment_information = deployment_information::get_deployment_information(
+        &training_wheels_key_pair.verification_key,
+    );
 
     // Create the prover service state
     let prover_service_state = Arc::new(ProverServiceState::init(
@@ -105,60 +99,11 @@ async fn main() {
     });
 
     // Start the metrics server
-    start_metrics_server(prover_service_config);
+    metrics::start_metrics_server(prover_service_config);
 
-    // Wait for both serve jobs to finish indefinitely, or until one of them panics
+    // Wait for the application to end (it shouldn't, unless there's a fatal error)
     let res = tokio::try_join!(app_handle);
-    panic!(
-        "One of the tasks that weren't meant to end ended unexpectedly: {:?}",
-        res
-    );
-}
-
-/// Creates and returns the deployment information for the prover service
-fn get_deployment_information(
-    training_wheels_verification_key: &Ed25519PublicKey,
-) -> DeploymentInformation {
-    // Create the deployment information
-    let mut deployment_information = DeploymentInformation::new();
-
-    // Insert the training wheels verification key into the deployment information.
-    // This is useful for runtime verification (e.g., to ensure the correct key is being used).
-    deployment_information.extend_deployment_information(
-        TRAINING_WHEELS_VERIFICATION_KEY.into(),
-        training_wheels_verification_key.to_string(),
-    );
-
-    deployment_information
-}
-
-/// Loads the prover service config from the specified file path.
-/// If the file cannot be read or parsed, this function will panic.
-fn load_prover_service_config(config_file_path: &str) -> Arc<ProverServiceConfig> {
-    info!(
-        "Loading the prover service config file from path: {}",
-        config_file_path
-    );
-
-    // Read the config file contents
-    let config_file_contents = utils::read_string_from_file_path(config_file_path);
-
-    // Parse the config file contents into the config struct
-    let prover_service_config = match serde_yaml::from_str(&config_file_contents) {
-        Ok(prover_service_config) => {
-            info!(
-                "Loaded the prover service config: {:?}",
-                prover_service_config
-            );
-            prover_service_config
-        }
-        Err(error) => panic!(
-            "Failed to parse prover service config yaml file: {}! Error: {}",
-            config_file_path, error
-        ),
-    };
-
-    Arc::new(prover_service_config)
+    panic!("The application task ended unexpectedly: {:?}", res);
 }
 
 /// Loads and logs the test verification key from the prover service config
@@ -199,23 +144,4 @@ fn load_training_wheels_key_pair(
             error
         ),
     }
-}
-
-// Starts a simple metrics server
-fn start_metrics_server(prover_service_config: Arc<ProverServiceConfig>) {
-    let _handle = tokio::spawn(async move {
-        info!("Starting metrics server request handler...");
-
-        // Create a service function that handles the metrics requests
-        let make_service = make_service_fn(|_conn| async {
-            Ok::<_, Infallible>(service_fn(metrics::handle_metrics_request))
-        });
-
-        // Bind the socket address, and start the server
-        let socket_addr = SocketAddr::from(([0, 0, 0, 0], prover_service_config.metrics_port));
-        let server = Server::bind(&socket_addr).serve(make_service);
-        if let Err(error) = server.await {
-            panic!("Metrics server error! Error: {}", error);
-        }
-    });
 }
