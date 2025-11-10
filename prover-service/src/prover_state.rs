@@ -1,13 +1,13 @@
 // Copyright (c) Aptos Foundation
 
+use crate::deployment_information::DeploymentInformation;
+use crate::groth16_vk::OnChainGroth16VerificationKey;
+use crate::keyless_config::OnChainKeylessConfiguration;
+use crate::prover_config::ProverServiceConfig;
+use aptos_crypto::ed25519::{Ed25519PrivateKey, Ed25519PublicKey};
 use aptos_keyless_common::input_processing::config::CircuitConfig;
 use rust_rapidsnark::FullProver;
 use std::sync::Arc;
-
-use crate::deployment_information::DeploymentInformation;
-use crate::groth16_vk::OnChainGroth16VerificationKey;
-use crate::prover_config::ProverServiceConfig;
-use crate::prover_key::TrainingWheelsKeyPair;
 use tokio::sync::Mutex;
 
 /// The shared state of the prover service (used across all requests)
@@ -56,5 +56,25 @@ impl ProverServiceState {
     /// Returns a reference to the deployment information
     pub fn deployment_information(&self) -> &DeploymentInformation {
         &self.deployment_information
+    }
+}
+
+/// The training wheels key pair struct
+#[derive(Debug)]
+pub struct TrainingWheelsKeyPair {
+    pub signing_key: Ed25519PrivateKey,
+    pub verification_key: Ed25519PublicKey,
+    pub on_chain_repr: OnChainKeylessConfiguration,
+}
+
+impl TrainingWheelsKeyPair {
+    pub fn from_sk(sk: Ed25519PrivateKey) -> Self {
+        let verification_key = Ed25519PublicKey::from(&sk);
+        let on_chain_repr = OnChainKeylessConfiguration::from_tw_pk(Some(verification_key.clone()));
+        Self {
+            signing_key: sk,
+            verification_key,
+            on_chain_repr,
+        }
     }
 }

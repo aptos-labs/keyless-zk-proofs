@@ -3,7 +3,7 @@
 use self::types::{DefaultTestJWKKeyPair, TestJWKKeyPair, WithNonce};
 use crate::deployment_information::DeploymentInformation;
 use crate::load_vk::prepared_vk;
-use crate::prover_key::TrainingWheelsKeyPair;
+use crate::prover_state::TrainingWheelsKeyPair;
 use crate::tests::common::types::ProofTestCase;
 use crate::training_wheels;
 use crate::{

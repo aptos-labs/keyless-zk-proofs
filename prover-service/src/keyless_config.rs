@@ -1,12 +1,8 @@
 // Copyright (c) Aptos Foundation
 
-use crate::prover_config::ProverServiceConfig;
-use aptos_crypto::ed25519::{Ed25519PrivateKey, Ed25519PublicKey};
+use aptos_crypto::ed25519::Ed25519PublicKey;
 use aptos_crypto::ValidCryptoMaterialStringExt;
 use serde::{Deserialize, Serialize};
-#[cfg(test)]
-use std::io::Write;
-
 
 // TODO: merge this with the same struct used by the pepper service
 
@@ -79,43 +75,4 @@ pub struct KeylessConfigurationData {
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct TrainingWheelsPubKey {
     vec: Vec<String>,
-}
-
-#[derive(Debug)]
-pub struct TrainingWheelsKeyPair {
-    pub signing_key: Ed25519PrivateKey,
-    pub verification_key: Ed25519PublicKey,
-    pub on_chain_repr: OnChainKeylessConfiguration,
-}
-
-impl TrainingWheelsKeyPair {
-    pub fn from_sk(sk: Ed25519PrivateKey) -> Self {
-        let verification_key = Ed25519PublicKey::from(&sk);
-        let on_chain_repr = OnChainKeylessConfiguration::from_tw_pk(Some(verification_key.clone()));
-        Self {
-            signing_key: sk,
-            verification_key,
-            on_chain_repr,
-        }
-    }
-}
-
-/// This is not a UT, but a tool to convert a .vkey to its on-chain representation and save in a file.
-#[test]
-fn tw_vk_rewriter() {
-    if let (Ok(path_in), Ok(path_out)) = (
-        std::env::var("LOCAL_TW_VK_IN"),
-        std::env::var("ONCHAIN_KEYLESS_CONFIG_OUT"),
-    ) {
-        let local_tw_sk_encoded = std::fs::read_to_string(path_in.as_str()).unwrap();
-        let local_tw_sk =
-            Ed25519PrivateKey::from_encoded_string(local_tw_sk_encoded.as_str()).unwrap();
-        let local_tw_pk = Ed25519PublicKey::from(&local_tw_sk);
-        let onchain_keyless_config = OnChainKeylessConfiguration::from_tw_pk(Some(local_tw_pk));
-        let json_out = serde_json::to_string_pretty(&onchain_keyless_config).unwrap();
-        std::fs::File::create(path_out)
-            .unwrap()
-            .write_all(json_out.as_bytes())
-            .unwrap();
-    }
 }
