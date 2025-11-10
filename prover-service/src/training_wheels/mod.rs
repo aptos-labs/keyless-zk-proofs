@@ -8,7 +8,7 @@ use crate::input_processing::types::VerifiedInput;
 use crate::jwk_fetching;
 use crate::jwk_fetching::get_federated_jwk;
 use crate::prover_config::ProverServiceConfig;
-use crate::state::ProverServiceState;
+use crate::prover_state::ProverServiceState;
 use crate::training_wheels::verification_logic::compute_nonce;
 use anyhow::{anyhow, bail, ensure};
 use aptos_keyless_common::input_processing::encoding::{AsFr, DecodedJWT};

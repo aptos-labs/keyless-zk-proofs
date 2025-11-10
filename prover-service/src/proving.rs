@@ -3,7 +3,7 @@
 use crate::error::ErrorWithCode;
 use crate::handlers::encode_proof;
 use crate::load_vk::prepared_vk;
-use crate::state::ProverServiceState;
+use crate::prover_state::ProverServiceState;
 use crate::witness_gen::PathStr;
 use crate::{error, metrics};
 use anyhow::Result;

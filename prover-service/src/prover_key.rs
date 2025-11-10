@@ -7,14 +7,6 @@ use serde::{Deserialize, Serialize};
 #[cfg(test)]
 use std::io::Write;
 
-pub async fn cached_prover_key(config: &ProverServiceConfig) -> String {
-    String::from(&config.resources_dir) + &config.zkey_filename
-}
-
-pub async fn cached_verification_key(config: &ProverServiceConfig) -> String {
-    String::from(&config.resources_dir) + &config.test_verification_key_filename
-}
-
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct OnChainKeylessConfiguration {
     /// Some type info returned by node API.

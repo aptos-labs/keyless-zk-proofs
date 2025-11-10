@@ -5,7 +5,7 @@ use crate::{
     error::{self, ErrorWithCode, ThrowCodeOnError},
     input_processing::derive_circuit_input_signals,
     metrics,
-    state::ProverServiceState,
+    prover_state::ProverServiceState,
     training_wheels, utils,
     witness_gen::witness_gen,
 };

@@ -10,6 +10,7 @@ use crate::prover_config::ProverServiceConfig;
 use crate::prover_key::TrainingWheelsKeyPair;
 use tokio::sync::Mutex;
 
+/// The shared state of the prover service (used across all requests)
 pub struct ProverServiceState {
     pub prover_service_config: Arc<ProverServiceConfig>,
     pub circuit_config: CircuitConfig,
