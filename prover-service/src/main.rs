@@ -9,7 +9,8 @@ use axum::{
 };
 use clap::Parser;
 use http::Method;
-use prover_service::prover_config::ProverServiceConfig;
+use prover_service::config::prover_config;
+use prover_service::config::prover_config::ProverServiceConfig;
 use prover_service::{prover_state::*, *};
 use std::{net::SocketAddr, sync::Arc, time::Duration};
 use tower::ServiceBuilder;

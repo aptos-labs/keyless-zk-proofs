@@ -1,9 +1,9 @@
 // Copyright (c) Aptos Foundation
 
+use crate::config::keyless_config::OnChainKeylessConfiguration;
+use crate::config::prover_config::ProverServiceConfig;
 use crate::deployment_information::DeploymentInformation;
 use crate::groth16_vk::OnChainGroth16VerificationKey;
-use crate::keyless_config::OnChainKeylessConfiguration;
-use crate::prover_config::ProverServiceConfig;
 use aptos_crypto::ed25519::{Ed25519PrivateKey, Ed25519PublicKey};
 use aptos_keyless_common::input_processing::config::CircuitConfig;
 use rust_rapidsnark::FullProver;
@@ -68,12 +68,12 @@ pub struct TrainingWheelsKeyPair {
 }
 
 impl TrainingWheelsKeyPair {
-    pub fn from_sk(sk: Ed25519PrivateKey) -> Self {
-        let verification_key = Ed25519PublicKey::from(&sk);
+    pub fn from_sk(signing_key: Ed25519PrivateKey) -> Self {
+        let verification_key = Ed25519PublicKey::from(&signing_key);
         let on_chain_repr = OnChainKeylessConfiguration::from_tw_pk(Some(verification_key.clone()));
 
         Self {
-            signing_key: sk,
+            signing_key,
             verification_key,
             on_chain_repr,
         }

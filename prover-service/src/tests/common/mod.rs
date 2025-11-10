@@ -1,6 +1,7 @@
 // Copyright (c) Aptos Foundation
 
 use self::types::{DefaultTestJWKKeyPair, TestJWKKeyPair, WithNonce};
+use crate::config::prover_config::ProverServiceConfig;
 use crate::deployment_information::DeploymentInformation;
 use crate::handlers::prepared_vk;
 use crate::prover_state::TrainingWheelsKeyPair;
@@ -10,7 +11,6 @@ use crate::{
     api::ProverServiceResponse,
     handlers::prove_handler,
     jwk_fetching::{KeyID, DECODING_KEY_CACHE},
-    prover_config::ProverServiceConfig,
     prover_state::ProverServiceState,
 };
 use aptos_crypto::{

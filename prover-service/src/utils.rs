@@ -69,7 +69,7 @@ pub fn write_string_to_new_file(file_path: &str, content: &str) {
 
 #[cfg(test)]
 mod test {
-    use crate::keyless_config::OnChainKeylessConfiguration;
+    use crate::config::keyless_config::OnChainKeylessConfiguration;
     use crate::utils;
     use aptos_crypto::ed25519::{Ed25519PrivateKey, Ed25519PublicKey};
     use aptos_crypto::ValidCryptoMaterialStringExt;
