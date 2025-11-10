@@ -1,11 +1,93 @@
 // Copyright (c) Aptos Foundation
 
+use crate::utils;
 use aptos_logger::{error, warn};
 use http::StatusCode;
+use hyper::header::{ACCESS_CONTROL_ALLOW_CREDENTIALS, ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_TYPE};
+use hyper::http::response;
+use hyper::{Body, Request, Response};
 use serde::Serialize;
+use std::convert::Infallible;
 use std::fmt::Debug;
 use std::fs;
 use std::io::Write;
+
+// Content type constants
+pub const CONTENT_TYPE_JSON: &str = "application/json";
+pub const CONTENT_TYPE_TEXT: &str = "text/plain";
+
+// Origin header constants
+pub const MISSING_ORIGIN_STRING: &str = ""; // Default to empty string if origin header is missing
+const ORIGIN_HEADER: &str = "origin";
+
+// Unexpected error message constant
+const UNEXPECTED_ERROR_MESSAGE: &str = "An unexpected error was encountered!";
+
+/// Returns a response builder prepopulated with common headers
+pub fn create_response_builder(
+    origin: String,
+    status_code: hyper::StatusCode,
+) -> response::Builder {
+    hyper::Response::builder()
+        .status(status_code)
+        .header(ACCESS_CONTROL_ALLOW_ORIGIN, origin)
+        .header(ACCESS_CONTROL_ALLOW_CREDENTIALS, "true")
+}
+
+/// Generates a 400 response for bad requests
+pub fn generate_bad_request_response(
+    origin: String,
+    json_error_string: String,
+) -> Result<Response<Body>, Infallible> {
+    generate_json_response(origin, hyper::StatusCode::BAD_REQUEST, json_error_string)
+}
+
+/// Generates a 500 response for unexpected internal server errors
+pub fn generate_internal_server_error_response(
+    origin: String,
+) -> Result<Response<Body>, Infallible> {
+    generate_text_response(
+        origin,
+        hyper::StatusCode::INTERNAL_SERVER_ERROR,
+        UNEXPECTED_ERROR_MESSAGE.into(),
+    )
+}
+
+/// Generates a JSON response with the given status code and body string
+pub fn generate_json_response(
+    origin: String,
+    status_code: hyper::StatusCode,
+    body_str: String,
+) -> Result<Response<Body>, Infallible> {
+    let response = create_response_builder(origin, status_code)
+        .header(CONTENT_TYPE, CONTENT_TYPE_JSON)
+        .body(Body::from(body_str))
+        .expect("Failed to build JSON response!");
+    Ok(response)
+}
+
+/// Generates a text response with the given status code and body string
+pub fn generate_text_response(
+    origin: String,
+    status_code: hyper::StatusCode,
+    body_str: String,
+) -> Result<Response<Body>, Infallible> {
+    let response = utils::create_response_builder(origin, status_code)
+        .header(CONTENT_TYPE, CONTENT_TYPE_TEXT)
+        .body(Body::from(body_str))
+        .expect("Failed to build text response!");
+    Ok(response)
+}
+
+/// Extracts the origin header from the request
+pub fn get_request_origin(request: &Request<Body>) -> String {
+    request
+        .headers()
+        .get(ORIGIN_HEADER)
+        .and_then(|header_value| header_value.to_str().ok())
+        .unwrap_or(MISSING_ORIGIN_STRING)
+        .to_owned()
+}
 
 /// Reads the value of a given environment variable. If
 /// the variable is not set, an error will be logged, and

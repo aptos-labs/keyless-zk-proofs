@@ -32,7 +32,7 @@ impl DeploymentInformation {
     }
 
     /// Returns a copy of the deployment information map
-    pub fn get_deployment_information(&self) -> BTreeMap<String, String> {
+    pub fn get_deployment_information_map(&self) -> BTreeMap<String, String> {
         self.deployment_information_map.lock().clone()
     }
 }
