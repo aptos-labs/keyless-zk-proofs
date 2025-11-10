@@ -45,7 +45,7 @@ fn rsa_verify_should_fail_with_invalid_modulus() {
 }
 
 #[test]
-fn rsa_verify_should_fail_with_invalid_hased_msg() {
+fn rsa_verify_should_fail_with_invalid_hashed_msg() {
     common(
         |_, _, hashed_msg_limbs| {
             flip_random_bit(hashed_msg_limbs);
