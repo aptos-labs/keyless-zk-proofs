@@ -1,18 +1,23 @@
 // Copyright (c) Aptos Foundation
 
 use crate::config::prover_config::ProverServiceConfig;
+use crate::request_handler::is_known_path;
 use aptos_logger::{error, info, warn};
 use aptos_metrics_core::{
-    register_histogram, register_int_counter_vec, Histogram, IntCounterVec, TextEncoder,
+    exponential_buckets, register_histogram_vec, register_int_counter_vec, Encoder, HistogramVec,
+    IntCounterVec, TextEncoder,
 };
 use hyper::header::CONTENT_TYPE;
 use hyper::service::{make_service_fn, service_fn};
 use hyper::{Body, Method, Server, StatusCode};
 use once_cell::sync::Lazy;
-use prometheus::{proto::MetricFamily, Encoder};
+use prometheus::proto::MetricFamily;
 use std::convert::Infallible;
 use std::net::SocketAddr;
 use std::sync::Arc;
+use std::time::Instant;
+
+// TODO: sanity check and expand these metrics!
 
 // Constants for the metrics endpoint and response type
 const METRICS_ENDPOINT: &str = "/metrics";
@@ -23,54 +28,37 @@ const TOTAL_METRIC_BYTES_LABEL: &str = "total_bytes";
 const TOTAL_METRIC_FAMILIES_OVER_2000_LABEL: &str = "families_over_2000";
 const TOTAL_METRICS_LABEL: &str = "total";
 
-// TODO: sanity check and expand these metrics!
+// Invalid request path label
+const INVALID_PATH: &str = "invalid-path";
 
-pub static GROTH16_TIME_SECS: Lazy<Histogram> = Lazy::new(|| {
-    register_histogram!(
-        "prover_groth16_time_secs",
-        "Time to run Groth16 in seconds",
-        vec![1.0, 2.0, 3.0, 4.0, 5.0, 10.0, 20.0]
+// Buckets for tracking latencies
+static LATENCY_BUCKETS: Lazy<Vec<f64>> = Lazy::new(|| {
+    exponential_buckets(
+        /*start=*/ 1e-6, /*factor=*/ 2.0, /*count=*/ 24,
     )
     .unwrap()
 });
 
-pub static REQUEST_QUEUE_TIME_SECS: Lazy<Histogram> = Lazy::new(|| {
-    register_histogram!(
-        "prover_request_queue_time_secs",
-        "Time in seconds between the point when a request is received and the point when the prover starts processing the request",
-        vec![0.5, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0]
-    )
-    .unwrap()
-});
-
-/// Counter for the number of prover metrics in various states
-pub static PROVER_NUM_METRICS: Lazy<IntCounterVec> = Lazy::new(|| {
+// Counter for the number of prover metrics in various states
+pub static NUM_TOTAL_METRICS: Lazy<IntCounterVec> = Lazy::new(|| {
     register_int_counter_vec!(
-        "keyless_prover_num_metrics",
+        "keyless_prover_service_num_metrics",
         "Number of keyless prover metrics in certain states",
         &["type"]
     )
     .unwrap()
 });
 
-// Starts a simple metrics server
-pub fn start_metrics_server(prover_service_config: Arc<ProverServiceConfig>) {
-    let _handle = tokio::spawn(async move {
-        info!("Starting metrics server request handler...");
-
-        // Create a service function that handles the metrics requests
-        let make_service = make_service_fn(|_conn| async {
-            Ok::<_, Infallible>(service_fn(handle_metrics_request))
-        });
-
-        // Bind the socket address, and start the server
-        let socket_addr = SocketAddr::from(([0, 0, 0, 0], prover_service_config.metrics_port));
-        let server = Server::bind(&socket_addr).serve(make_service);
-        if let Err(error) = server.await {
-            panic!("Metrics server error! Error: {}", error);
-        }
-    });
-}
+// Histogram for tracking time taken to handle prover service requests
+static REQUEST_HANDLING_SECONDS: Lazy<HistogramVec> = Lazy::new(|| {
+    register_histogram_vec!(
+        "keyless_prover_service_request_handling_seconds",
+        "Seconds taken to process prover requests by scheme and result.",
+        &["request_endpoint", "request_method", "response_code"],
+        LATENCY_BUCKETS.clone()
+    )
+    .unwrap()
+});
 
 /// Handles incoming HTTP requests for the metrics server
 async fn handle_metrics_request(
@@ -105,7 +93,7 @@ fn get_encoded_metrics(encoder: impl Encoder) -> Vec<u8> {
     }
 
     // Update the total metric bytes counter
-    PROVER_NUM_METRICS
+    NUM_TOTAL_METRICS
         .with_label_values(&[TOTAL_METRIC_BYTES_LABEL])
         .inc_by(encoded_buffer.len() as u64);
 
@@ -136,12 +124,59 @@ fn get_metric_families() -> Vec<MetricFamily> {
     }
 
     // These metrics will be reported on the next pull, rather than create a new family
-    PROVER_NUM_METRICS
+    NUM_TOTAL_METRICS
         .with_label_values(&[TOTAL_METRICS_LABEL])
         .inc_by(total);
-    PROVER_NUM_METRICS
+    NUM_TOTAL_METRICS
         .with_label_values(&[TOTAL_METRIC_FAMILIES_OVER_2000_LABEL])
         .inc_by(families_over_2000);
 
     metric_families
+}
+
+// Starts a simple metrics server
+pub fn start_metrics_server(prover_service_config: Arc<ProverServiceConfig>) {
+    let _handle = tokio::spawn(async move {
+        info!("Starting metrics server request handler...");
+
+        // Create a service function that handles the metrics requests
+        let make_service = make_service_fn(|_conn| async {
+            Ok::<_, Infallible>(service_fn(handle_metrics_request))
+        });
+
+        // Bind the socket address, and start the server
+        let socket_addr = SocketAddr::from(([0, 0, 0, 0], prover_service_config.metrics_port));
+        let server = Server::bind(&socket_addr).serve(make_service);
+        if let Err(error) = server.await {
+            panic!("Metrics server error! Error: {}", error);
+        }
+    });
+}
+
+/// Updates the request handling metrics with the given data
+pub fn update_request_handling_metrics(
+    request_endpoint: &str,
+    request_method: Method,
+    response_code: StatusCode,
+    request_start_time: Instant,
+) {
+    // Calculate the elapsed time
+    let elapsed = request_start_time.elapsed();
+
+    // Determine the request endpoint to use in the metrics (i.e., replace
+    // invalid paths with a fixed label to avoid high cardinality).
+    let request_endpoint = if is_known_path(request_endpoint) {
+        request_endpoint
+    } else {
+        INVALID_PATH
+    };
+
+    // Update the metrics
+    REQUEST_HANDLING_SECONDS
+        .with_label_values(&[
+            request_endpoint,
+            request_method.as_str(),
+            &response_code.to_string(),
+        ])
+        .observe(elapsed.as_secs_f64());
 }

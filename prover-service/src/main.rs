@@ -2,25 +2,16 @@
 
 use aptos_crypto::ed25519::Ed25519PrivateKey;
 use aptos_crypto::ValidCryptoMaterialStringExt;
-use aptos_logger::info;
-use axum::{
-    routing::{get, post},
-    Router,
-};
+use aptos_logger::{error, info, warn};
 use clap::Parser;
-use http::Method;
+use hyper::service::{make_service_fn, service_fn};
+use hyper::Server;
 use prover_service::config::prover_config;
 use prover_service::config::prover_config::ProverServiceConfig;
 use prover_service::{prover_state::*, *};
+use std::convert::Infallible;
+use std::time::Instant;
 use std::{net::SocketAddr, sync::Arc, time::Duration};
-use tower::ServiceBuilder;
-use tower_http::cors::{Any, CorsLayer};
-
-// The list of endpoints/paths offered by the Prover Service.
-const ABOUT_PATH: &str = "/about";
-const CONFIG_PATH: &str = "/config";
-const HEALTH_CHECK_PATH: &str = "/healthcheck";
-const PROVE_PATH: &str = "/v0/prove";
 
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
@@ -52,7 +43,7 @@ async fn main() {
 
     // Get the deployment information
     let deployment_information = deployment_information::get_deployment_information(
-        &training_wheels_key_pair.verification_key,
+        training_wheels_key_pair.verification_key(),
     );
 
     // Create the prover service state
@@ -72,38 +63,11 @@ async fn main() {
     )
     .await;
 
-    // init axum and serve public routes
-    let cors = CorsLayer::new()
-        // allow `GET` and `POST` when accessing the resource
-        .allow_methods([Method::GET, Method::POST])
-        // allow requests from any origin
-        .allow_origin(Any)
-        // allow cross-origin requests
-        .allow_headers(Any);
-    let app = Router::new()
-        .route(ABOUT_PATH, get(handlers::about_handler))
-        .route(CONFIG_PATH, get(handlers::config_handler))
-        .route(HEALTH_CHECK_PATH, get(handlers::health_check_handler))
-        .route(
-            PROVE_PATH,
-            post(handlers::prove_handler).fallback(handlers::fallback_handler),
-        )
-        .fallback(handlers::fallback_handler)
-        .with_state(prover_service_state.clone())
-        .layer(ServiceBuilder::new().layer(cors));
-
-    let addr = SocketAddr::from(([0, 0, 0, 0], prover_service_config.port));
-    let app_handle = tokio::spawn(async move {
-        let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-        axum::serve(listener, app).await.unwrap();
-    });
-
     // Start the metrics server
-    metrics::start_metrics_server(prover_service_config);
+    metrics::start_metrics_server(prover_service_config.clone());
 
-    // Wait for the application to end (it shouldn't, unless there's a fatal error)
-    let res = tokio::try_join!(app_handle);
-    panic!("The application task ended unexpectedly: {:?}", res);
+    // Start the prover service
+    start_prover_service(prover_service_config.port, prover_service_state).await;
 }
 
 /// Loads and logs the test verification key from the prover service config
@@ -134,7 +98,7 @@ fn load_training_wheels_key_pair(
             let training_wheels_key_pair = TrainingWheelsKeyPair::from_sk(private_key);
             info!(
                 "Loaded the training wheels verification key: {:?}",
-                training_wheels_key_pair.verification_key
+                training_wheels_key_pair.verification_key()
             );
 
             training_wheels_key_pair
@@ -143,5 +107,86 @@ fn load_training_wheels_key_pair(
             "Failed to parse the training wheels private key from hex string: {}",
             error
         ),
+    }
+}
+
+// Starts the prover service
+async fn start_prover_service(
+    prover_service_port: u16,
+    prover_service_state: Arc<ProverServiceState>,
+) {
+    info!(
+        "Starting the Prover service request handler on port {}...",
+        prover_service_port
+    );
+
+    // Create the service function that handles the endpoint requests
+    let make_service = make_service_fn(move |_conn| {
+        // Clone the required state for the service function
+        let prover_service_state = prover_service_state.clone();
+
+        async move {
+            Ok::<_, Infallible>(service_fn(move |request| {
+                // Start the request timer
+                let request_start_time = Instant::now();
+
+                // Get the request origin, method and request path
+                let request_origin = request_handler::get_request_origin(&request);
+                let request_method = request.method().clone();
+                let request_path = request.uri().path().to_owned();
+
+                // Clone the required state for the request handler
+                let prover_service_state = prover_service_state.clone();
+
+                // Handle the request
+                async move {
+                    // Call the request handler
+                    let result =
+                        request_handler::handle_request(request, prover_service_state.clone())
+                            .await;
+
+                    // Update the request handling metrics and logs
+                    match &result {
+                        Ok(response) => {
+                            // Update the request handling metrics
+                            metrics::update_request_handling_metrics(
+                                &request_path,
+                                request_method.clone(),
+                                response.status(),
+                                request_start_time,
+                            );
+
+                            // If the response was not successful, log the request details
+                            if !response.status().is_success() {
+                                warn!(
+                                    "Handled request with non-successful response! Request origin: {:?}, \
+                                    request path: {:?}, request method: {:?}, response status: {:?}",
+                                    request_origin,
+                                    request_path,
+                                    request_method,
+                                    response.status()
+                                );
+                            }
+                        }
+                        Err(error) => {
+                            error!(
+                                "Error occurred when handling request! Request origin: {:?}, \
+                                request path: {:?}, request method: {:?}, Error: {:?}",
+                                request_origin, request_path, request_method, error
+                            );
+                        }
+                    }
+
+                    result
+                }
+            }))
+        }
+    });
+
+    // Bind the socket address, and start the server
+    let socket_addr = SocketAddr::from(([0, 0, 0, 0], prover_service_port));
+    let server = Server::bind(&socket_addr).serve(make_service);
+    if let Err(error) = server.await {
+        panic!("Prover service error! Error: {}", error);
     }
 }

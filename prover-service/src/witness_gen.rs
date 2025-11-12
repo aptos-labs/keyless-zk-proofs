@@ -6,6 +6,7 @@ use aptos_keyless_common::input_processing::circuit_input_signals::{CircuitInput
 use aptos_keyless_common::logging;
 use std::fs;
 use std::process::Command;
+use std::sync::Arc;
 use tempfile::NamedTempFile;
 
 pub trait PathStr {
@@ -19,7 +20,7 @@ impl PathStr for NamedTempFile {
 }
 
 pub fn witness_gen(
-    config: &ProverServiceConfig,
+    config: Arc<ProverServiceConfig>,
     circuit_input_signals: &CircuitInputSignals<Padded>,
 ) -> Result<NamedTempFile> {
     let _span = logging::new_span("GenerateWitness");
@@ -33,7 +34,7 @@ pub fn witness_gen(
     fs::write(input_file.path(), formatted_input_str.as_bytes())?;
 
     let output =
-        get_witness_command(config, input_file.path_str()?, witness_file.path_str()?).output()?;
+        get_witness_command(&config, input_file.path_str()?, witness_file.path_str()?).output()?;
 
     // Check if the command executed successfully
     if output.status.success() {
