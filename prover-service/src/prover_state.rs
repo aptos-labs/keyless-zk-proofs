@@ -1,9 +1,7 @@
 // Copyright (c) Aptos Foundation
 
-use crate::config::keyless_config::OnChainKeylessConfiguration;
 use crate::config::prover_config::ProverServiceConfig;
 use crate::deployment_information::DeploymentInformation;
-use crate::groth16_vk::OnChainGroth16VerificationKey;
 use aptos_crypto::ed25519::{Ed25519PrivateKey, Ed25519PublicKey};
 use aptos_keyless_common::input_processing::config::CircuitConfig;
 use rust_rapidsnark::FullProver;
@@ -12,12 +10,11 @@ use tokio::sync::Mutex;
 
 /// The shared state of the prover service (used across all requests)
 pub struct ProverServiceState {
-    pub prover_service_config: Arc<ProverServiceConfig>,
-    pub circuit_config: CircuitConfig,
-    pub deployment_information: DeploymentInformation,
-    pub on_chain_groth16_verification_key: OnChainGroth16VerificationKey,
-    pub training_wheels_key_pair: TrainingWheelsKeyPair,
-    pub full_prover: Mutex<FullProver>,
+    prover_service_config: Arc<ProverServiceConfig>,
+    circuit_config: CircuitConfig,
+    deployment_information: DeploymentInformation,
+    training_wheels_key_pair: TrainingWheelsKeyPair,
+    full_prover: Arc<Mutex<FullProver>>,
 }
 
 impl ProverServiceState {
@@ -29,10 +26,6 @@ impl ProverServiceState {
         // Load the circuit configuration
         let circuit_configuration = prover_service_config.load_circuit_params();
 
-        // Load the test verification key.
-        // TODO: why is this called "test" verification key???
-        let test_verification_key = prover_service_config.load_test_verification_key();
-
         // Create the full prover
         let full_prover = FullProver::new(&prover_service_config.zkey_file_path())
             .expect("Failed to create the full prover!");
@@ -42,9 +35,8 @@ impl ProverServiceState {
             prover_service_config,
             circuit_config: circuit_configuration,
             deployment_information,
-            on_chain_groth16_verification_key: test_verification_key,
             training_wheels_key_pair,
-            full_prover: Mutex::new(full_prover),
+            full_prover: Arc::new(Mutex::new(full_prover)),
         }
     }
 
@@ -57,25 +49,47 @@ impl ProverServiceState {
     pub fn deployment_information(&self) -> &DeploymentInformation {
         &self.deployment_information
     }
+
+    /// Returns an Arc reference to the full prover instance
+    pub fn full_prover(&self) -> Arc<Mutex<FullProver>> {
+        self.full_prover.clone()
+    }
+
+    /// Returns an Arc reference to the prover service config
+    pub fn prover_service_config(&self) -> Arc<ProverServiceConfig> {
+        self.prover_service_config.clone()
+    }
+
+    /// Returns a reference to the training wheels key pair
+    pub fn training_wheels_key_pair(&self) -> &TrainingWheelsKeyPair {
+        &self.training_wheels_key_pair
+    }
 }
 
 /// The training wheels key pair struct
 #[derive(Debug)]
 pub struct TrainingWheelsKeyPair {
-    pub signing_key: Ed25519PrivateKey,
-    pub verification_key: Ed25519PublicKey,
-    pub on_chain_repr: OnChainKeylessConfiguration,
+    signing_key: Ed25519PrivateKey,
+    verification_key: Ed25519PublicKey,
 }
 
 impl TrainingWheelsKeyPair {
     pub fn from_sk(signing_key: Ed25519PrivateKey) -> Self {
         let verification_key = Ed25519PublicKey::from(&signing_key);
-        let on_chain_repr = OnChainKeylessConfiguration::from_tw_pk(Some(verification_key.clone()));
 
         Self {
             signing_key,
             verification_key,
-            on_chain_repr,
         }
+    }
+
+    /// Returns a reference to the signing key
+    pub fn signing_key(&self) -> &Ed25519PrivateKey {
+        &self.signing_key
+    }
+
+    /// Returns a reference to the verification key
+    pub fn verification_key(&self) -> &Ed25519PublicKey {
+        &self.verification_key
     }
 }

@@ -3,16 +3,16 @@
 use self::types::{DefaultTestJWKKeyPair, TestJWKKeyPair, WithNonce};
 use crate::config::prover_config::ProverServiceConfig;
 use crate::deployment_information::DeploymentInformation;
-use crate::handlers::prepared_vk;
+use crate::prover_handler::prepared_vk;
 use crate::prover_state::TrainingWheelsKeyPair;
 use crate::tests::common::types::ProofTestCase;
-use crate::training_wheels;
 use crate::{
     api::ProverServiceResponse,
-    handlers::prove_handler,
     jwk_fetching::{KeyID, DECODING_KEY_CACHE},
     prover_state::ProverServiceState,
+    request_handler,
 };
+use crate::{prover_handler, training_wheels};
 use aptos_crypto::{
     ed25519::{Ed25519PrivateKey, Ed25519PublicKey},
     encoding_type::EncodingType,
@@ -22,18 +22,17 @@ use aptos_keyless_common::input_processing::encoding::AsFr;
 use aptos_types::{
     jwks::rsa::RSA_JWK, keyless::Pepper, transaction::authenticator::EphemeralPublicKey,
 };
-use axum::{extract::State, Json};
-use axum_extra::extract::WithRejection;
 use dashmap::DashMap;
 use figment::{
     providers::{Format as _, Yaml},
     Figment,
 };
+use hyper::Body;
 use rand::{rngs::ThreadRng, thread_rng};
-use rust_rapidsnark::FullProver;
 use serde::Serialize;
-use std::{marker::PhantomData, str::FromStr, sync::Arc};
-use tokio::sync::Mutex;
+use std::{str::FromStr, sync::Arc};
+
+// TODO: clean up the existing tests, and add more tests!
 
 pub mod types;
 
@@ -115,34 +114,39 @@ pub async fn convert_prove_and_verify(
     );
 
     let prover_service_config = Arc::new(testcase.prover_service_config.clone());
-
-    let state = ProverServiceState {
+    let state = ProverServiceState::init(
+        TrainingWheelsKeyPair::from_sk(tw_sk_default),
         prover_service_config,
-        circuit_config: testcase.prover_service_config.load_circuit_params(),
-        deployment_information: DeploymentInformation::new(),
-        on_chain_groth16_verification_key: testcase
-            .prover_service_config
-            .load_test_verification_key(),
-        training_wheels_key_pair: TrainingWheelsKeyPair::from_sk(tw_sk_default),
-        full_prover: Mutex::new(
-            FullProver::new(testcase.prover_service_config.zkey_file_path().as_str()).unwrap(),
-        ),
-    };
+        DeploymentInformation::new(),
+    );
 
     let prover_request_input = testcase.convert_to_prover_request(&jwk_keypair);
+    let serialized_prover_request_input = serde_json::to_string(&prover_request_input).unwrap();
+    let prove_request = hyper::Request::new(Body::from(serialized_prover_request_input));
 
     println!(
         "Prover request: {}",
         serde_json::to_string_pretty(&prover_request_input).unwrap()
     );
 
-    let r = prove_handler(
-        State(Arc::new(state)),
-        WithRejection(Json(prover_request_input), PhantomData),
+    let prover_service_state = Arc::new(state);
+    let prove_response = prover_handler::hande_prove_request(
+        request_handler::MISSING_ORIGIN_STRING.into(),
+        prove_request,
+        prover_service_state,
     )
     .await;
-    let response = match r {
-        Ok(Json(response)) => response,
+
+    let response = match prove_response {
+        Ok(response) => {
+            let bytes = hyper::body::to_bytes(response.into_body())
+                .await
+                .expect("Couldn't read response body bytes");
+            let body_str =
+                String::from_utf8(bytes.to_vec()).expect("Response body not valid UTF-8");
+            serde_json::from_str::<ProverServiceResponse>(&body_str)
+                .expect("Couldn't deserialize prover response")
+        }
         Err(e) => panic!("prove_handler returned an error: {:?}", e),
     };
 
@@ -156,7 +160,8 @@ pub async fn convert_prove_and_verify(
                 &testcase
                     .prover_service_config
                     .test_verification_key_file_path(),
-            );
+            )
+            .unwrap();
             proof.verify_proof(public_inputs_hash.as_fr(), &g16vk)?;
             training_wheels::verify(&response, &tw_pk)
         }

@@ -29,7 +29,7 @@ pub async fn preprocess_and_validate_request(
 ) -> anyhow::Result<VerifiedInput> {
     let _span = logging::new_span("TrainingWheelChecks");
     let jwt = DecodedJWT::from_b64(&req.jwt_b64).log_err()?;
-    let jwk = get_jwk(&prover.prover_service_config, &jwt)
+    let jwk = get_jwk(&prover.prover_service_config(), &jwt)
         .await
         .log_err()?;
 
