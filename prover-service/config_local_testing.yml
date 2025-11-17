@@ -2,7 +2,7 @@ resources_dir: "~/.local/share/aptos-keyless/current_setups"
 setup_dir: "default"
 zkey_filename: "prover_key.zkey"
 witness_gen_binary_filename: "main_c"
-test_verification_key_filename: "verification_key.json"
+verification_key_filename: "verification_key.json"
 oidc_providers:
   - iss: "https://accounts.google.com"
     endpoint_url: "https://www.googleapis.com/oauth2/v3/certs"
@@ -13,7 +13,6 @@ oidc_providers:
 jwk_refresh_rate_secs: 10
 port: 8083
 metrics_port: 9100
-enable_debug_checks: true
 enable_test_provider: true
 enable_federated_jwks: true
 use_insecure_jwk_for_test: true

@@ -158,17 +158,14 @@ pub async fn hande_prove_request(
         training_wheels_signature,
     };
 
-    // TODO: maybe just do this all the time (i.e., even in non-debug mode)?
-    // Verify the training wheels signature before sending the response
-    if prover_service_state
-        .prover_service_config()
-        .enable_debug_checks
-    {
-        let verification_key = prover_service_state
-            .training_wheels_key_pair()
-            .verification_key();
-        assert!(training_wheels::verify(&prover_service_response, verification_key,).is_ok());
-    }
+    // Verify the training wheels signature. This is necessary to ensure that
+    // only valid signatures are returned, and avoids certain classes of bugs
+    // and attacks (e.g., fault-based side-channels).
+    // fault-based side-channels).
+    let verification_key = prover_service_state
+        .training_wheels_key_pair()
+        .verification_key();
+    assert!(training_wheels::verify(&prover_service_response, verification_key,).is_ok());
 
     // Serialize the response to JSON and generate the HTTP response
     let response_string = match serde_json::to_string(&prover_service_response) {
@@ -237,16 +234,19 @@ async fn generate_groth16_proof(
     };
 
     // Prepare the groth16 verification key
-    let test_verification_key_file_path = prover_service_state
+    let verification_key_file_path = prover_service_state
         .prover_service_config()
-        .test_verification_key_file_path();
-    let groth16_prepare_verifying_key = prepared_vk(&test_verification_key_file_path)?;
+        .verification_key_file_path();
+    let groth16_prepare_verifying_key = prepared_vk(&verification_key_file_path)?;
 
-    // Verify and return the proof
+    // Verify the proof. This is necessary to ensure that only valid proofs
+    // are returned, and avoids certain classes of bugs and attacks (e.g.,
+    // fault-based side-channels).
     groth16_proof.verify_proof(
         ark_bn254::Fr::from_le_bytes_mod_order(&public_inputs_hash),
         &groth16_prepare_verifying_key,
     )?;
+
     Ok(groth16_proof)
 }
 
