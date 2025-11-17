@@ -11,7 +11,6 @@ use self::{
 };
 use crate::input_processing::types::VerifiedInput;
 use anyhow::Result;
-use aptos_keyless_common::logging;
 use aptos_keyless_common::{
     input_processing::{
         circuit_input_signals::{CircuitInputSignals, Padded},
@@ -26,8 +25,6 @@ pub fn derive_circuit_input_signals(
     input: VerifiedInput,
     config: &CircuitConfig,
 ) -> Result<(CircuitInputSignals<Padded>, PoseidonHash), anyhow::Error> {
-    let _span = logging::new_span("DeriveCircuitInputSignals");
-
     let jwt_parts = &input.jwt_parts;
     let epk_blinder_fr = input.epk_blinder_fr;
     let unsigned_jwt_with_padding =
