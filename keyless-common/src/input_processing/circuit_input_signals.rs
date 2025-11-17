@@ -1,10 +1,8 @@
 // Copyright (c) Aptos Foundation
 
 use super::config::CircuitConfig;
-use crate::logging;
 use anyhow::{anyhow, bail, Result};
 use ark_bn254::Fr;
-use maplit2::hashmap;
 use serde_json::Value;
 use std::{collections::BTreeMap, marker::PhantomData};
 
@@ -187,15 +185,6 @@ fn pad_if_needed(
 
 fn pad_bytes(unpadded_bytes: &[u8], max_size: usize) -> Result<Vec<u8>, anyhow::Error> {
     let mut bytes = Vec::from(unpadded_bytes);
-
-    let _span = logging::new_span_extra_attrs(
-        "PadBytes",
-        hashmap! {
-            "size" => bytes.len().to_string(),
-            "max_size" => max_size.to_string(),
-            "unpadded_bytes" => format!("{:?}", String::from_utf8_lossy(&bytes)),
-        },
-    );
 
     if max_size < bytes.len() {
         Err(anyhow!("max_size exceeded"))

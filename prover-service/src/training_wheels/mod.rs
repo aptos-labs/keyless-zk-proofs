@@ -12,8 +12,6 @@ use crate::prover_state::ProverServiceState;
 use crate::training_wheels::verification_logic::compute_nonce;
 use anyhow::{anyhow, bail, ensure};
 use aptos_keyless_common::input_processing::encoding::{AsFr, DecodedJWT};
-use aptos_keyless_common::logging;
-use aptos_keyless_common::logging::HasLoggableError;
 use aptos_types::jwks::rsa::RSA_JWK;
 pub use sign::sign;
 pub use sign::verify;
@@ -27,21 +25,16 @@ pub async fn preprocess_and_validate_request(
     prover: &ProverServiceState,
     req: &RequestInput,
 ) -> anyhow::Result<VerifiedInput> {
-    let _span = logging::new_span("TrainingWheelChecks");
-    let jwt = DecodedJWT::from_b64(&req.jwt_b64).log_err()?;
-    let jwk = get_jwk(&prover.prover_service_config(), &jwt)
-        .await
-        .log_err()?;
+    let jwt = DecodedJWT::from_b64(&req.jwt_b64)?;
+    let jwk = get_jwk(&prover.prover_service_config(), &jwt).await?;
 
     {
         // Keyless relation condition 10 captured: https://github.com/aptos-foundation/AIPs/blob/f133e29d999adf31c4f41ce36ae1a808339af71e/aips/aip-108.md?plain=1#L95
-        let _span = logging::new_span("VerifyJWTSignature");
-        validate_jwt_sig(jwk.as_ref(), &req.jwt_b64).log_err()?;
+        validate_jwt_sig(jwk.as_ref(), &req.jwt_b64)?;
     }
 
     {
         // Keyless relation condition 8 captured: https://github.com/aptos-foundation/AIPs/blob/f133e29d999adf31c4f41ce36ae1a808339af71e/aips/aip-108.md?plain=1#L92
-        let _span = logging::new_span("EnsureEpkNotExpired");
         ensure!(
             (req.exp_date_secs as u128)
                 < (jwt.payload.iat as u128) + (req.exp_horizon_secs as u128)
@@ -50,7 +43,6 @@ pub async fn preprocess_and_validate_request(
 
     {
         // Verify that iat is not in the future
-        let _span = logging::new_span("CheckIatNotInFuture");
         let now_unix_secs = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
         ensure!(
             jwt.payload.iat <= now_unix_secs,
@@ -60,19 +52,16 @@ pub async fn preprocess_and_validate_request(
 
     {
         // Keyless relation condition 7 captured: https://github.com/aptos-foundation/AIPs/blob/f133e29d999adf31c4f41ce36ae1a808339af71e/aips/aip-108.md?plain=1#L90
-        let _span = logging::new_span("CheckNonceConsistency");
         let computed_nonce = compute_nonce(
             req.exp_date_secs,
             &req.epk,
             req.epk_blinder.as_fr(),
             prover.circuit_config(),
-        )
-        .log_err()?;
+        )?;
         ensure!(jwt.payload.nonce == computed_nonce.to_string());
     }
 
     let uid_val = {
-        let _span = logging::new_span("EnsureUidKeyNotNull");
         match req.uid_key.as_str() {
             "email" => {
                 // Keyless relation condition 3 captured: https://github.com/aptos-foundation/AIPs/blob/f133e29d999adf31c4f41ce36ae1a808339af71e/aips/aip-108.md?plain=1#L74
@@ -91,7 +80,7 @@ pub async fn preprocess_and_validate_request(
         }
     };
 
-    VerifiedInput::new(req, jwk, jwt, uid_val).log_err()
+    VerifiedInput::new(req, jwk, jwt, uid_val)
 }
 
 /// This function returns the same JWK that the Aptos validators would expect for this JWT.
@@ -102,7 +91,6 @@ async fn get_jwk(
     prover_config: &ProverServiceConfig,
     jwt: &DecodedJWT,
 ) -> anyhow::Result<Arc<RSA_JWK>> {
-    let _span = logging::new_span("GetJWK");
     let default_jwk = jwk_fetching::cached_decoding_key(&jwt.payload.iss, &jwt.header.kid);
     if default_jwk.is_ok() {
         return default_jwk;
