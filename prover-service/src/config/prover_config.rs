@@ -1,6 +1,5 @@
 // Copyright (c) Aptos Foundation
 
-use crate::groth16_vk::{OnChainGroth16VerificationKey, SnarkJsGroth16VerificationKey};
 use crate::utils;
 use aptos_keyless_common::input_processing::config::CircuitConfig;
 use aptos_logger::info;
@@ -28,13 +27,12 @@ pub struct ProverServiceConfig {
     pub setup_dir: String,
     pub resources_dir: String, // Directory with prover/verification key and witness gen binary
     pub zkey_filename: String,
-    pub test_verification_key_filename: String,
+    pub verification_key_filename: String,
     pub witness_gen_binary_filename: String,
     pub oidc_providers: Vec<OidcProvider>,
     pub jwk_refresh_rate_secs: u64,
     pub port: u16,
     pub metrics_port: u16,
-    pub enable_debug_checks: bool,
     #[serde(default)]
     pub enable_test_provider: bool,
     #[serde(default)]
@@ -63,12 +61,12 @@ impl ProverServiceConfig {
         shell_expand_tilde(witness_gen_binary_file_path)
     }
 
-    /// Returns the full path to the test verification key file
-    pub fn test_verification_key_file_path(&self) -> String {
-        let test_verification_key_file_path = self
+    /// Returns the full path to the verification key file
+    pub fn verification_key_file_path(&self) -> String {
+        let verification_key_file_path = self
             .setup_directory_path()
-            .join(&self.test_verification_key_filename);
-        shell_expand_tilde(test_verification_key_file_path)
+            .join(&self.verification_key_filename);
+        shell_expand_tilde(verification_key_file_path)
     }
 
     /// Returns the full path to the witness generation JS file
@@ -105,35 +103,6 @@ impl ProverServiceConfig {
             Err(error) => panic!(
                 "Failed to parse circuit config yaml file: {}! Error: {}",
                 circuit_config_file_path, error
-            ),
-        }
-    }
-
-    /// Loads the test Groth16 verification key from the configuration file
-    pub fn load_test_verification_key(&self) -> OnChainGroth16VerificationKey {
-        // Load the json file
-        let test_verification_key_file_path = self.test_verification_key_file_path();
-        let test_verification_key_json =
-            utils::read_string_from_file_path(&test_verification_key_file_path);
-
-        // Deserialize the json content into a snarkjs key
-        let snarkjs_groth16_verification_key = match serde_json::from_str::<
-            SnarkJsGroth16VerificationKey,
-        >(&test_verification_key_json)
-        {
-            Ok(snarkjs_groth16_verification_key) => snarkjs_groth16_verification_key,
-            Err(error) => panic!(
-                "Failed to parse test verification key json file: {}! Error: {}",
-                test_verification_key_file_path, error
-            ),
-        };
-
-        // Convert the key to the on-chain representation
-        match snarkjs_groth16_verification_key.try_as_onchain_repr() {
-            Ok(on_chain_groth16_verification_key) => on_chain_groth16_verification_key,
-            Err(error) => panic!(
-                "Failed to convert test verification key to on-chain representation! Error: {}",
-                error
             ),
         }
     }

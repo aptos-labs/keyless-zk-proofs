@@ -156,12 +156,8 @@ pub async fn convert_prove_and_verify(
             public_inputs_hash,
             ..
         } => {
-            let g16vk = prepared_vk(
-                &testcase
-                    .prover_service_config
-                    .test_verification_key_file_path(),
-            )
-            .unwrap();
+            let g16vk =
+                prepared_vk(&testcase.prover_service_config.verification_key_file_path()).unwrap();
             proof.verify_proof(public_inputs_hash.as_fr(), &g16vk)?;
             training_wheels::verify(&response, &tw_pk)
         }

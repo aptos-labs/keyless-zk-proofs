@@ -53,8 +53,8 @@ async fn main() {
         deployment_information,
     ));
 
-    // Load the test verification key
-    load_test_verification_key(prover_service_config.clone());
+    // Load the verification key
+    load_verification_key(prover_service_config.clone());
 
     // init jwk fetching job; refresh every `config.jwk_refresh_rate_secs` seconds
     jwk_fetching::init_jwk_fetching(
@@ -70,13 +70,11 @@ async fn main() {
     start_prover_service(prover_service_config.port, prover_service_state).await;
 }
 
-/// Loads and logs the test verification key from the prover service config
-fn load_test_verification_key(prover_service_config: Arc<ProverServiceConfig>) {
-    // TODO: what does this actually do? Is it still useful?
-
-    let test_verification_key_file_path = prover_service_config.test_verification_key_file_path();
-    let test_verification_key = utils::read_string_from_file_path(&test_verification_key_file_path);
-    info!("Loaded default verifying Key: {}", test_verification_key);
+/// Loads and logs the verification key from the prover service config
+fn load_verification_key(prover_service_config: Arc<ProverServiceConfig>) {
+    let verification_key_file_path = prover_service_config.verification_key_file_path();
+    let verification_key = utils::read_string_from_file_path(&verification_key_file_path);
+    info!("Loaded default verifying Key: {}", verification_key);
 }
 
 /// Loads the training wheels key pair from the specified private key file path.
