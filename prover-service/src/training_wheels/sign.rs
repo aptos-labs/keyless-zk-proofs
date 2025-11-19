@@ -10,7 +10,7 @@ use aptos_types::{
     transaction::authenticator::{EphemeralPublicKey, EphemeralSignature},
 };
 
-use crate::api::ProverServiceResponse;
+use crate::types::api::ProverServiceResponse;
 
 pub fn sign(
     private_key: &Ed25519PrivateKey,

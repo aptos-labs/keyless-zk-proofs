@@ -7,10 +7,10 @@ use crate::prover_handler::prepared_vk;
 use crate::prover_state::TrainingWheelsKeyPair;
 use crate::tests::common::types::ProofTestCase;
 use crate::{
-    api::ProverServiceResponse,
     jwk_fetching::{KeyID, DECODING_KEY_CACHE},
     prover_state::ProverServiceState,
     request_handler,
+    types::api::ProverServiceResponse,
 };
 use crate::{prover_handler, training_wheels};
 use aptos_crypto::{

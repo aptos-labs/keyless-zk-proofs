@@ -3,10 +3,11 @@
 use crate::error::ProverServiceError;
 use crate::witness_gen::PathStr;
 use crate::{
-    api::{ProverServiceResponse, RequestInput},
     input_processing,
     prover_state::ProverServiceState,
-    request_handler, training_wheels, utils, witness_gen,
+    request_handler, training_wheels,
+    types::api::{ProverServiceResponse, RequestInput},
+    utils, witness_gen,
 };
 use anyhow::Result;
 use aptos_keyless_common::PoseidonHash;

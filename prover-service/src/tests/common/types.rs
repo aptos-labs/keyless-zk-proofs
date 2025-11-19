@@ -8,9 +8,9 @@ use super::{gen_test_ephemeral_pk, gen_test_ephemeral_pk_blinder, get_test_peppe
 use crate::config::prover_config::ProverServiceConfig;
 use crate::tests::common::get_config;
 use crate::{
-    api::{EphemeralPublicKeyBlinder, RequestInput},
     input_processing::rsa::RsaPrivateKey,
     training_wheels::verification_logic::compute_nonce,
+    types::api::{EphemeralPublicKeyBlinder, RequestInput},
 };
 use aptos_keyless_common::input_processing::encoding::FromFr;
 use aptos_types::{
