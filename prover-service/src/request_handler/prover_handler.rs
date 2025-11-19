@@ -1,13 +1,14 @@
 // Copyright (c) Aptos Foundation
 
 use crate::error::ProverServiceError;
-use crate::witness_gen::PathStr;
+use crate::request_handler::witness_gen::PathStr;
+use crate::request_handler::{handler, witness_gen};
 use crate::{
     input_processing,
-    prover_state::ProverServiceState,
-    request_handler, training_wheels,
+    request_handler::prover_state::ProverServiceState,
+    training_wheels,
     types::api::{ProverServiceResponse, RequestInput},
-    utils, witness_gen,
+    utils,
 };
 use anyhow::Result;
 use aptos_keyless_common::PoseidonHash;
@@ -38,7 +39,7 @@ pub async fn hande_prove_request(
         Ok(request_bytes) => request_bytes,
         Err(error) => {
             error!("Failed to get request body bytes! Error: {}", error);
-            return request_handler::generate_internal_server_error_response(origin);
+            return handler::generate_internal_server_error_response(origin);
         }
     };
 
@@ -48,7 +49,7 @@ pub async fn hande_prove_request(
         Err(error) => {
             let error_string = format!("Failed to deserialize request body JSON! Error: {}", error);
             warn!("{}", error_string);
-            return request_handler::generate_bad_request_response(origin, error_string);
+            return handler::generate_bad_request_response(origin, error_string);
         }
     };
 
@@ -64,7 +65,7 @@ pub async fn hande_prove_request(
             warn!("Failed to validate request! Error: {}", error);
 
             // Don't return the exact error (to avoid leaking any sensitive info)
-            return request_handler::generate_bad_request_response(
+            return handler::generate_bad_request_response(
                 origin,
                 "Failed to validate request!".into(),
             );
@@ -80,7 +81,7 @@ pub async fn hande_prove_request(
                 warn!("Failed to derive circuit input signals! Error: {}", error);
 
                 // Don't return the exact error (to avoid leaking any sensitive info)
-                return request_handler::generate_bad_request_response(
+                return handler::generate_bad_request_response(
                     origin,
                     "Failed to derive circuit input signals!".into(),
                 );
@@ -96,7 +97,7 @@ pub async fn hande_prove_request(
             warn!("Failed to generate witness file! Error: {}", error);
 
             // Don't return the exact error (to avoid leaking any sensitive info)
-            return request_handler::generate_internal_server_error_response(origin);
+            return handler::generate_internal_server_error_response(origin);
         }
     };
 
@@ -109,7 +110,7 @@ pub async fn hande_prove_request(
                 warn!("Failed to generate proof! Error: {}", error);
 
                 // Don't return the exact error (to avoid leaking any sensitive info)
-                return request_handler::generate_bad_request_response(
+                return handler::generate_bad_request_response(
                     origin,
                     "Failed to generate proof!".into(),
                 );
@@ -135,7 +136,7 @@ pub async fn hande_prove_request(
                 "Failed to sign the proof with the training wheels key! Error: {}",
                 error
             );
-            return request_handler::generate_internal_server_error_response(origin);
+            return handler::generate_internal_server_error_response(origin);
         }
     };
 
@@ -148,7 +149,7 @@ pub async fn hande_prove_request(
                 "Failed to serialize the training wheels signature! Error: {}",
                 error
             );
-            return request_handler::generate_internal_server_error_response(origin);
+            return handler::generate_internal_server_error_response(origin);
         }
     };
 
@@ -176,10 +177,10 @@ pub async fn hande_prove_request(
                 "Failed to serialize prover service response to JSON! Error: {}",
                 error
             );
-            return request_handler::generate_internal_server_error_response(origin);
+            return handler::generate_internal_server_error_response(origin);
         }
     };
-    request_handler::generate_json_response(origin, StatusCode::OK, response_string)
+    handler::generate_json_response(origin, StatusCode::OK, response_string)
 }
 
 /// Generates a groth16 proof using the provided witness file and public inputs hash

@@ -1,8 +1,9 @@
 // Copyright (c) Aptos Foundation
 
 use crate::config::prover_config::ProverServiceConfig;
-use crate::prover_state::ProverServiceState;
-use crate::{deployment_information::DeploymentInformation, prover_handler};
+use crate::request_handler::deployment_information::DeploymentInformation;
+use crate::request_handler::prover_handler;
+use crate::request_handler::prover_state::ProverServiceState;
 use aptos_logger::error;
 use hyper::header::{ACCESS_CONTROL_ALLOW_CREDENTIALS, ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_TYPE};
 use hyper::http::response;

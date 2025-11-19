@@ -3,18 +3,14 @@
 extern crate core;
 
 pub mod config;
-pub mod deployment_information;
 pub mod error;
 pub mod input_processing;
 pub mod jwk_fetching;
 pub mod metrics;
-pub mod prover_handler;
-pub mod prover_state;
 pub mod request_handler;
 pub mod training_wheels;
 pub mod types;
 pub mod utils;
-pub mod witness_gen;
 
 #[cfg(test)]
 pub mod tests;
