@@ -1,6 +1,6 @@
 // Copyright (c) Aptos Foundation
 
-use crate::config::prover_config::ProverServiceConfig;
+use crate::external_resources::prover_config::ProverServiceConfig;
 use crate::request_handler::deployment_information::DeploymentInformation;
 use aptos_crypto::ed25519::{Ed25519PrivateKey, Ed25519PublicKey};
 use aptos_keyless_common::input_processing::config::CircuitConfig;

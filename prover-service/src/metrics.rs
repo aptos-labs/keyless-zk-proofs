@@ -1,6 +1,6 @@
 // Copyright (c) Aptos Foundation
 
-use crate::config::prover_config::ProverServiceConfig;
+use crate::external_resources::prover_config::ProverServiceConfig;
 use crate::request_handler::handler::is_known_path;
 use aptos_logger::{error, info, warn};
 use aptos_metrics_core::{

@@ -3,10 +3,10 @@
 mod sign;
 pub mod verification_logic;
 
-use crate::config::prover_config::ProverServiceConfig;
+use crate::external_resources::jwk_fetching;
+use crate::external_resources::jwk_fetching::get_federated_jwk;
+use crate::external_resources::prover_config::ProverServiceConfig;
 use crate::input_processing::types::VerifiedInput;
-use crate::jwk_fetching;
-use crate::jwk_fetching::get_federated_jwk;
 use crate::request_handler::prover_state::ProverServiceState;
 use crate::training_wheels::verification_logic::compute_nonce;
 use crate::types::api::RequestInput;

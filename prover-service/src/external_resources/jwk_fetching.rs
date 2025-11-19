@@ -1,6 +1,6 @@
 // Copyright (c) Aptos Foundation
 
-use crate::config::prover_config::OidcProvider;
+use crate::external_resources::prover_config::OidcProvider;
 use anyhow::{anyhow, Result};
 use aptos_keyless_common::input_processing::encoding::DecodedJWT;
 use aptos_logger::{error, info, warn};

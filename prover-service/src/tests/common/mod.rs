@@ -1,14 +1,14 @@
 // Copyright (c) Aptos Foundation
 
 use self::types::{DefaultTestJWKKeyPair, TestJWKKeyPair, WithNonce};
-use crate::config::prover_config::ProverServiceConfig;
+use crate::external_resources::prover_config::ProverServiceConfig;
 use crate::request_handler::deployment_information::DeploymentInformation;
 use crate::request_handler::prover_state::{ProverServiceState, TrainingWheelsKeyPair};
 use crate::request_handler::{handler, prover_handler};
 use crate::tests::common::types::ProofTestCase;
 use crate::training_wheels;
 use crate::{
-    jwk_fetching::{KeyID, DECODING_KEY_CACHE},
+    external_resources::jwk_fetching::{KeyID, DECODING_KEY_CACHE},
     types::api::ProverServiceResponse,
 };
 use aptos_crypto::{
