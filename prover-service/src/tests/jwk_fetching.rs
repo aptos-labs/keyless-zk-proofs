@@ -41,7 +41,7 @@ async fn test_federated_jwk_fetch_fails_for_bad_iss() {
     let jwt = DecodedJWT::from_b64(&prover_request_input.jwt_b64).unwrap();
     let error_message = get_federated_jwk(&jwt).await.unwrap_err().to_string();
 
-    assert!(error_message.contains("not a federated iss"))
+    assert!(error_message.contains("Unsupported federated issuer"))
 }
 
 #[tokio::test]
@@ -61,5 +61,5 @@ async fn test_federated_jwk_fetch_fails_for_bad_kid() {
     let jwt = DecodedJWT::from_b64(&prover_request_input.jwt_b64).unwrap();
     let error_message = get_federated_jwk(&jwt).await.unwrap_err().to_string();
 
-    assert!(error_message.contains("unknown kid"))
+    assert!(error_message.contains("Unknown kid"))
 }

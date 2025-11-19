@@ -7,7 +7,6 @@ use aptos_keyless_common::input_processing::encoding::DecodedJWT;
 use aptos_logger::{info, warn};
 use aptos_time_service::{TimeService, TimeServiceTrait};
 use aptos_types::jwks::rsa::RSA_JWK;
-use dashmap::DashMap;
 use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -33,10 +32,6 @@ static AUTH_0_REGEX: Lazy<Regex> =
 static COGNITO_REGEX: Lazy<Regex> = Lazy::new(|| {
     Regex::new(r"^https://cognito-idp\.[a-zA-Z0-9-_]+\.amazonaws\.com/[a-zA-Z0-9-_]+$").unwrap()
 });
-
-/// The JWK in-mem cache.
-pub static DECODING_KEY_CACHE: Lazy<DashMap<Issuer, DashMap<KeyID, Arc<RSA_JWK>>>> =
-    Lazy::new(DashMap::new);
 
 /// A common interface offered by JWK issuers (this is especially useful for logging and testing)
 #[async_trait::async_trait]
