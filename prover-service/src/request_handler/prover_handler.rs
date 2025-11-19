@@ -57,6 +57,7 @@ pub async fn hande_prove_request(
     let verified_input = match training_wheels::preprocess_and_validate_request(
         &prover_service_state,
         &request_input,
+        prover_service_state.jwk_cache(),
     )
     .await
     {

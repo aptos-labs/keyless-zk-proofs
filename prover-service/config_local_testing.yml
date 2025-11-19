@@ -3,13 +3,13 @@ setup_dir: "default"
 zkey_filename: "prover_key.zkey"
 witness_gen_binary_filename: "main_c"
 verification_key_filename: "verification_key.json"
-oidc_providers:
-  - iss: "https://accounts.google.com"
-    endpoint_url: "https://www.googleapis.com/oauth2/v3/certs"
-  - iss: "test.oidc.provider"
-    endpoint_url: "https://github.com/aptos-labs/aptos-core/raw/main/types/src/jwks/rsa/secure_test_jwk.json"
-  - iss: "test.federated.oidc.provider"
-    endpoint_url: "https://github.com/aptos-labs/aptos-core/raw/main/types/src/jwks/rsa/secure_test_jwk.json"
+jwk_issuers:
+  - issuer_name: "https://accounts.google.com"
+    issuer_jwk_url: "https://www.googleapis.com/oauth2/v3/certs"
+  - issuer_name: "test.oidc.provider"
+    issuer_jwk_url: "https://github.com/aptos-labs/aptos-core/raw/main/types/src/jwks/rsa/secure_test_jwk.json"
+  - issuer_name: "test.federated.oidc.provider"
+    issuer_jwk_url: "https://github.com/aptos-labs/aptos-core/raw/main/types/src/jwks/rsa/secure_test_jwk.json"
 jwk_refresh_rate_secs: 10
 port: 8083
 metrics_port: 9100

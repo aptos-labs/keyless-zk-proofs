@@ -1,5 +1,6 @@
 // Copyright (c) Aptos Foundation
 
+use crate::external_resources::jwk_fetcher::JWKCache;
 use crate::external_resources::prover_config::ProverServiceConfig;
 use crate::request_handler::deployment_information::DeploymentInformation;
 use aptos_crypto::ed25519::{Ed25519PrivateKey, Ed25519PublicKey};
@@ -15,6 +16,7 @@ pub struct ProverServiceState {
     deployment_information: DeploymentInformation,
     training_wheels_key_pair: TrainingWheelsKeyPair,
     full_prover: Arc<Mutex<FullProver>>,
+    jwk_cache: JWKCache,
 }
 
 impl ProverServiceState {
@@ -22,6 +24,7 @@ impl ProverServiceState {
         training_wheels_key_pair: TrainingWheelsKeyPair,
         prover_service_config: Arc<ProverServiceConfig>,
         deployment_information: DeploymentInformation,
+        jwk_cache: JWKCache,
     ) -> Self {
         // Load the circuit configuration
         let circuit_configuration = prover_service_config.load_circuit_params();
@@ -37,6 +40,7 @@ impl ProverServiceState {
             deployment_information,
             training_wheels_key_pair,
             full_prover: Arc::new(Mutex::new(full_prover)),
+            jwk_cache,
         }
     }
 
@@ -48,6 +52,11 @@ impl ProverServiceState {
     /// Returns a reference to the deployment information
     pub fn deployment_information(&self) -> &DeploymentInformation {
         &self.deployment_information
+    }
+
+    /// Returns an Arc reference to the JWK cache
+    pub fn jwk_cache(&self) -> JWKCache {
+        self.jwk_cache.clone()
     }
 
     /// Returns an Arc reference to the full prover instance

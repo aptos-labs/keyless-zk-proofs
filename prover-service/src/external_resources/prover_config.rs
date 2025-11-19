@@ -1,5 +1,6 @@
 // Copyright (c) Aptos Foundation
 
+use crate::external_resources::jwk_fetcher::JWKIssuer;
 use crate::utils;
 use aptos_keyless_common::input_processing::config::CircuitConfig;
 use aptos_logger::info;
@@ -12,14 +13,6 @@ const CIRCUIT_CONFIG_YML_FILE_NAME: &str = "circuit_config.yml";
 const GENERATE_WITNESS_JS_FILE_NAME: &str = "generate_witness.js";
 const MAIN_WASM_FILE_NAME: &str = "main.wasm";
 
-/// A simple struct representing an OIDC provider
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(deny_unknown_fields)]
-pub struct OidcProvider {
-    pub iss: String,
-    pub endpoint_url: String,
-}
-
 /// The prover service configuration
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(deny_unknown_fields)]
@@ -29,7 +22,7 @@ pub struct ProverServiceConfig {
     pub zkey_filename: String,
     pub verification_key_filename: String,
     pub witness_gen_binary_filename: String,
-    pub oidc_providers: Vec<OidcProvider>,
+    pub jwk_issuers: Vec<JWKIssuer>,
     pub jwk_refresh_rate_secs: u64,
     pub port: u16,
     pub metrics_port: u16,

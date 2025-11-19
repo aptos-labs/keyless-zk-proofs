@@ -16,6 +16,7 @@ use aptos_crypto::{
     encoding_type::EncodingType,
     Uniform,
 };
+use aptos_infallible::Mutex;
 use aptos_keyless_common::input_processing::encoding::AsFr;
 use aptos_types::{
     jwks::rsa::RSA_JWK, keyless::Pepper, transaction::authenticator::EphemeralPublicKey,
@@ -28,6 +29,7 @@ use figment::{
 use hyper::Body;
 use rand::{rngs::ThreadRng, thread_rng};
 use serde::Serialize;
+use std::collections::HashMap;
 use std::{str::FromStr, sync::Arc};
 // TODO: clean up the existing tests, and add more tests!
 
@@ -115,6 +117,7 @@ pub async fn convert_prove_and_verify(
         TrainingWheelsKeyPair::from_sk(tw_sk_default),
         prover_service_config,
         DeploymentInformation::new(),
+        Arc::new(Mutex::new(HashMap::new())),
     );
 
     let prover_request_input = testcase.convert_to_prover_request(&jwk_keypair);

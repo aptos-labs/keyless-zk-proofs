@@ -426,6 +426,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "aptos-time-service"
+version = "0.1.0"
+source = "git+https://github.com/aptos-labs/aptos-core?rev=0ce3ac3a3e51c57b7e02ca8ed9010f6eda67d627#0ce3ac3a3e51c57b7e02ca8ed9010f6eda67d627"
+dependencies = [
+ "aptos-infallible 0.1.0 (git+https://github.com/aptos-labs/aptos-core?rev=0ce3ac3a3e51c57b7e02ca8ed9010f6eda67d627)",
+ "enum_dispatch",
+ "futures",
+ "pin-project",
+ "thiserror",
+ "tokio",
+]
+
+[[package]]
 name = "aptos-types"
 version = "0.0.3"
 source = "git+https://github.com/aptos-labs/aptos-core?branch=main#b163f034c0e1e01b59cef44694da9dbccb4d5b63"
@@ -695,6 +708,17 @@ name = "arrayvec"
 version = "0.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "96d30a06541fbafbc7f82ed10c06164cfbd2c401138f6addd8404629c4b16711"
+
+[[package]]
+name = "async-trait"
+version = "0.1.89"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9035ad2d096bed7955a320ee7e2230574d28fd3c3a0f186cbea1ff3c7eed5dbb"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.52",
+]
 
 [[package]]
 name = "atomic"
@@ -1696,6 +1720,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7268b386296a025e474d5140678f75d6de9493ae55a5d709eeb9dd08149945e1"
 dependencies = [
  "cfg-if",
+]
+
+[[package]]
+name = "enum_dispatch"
+version = "0.3.13"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aa18ce2bc66555b3218614519ac839ddb759a7d6720732f979ef8d13be147ecd"
+dependencies = [
+ "once_cell",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.52",
 ]
 
 [[package]]
@@ -3606,6 +3642,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "pin-project"
+version = "1.1.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "677f1add503faace112b9f1373e43e9e054bfdd22ff1a63c1bc485eaec6a6a8a"
+dependencies = [
+ "pin-project-internal",
+]
+
+[[package]]
+name = "pin-project-internal"
+version = "1.1.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6e918e4ff8c4549eb882f14b3a4bc8c8bc93de829416eacf579f1207a8fbf861"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.52",
+]
+
+[[package]]
 name = "pin-project-lite"
 version = "0.2.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3916,11 +3972,13 @@ dependencies = [
  "aptos-keyless-common",
  "aptos-logger",
  "aptos-metrics-core",
+ "aptos-time-service",
  "aptos-types",
  "ark-bn254",
  "ark-ff",
  "ark-groth16",
  "ark-serialize",
+ "async-trait",
  "base64 0.13.1",
  "bcs",
  "clap 4.5.51",

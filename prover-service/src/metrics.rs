@@ -15,7 +15,7 @@ use prometheus::proto::MetricFamily;
 use std::convert::Infallible;
 use std::net::SocketAddr;
 use std::sync::Arc;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 // TODO: sanity check and expand these metrics!
 
@@ -30,6 +30,17 @@ const TOTAL_METRICS_LABEL: &str = "total";
 
 // Invalid request path label
 const INVALID_PATH: &str = "invalid-path";
+
+// Histogram for tracking time taken to fetch JWKs by issuer and result
+static JWK_FETCH_SECONDS: Lazy<HistogramVec> = Lazy::new(|| {
+    register_histogram_vec!(
+        "keyless_pepper_service_jwk_fetch_seconds",
+        "Time taken to fetch keyless pepper service jwks",
+        &["issuer", "succeeded"],
+        LATENCY_BUCKETS.clone()
+    )
+    .unwrap()
+});
 
 // Buckets for tracking latencies
 static LATENCY_BUCKETS: Lazy<Vec<f64>> = Lazy::new(|| {
@@ -151,6 +162,13 @@ pub fn start_metrics_server(prover_service_config: Arc<ProverServiceConfig>) {
             panic!("Metrics server error! Error: {}", error);
         }
     });
+}
+
+/// Updates the JWK fetch metrics with the given data
+pub fn update_jwk_fetch_metrics(issuer: &str, succeeded: bool, elapsed: Duration) {
+    JWK_FETCH_SECONDS
+        .with_label_values(&[issuer, &succeeded.to_string()])
+        .observe(elapsed.as_secs_f64());
 }
 
 /// Updates the request handling metrics with the given data
