@@ -3,8 +3,8 @@
 mod sign;
 pub mod verification_logic;
 
-use crate::external_resources::jwk_fetching;
-use crate::external_resources::jwk_fetching::get_federated_jwk;
+use crate::external_resources::jwk_fetcher;
+use crate::external_resources::jwk_fetcher::get_federated_jwk;
 use crate::external_resources::prover_config::ProverServiceConfig;
 use crate::input_processing::types::VerifiedInput;
 use crate::request_handler::prover_state::ProverServiceState;
@@ -91,7 +91,7 @@ async fn get_jwk(
     prover_config: &ProverServiceConfig,
     jwt: &DecodedJWT,
 ) -> anyhow::Result<Arc<RSA_JWK>> {
-    let default_jwk = jwk_fetching::cached_decoding_key(&jwt.payload.iss, &jwt.header.kid);
+    let default_jwk = jwk_fetcher::cached_decoding_key(&jwt.payload.iss, &jwt.header.kid);
     if default_jwk.is_ok() {
         return default_jwk;
     }

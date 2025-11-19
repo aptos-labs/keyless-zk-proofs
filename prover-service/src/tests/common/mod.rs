@@ -8,7 +8,7 @@ use crate::request_handler::{handler, prover_handler};
 use crate::tests::common::types::ProofTestCase;
 use crate::training_wheels;
 use crate::{
-    external_resources::jwk_fetching::{KeyID, DECODING_KEY_CACHE},
+    external_resources::jwk_fetcher::{KeyID, DECODING_KEY_CACHE},
     types::api::ProverServiceResponse,
 };
 use aptos_crypto::{

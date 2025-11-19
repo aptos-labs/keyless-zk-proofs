@@ -1,6 +1,6 @@
 // Copyright (c) Aptos Foundation
 
-use crate::external_resources::jwk_fetching::get_federated_jwk;
+use crate::external_resources::jwk_fetcher::get_federated_jwk;
 use crate::tests::common::gen_test_jwk_keypair_with_kid_override;
 use crate::tests::common::types::{ProofTestCase, TestJWTPayload};
 use aptos_keyless_common::input_processing::encoding::DecodedJWT;
