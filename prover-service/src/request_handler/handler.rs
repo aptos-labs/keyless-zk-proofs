@@ -1,5 +1,6 @@
 // Copyright (c) Aptos Foundation
 
+use crate::external_resources::jwk_fetcher::JWKCache;
 use crate::external_resources::prover_config::ProverServiceConfig;
 use crate::request_handler::deployment_information::DeploymentInformation;
 use crate::request_handler::prover_handler;
@@ -18,10 +19,17 @@ use std::{convert::Infallible, sync::Arc};
 const ABOUT_PATH: &str = "/about";
 const CONFIG_PATH: &str = "/config";
 const HEALTH_CHECK_PATH: &str = "/healthcheck";
+pub const JWK_PATH: &str = "/cached/jwk";
 const PROVE_PATH: &str = "/v0/prove";
 
 // An array of all known endpoints/paths
-pub const ALL_PATHS: [&str; 4] = [ABOUT_PATH, CONFIG_PATH, HEALTH_CHECK_PATH, PROVE_PATH];
+pub const ALL_PATHS: [&str; 5] = [
+    ABOUT_PATH,
+    CONFIG_PATH,
+    HEALTH_CHECK_PATH,
+    JWK_PATH,
+    PROVE_PATH,
+];
 
 // Content type constants
 pub const CONTENT_TYPE_JSON: &str = "application/json";
@@ -126,6 +134,22 @@ pub fn generate_json_response(
     Ok(response)
 }
 
+/// Generates a response with the cached JWKs as JSON
+fn generate_jwt_cache_response(
+    origin: String,
+    jwk_cache: JWKCache,
+) -> Result<Response<Body>, Infallible> {
+    let jwk_cache = jwk_cache.lock().clone();
+    match serde_json::to_string_pretty(&jwk_cache) {
+        Ok(response_body) => generate_json_response(origin, StatusCode::OK, response_body),
+        Err(error) => {
+            // Failed to serialize the JWK cache, return a server error
+            error!("Failed to serialize to JSON response: {}", error);
+            generate_internal_server_error_response(origin.clone())
+        }
+    }
+}
+
 /// Generates a 405 response for invalid methods on known paths
 fn generate_method_not_allowed_response(origin: String) -> Result<Response<Body>, Infallible> {
     generate_text_response(
@@ -212,6 +236,9 @@ pub async fn handle_request(
                 )
             }
             HEALTH_CHECK_PATH => return generate_health_check_response(origin),
+            JWK_PATH => {
+                return generate_jwt_cache_response(origin, prover_service_state.jwk_cache())
+            }
             _ => { /* Continue below */ }
         };
     }
