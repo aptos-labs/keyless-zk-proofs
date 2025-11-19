@@ -1,7 +1,7 @@
 // Copyright (c) Aptos Foundation
 
-use crate::config::prover_config::ProverServiceConfig;
-use crate::request_handler::is_known_path;
+use crate::external_resources::prover_config::ProverServiceConfig;
+use crate::request_handler::handler::is_known_path;
 use aptos_logger::{error, info, warn};
 use aptos_metrics_core::{
     exponential_buckets, register_histogram_vec, register_int_counter_vec, Encoder, HistogramVec,

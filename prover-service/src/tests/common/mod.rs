@@ -1,18 +1,16 @@
 // Copyright (c) Aptos Foundation
 
 use self::types::{DefaultTestJWKKeyPair, TestJWKKeyPair, WithNonce};
-use crate::config::prover_config::ProverServiceConfig;
-use crate::deployment_information::DeploymentInformation;
-use crate::prover_handler::prepared_vk;
-use crate::prover_state::TrainingWheelsKeyPair;
+use crate::external_resources::prover_config::ProverServiceConfig;
+use crate::request_handler::deployment_information::DeploymentInformation;
+use crate::request_handler::prover_state::{ProverServiceState, TrainingWheelsKeyPair};
+use crate::request_handler::{handler, prover_handler};
 use crate::tests::common::types::ProofTestCase;
+use crate::training_wheels;
 use crate::{
-    api::ProverServiceResponse,
-    jwk_fetching::{KeyID, DECODING_KEY_CACHE},
-    prover_state::ProverServiceState,
-    request_handler,
+    external_resources::jwk_fetching::{KeyID, DECODING_KEY_CACHE},
+    types::api::ProverServiceResponse,
 };
-use crate::{prover_handler, training_wheels};
 use aptos_crypto::{
     ed25519::{Ed25519PrivateKey, Ed25519PublicKey},
     encoding_type::EncodingType,
@@ -31,7 +29,6 @@ use hyper::Body;
 use rand::{rngs::ThreadRng, thread_rng};
 use serde::Serialize;
 use std::{str::FromStr, sync::Arc};
-
 // TODO: clean up the existing tests, and add more tests!
 
 pub mod types;
@@ -131,7 +128,7 @@ pub async fn convert_prove_and_verify(
 
     let prover_service_state = Arc::new(state);
     let prove_response = prover_handler::hande_prove_request(
-        request_handler::MISSING_ORIGIN_STRING.into(),
+        handler::MISSING_ORIGIN_STRING.into(),
         prove_request,
         prover_service_state,
     )
@@ -156,8 +153,10 @@ pub async fn convert_prove_and_verify(
             public_inputs_hash,
             ..
         } => {
-            let g16vk =
-                prepared_vk(&testcase.prover_service_config.verification_key_file_path()).unwrap();
+            let g16vk = prover_handler::prepared_vk(
+                &testcase.prover_service_config.verification_key_file_path(),
+            )
+            .unwrap();
             proof.verify_proof(public_inputs_hash.as_fr(), &g16vk)?;
             training_wheels::verify(&response, &tw_pk)
         }

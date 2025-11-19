@@ -6,9 +6,11 @@ use aptos_logger::{error, info, warn};
 use clap::Parser;
 use hyper::service::{make_service_fn, service_fn};
 use hyper::Server;
-use prover_service::config::prover_config;
-use prover_service::config::prover_config::ProverServiceConfig;
-use prover_service::{prover_state::*, *};
+use prover_service::external_resources::prover_config::ProverServiceConfig;
+use prover_service::external_resources::{jwk_fetching, prover_config};
+use prover_service::request_handler::prover_state::{ProverServiceState, TrainingWheelsKeyPair};
+use prover_service::request_handler::{deployment_information, handler};
+use prover_service::*;
 use std::convert::Infallible;
 use std::time::Instant;
 use std::{net::SocketAddr, sync::Arc, time::Duration};
@@ -129,7 +131,7 @@ async fn start_prover_service(
                 let request_start_time = Instant::now();
 
                 // Get the request origin, method and request path
-                let request_origin = request_handler::get_request_origin(&request);
+                let request_origin = handler::get_request_origin(&request);
                 let request_method = request.method().clone();
                 let request_path = request.uri().path().to_owned();
 
@@ -140,8 +142,7 @@ async fn start_prover_service(
                 async move {
                     // Call the request handler
                     let result =
-                        request_handler::handle_request(request, prover_service_state.clone())
-                            .await;
+                        handler::handle_request(request, prover_service_state.clone()).await;
 
                     // Update the request handling metrics and logs
                     match &result {

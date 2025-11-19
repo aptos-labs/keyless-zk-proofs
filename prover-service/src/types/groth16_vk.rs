@@ -57,7 +57,7 @@ pub struct SnarkJsGroth16VerificationKey {
 
 #[test]
 fn test_local_vk_load_convert() {
-    let local_vk_json = include_str!("../resources/202405_vk.vkey");
+    let local_vk_json = include_str!("../../resources/202405_vk.vkey");
     let local_vk: SnarkJsGroth16VerificationKey = serde_json::from_str(local_vk_json).unwrap();
 
     // The VK we currently use on chain.

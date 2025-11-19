@@ -2,7 +2,7 @@
 
 use aptos_keyless_common::input_processing::encoding::{AsFr, DecodedJWT, FromB64, JwtParts};
 
-use crate::api::RequestInput;
+use crate::types::api::RequestInput;
 use anyhow::Result;
 use aptos_types::{jwks::rsa::RSA_JWK, transaction::authenticator::EphemeralPublicKey};
 use ark_bn254::Fr;
