@@ -3982,7 +3982,6 @@ dependencies = [
  "base64 0.13.1",
  "bcs",
  "clap 4.5.51",
- "dashmap",
  "figment",
  "hex",
  "http 1.1.0",

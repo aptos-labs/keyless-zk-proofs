@@ -21,7 +21,9 @@ aptos-infallible = { git = "https://github.com/aptos-labs/aptos-core", rev = "0c
 aptos-keyless-common = { path = "keyless-common" }
 aptos-logger = { git = "https://github.com/aptos-labs/aptos-core", rev = "0ce3ac3a3e51c57b7e02ca8ed9010f6eda67d627" }
 aptos-metrics-core = { git = "https://github.com/aptos-labs/aptos-core", rev = "0ce3ac3a3e51c57b7e02ca8ed9010f6eda67d627" }
-aptos-time-service = { git = "https://github.com/aptos-labs/aptos-core", rev = "0ce3ac3a3e51c57b7e02ca8ed9010f6eda67d627" }
+aptos-time-service = { git = "https://github.com/aptos-labs/aptos-core", rev = "0ce3ac3a3e51c57b7e02ca8ed9010f6eda67d627", features = [
+  "async",
+] }
 aptos-types = { git = "https://github.com/aptos-labs/aptos-core", branch = "main" } # TODO: pin to a specific rev
 ark-bn254 = "0.4.0"
 ark-ff = "0.4.0"
@@ -38,7 +40,6 @@ clap = { version = "4.5.51", features = [
   "unstable-styles",
   "wrap_help",
 ] }
-dashmap = "5.5.3"
 figment = { version = "0.10.14", features = ["yaml", "env"] }
 hex = { version = "0.4.3", features = ["serde"] }
 http = "1.0.0"
