@@ -1,26 +1,24 @@
 // Copyright (c) Aptos Foundation
 
 use self::types::{DefaultTestJWKKeyPair, TestJWKKeyPair, WithNonce};
+use crate::external_resources::jwk_fetcher::Issuer;
 use crate::external_resources::prover_config::ProverServiceConfig;
 use crate::request_handler::deployment_information::DeploymentInformation;
 use crate::request_handler::prover_state::{ProverServiceState, TrainingWheelsKeyPair};
 use crate::request_handler::{handler, prover_handler};
 use crate::tests::common::types::ProofTestCase;
 use crate::training_wheels;
-use crate::{
-    external_resources::jwk_fetching::{KeyID, DECODING_KEY_CACHE},
-    types::api::ProverServiceResponse,
-};
+use crate::{external_resources::jwk_fetcher::KeyID, types::api::ProverServiceResponse};
 use aptos_crypto::{
     ed25519::{Ed25519PrivateKey, Ed25519PublicKey},
     encoding_type::EncodingType,
     Uniform,
 };
+use aptos_infallible::Mutex;
 use aptos_keyless_common::input_processing::encoding::AsFr;
 use aptos_types::{
     jwks::rsa::RSA_JWK, keyless::Pepper, transaction::authenticator::EphemeralPublicKey,
 };
-use dashmap::DashMap;
 use figment::{
     providers::{Format as _, Yaml},
     Figment,
@@ -28,6 +26,7 @@ use figment::{
 use hyper::Body;
 use rand::{rngs::ThreadRng, thread_rng};
 use serde::Serialize;
+use std::collections::HashMap;
 use std::{str::FromStr, sync::Arc};
 // TODO: clean up the existing tests, and add more tests!
 
@@ -96,10 +95,10 @@ pub async fn convert_prove_and_verify(
     let jwk_keypair = gen_test_jwk_keypair();
     let (tw_sk_default, tw_pk) = gen_test_training_wheels_keypair();
 
-    let dm: DashMap<KeyID, Arc<RSA_JWK>> =
-        DashMap::from_iter([("test-rsa".to_owned(), Arc::new(jwk_keypair.into_rsa_jwk()))]);
-
-    DECODING_KEY_CACHE.insert(String::from("test.oidc.provider"), dm);
+    let test_jwk: HashMap<KeyID, Arc<RSA_JWK>> =
+        HashMap::from_iter([("test-rsa".to_owned(), Arc::new(jwk_keypair.into_rsa_jwk()))]);
+    let jwk_cache: HashMap<Issuer, HashMap<KeyID, Arc<RSA_JWK>>> =
+        HashMap::from_iter([("test.oidc.provider".into(), test_jwk)]);
 
     println!(
         "Prover service resources dir: {}",
@@ -115,6 +114,7 @@ pub async fn convert_prove_and_verify(
         TrainingWheelsKeyPair::from_sk(tw_sk_default),
         prover_service_config,
         DeploymentInformation::new(),
+        Arc::new(Mutex::new(jwk_cache)),
     );
 
     let prover_request_input = testcase.convert_to_prover_request(&jwk_keypair);

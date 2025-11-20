@@ -7,7 +7,7 @@ use clap::Parser;
 use hyper::service::{make_service_fn, service_fn};
 use hyper::Server;
 use prover_service::external_resources::prover_config::ProverServiceConfig;
-use prover_service::external_resources::{jwk_fetching, prover_config};
+use prover_service::external_resources::{jwk_fetcher, prover_config};
 use prover_service::request_handler::prover_state::{ProverServiceState, TrainingWheelsKeyPair};
 use prover_service::request_handler::{deployment_information, handler};
 use prover_service::*;
@@ -48,22 +48,22 @@ async fn main() {
         training_wheels_key_pair.verification_key(),
     );
 
+    // Start the JWK fetchers
+    let jwk_cache = jwk_fetcher::start_jwk_fetchers(
+        prover_service_config.jwk_issuers.clone(),
+        Duration::from_secs(prover_service_config.jwk_refresh_rate_secs),
+    );
+
     // Create the prover service state
     let prover_service_state = Arc::new(ProverServiceState::init(
         training_wheels_key_pair,
         prover_service_config.clone(),
         deployment_information,
+        jwk_cache,
     ));
 
     // Load the verification key
     load_verification_key(prover_service_config.clone());
-
-    // init jwk fetching job; refresh every `config.jwk_refresh_rate_secs` seconds
-    jwk_fetching::init_jwk_fetching(
-        &prover_service_config.oidc_providers,
-        Duration::from_secs(prover_service_config.jwk_refresh_rate_secs),
-    )
-    .await;
 
     // Start the metrics server
     metrics::start_metrics_server(prover_service_config.clone());

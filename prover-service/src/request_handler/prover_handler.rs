@@ -1,8 +1,8 @@
 // Copyright (c) Aptos Foundation
 
 use crate::error::ProverServiceError;
-use crate::request_handler::witness_gen::PathStr;
-use crate::request_handler::{handler, witness_gen};
+use crate::external_resources::prover_config::ProverServiceConfig;
+use crate::request_handler::handler;
 use crate::{
     input_processing,
     request_handler::prover_state::ProverServiceState,
@@ -10,7 +10,7 @@ use crate::{
     types::api::{ProverServiceResponse, RequestInput},
     utils,
 };
-use anyhow::Result;
+use aptos_keyless_common::input_processing::circuit_input_signals::{CircuitInputSignals, Padded};
 use aptos_keyless_common::PoseidonHash;
 use aptos_logger::{error, warn};
 use aptos_types::keyless::{g1_projective_str_to_affine, g2_projective_str_to_affine};
@@ -24,6 +24,9 @@ use ark_groth16::{PreparedVerifyingKey, VerifyingKey};
 use hyper::{Body, Request, Response, StatusCode};
 use serde::{Deserialize, Serialize};
 use std::convert::Infallible;
+use std::fs;
+use std::path::Path;
+use std::process::Command;
 use std::sync::Arc;
 use tempfile::NamedTempFile;
 
@@ -57,6 +60,7 @@ pub async fn hande_prove_request(
     let verified_input = match training_wheels::preprocess_and_validate_request(
         &prover_service_state,
         &request_input,
+        prover_service_state.jwk_cache(),
     )
     .await
     {
@@ -90,8 +94,7 @@ pub async fn hande_prove_request(
 
     // Generate the witness file
     let prover_service_config = prover_service_state.prover_service_config();
-    let witness_file = match witness_gen::witness_gen(prover_service_config, &circuit_input_signals)
-    {
+    let witness_file = match generate_witness_file(prover_service_config, &circuit_input_signals) {
         Ok(witness_file) => witness_file,
         Err(error) => {
             warn!("Failed to generate witness file! Error: {}", error);
@@ -190,12 +193,12 @@ async fn generate_groth16_proof(
     public_inputs_hash: PoseidonHash,
 ) -> Result<Groth16Proof, ProverServiceError> {
     // Get the witness file path
-    let witness_file_path = match witness_file.path_str() {
-        Ok(path_str) => path_str,
-        Err(error) => {
+    let witness_file_path = match witness_file.path().to_str() {
+        Some(path_str) => path_str,
+        None => {
             return Err(ProverServiceError::UnexpectedError(format!(
-                "Failed to get witness file path! Error: {}",
-                error
+                "Failed to get witness file path as string: {:?}",
+                witness_file.path()
             )));
         }
     };
@@ -339,8 +342,20 @@ impl RapidsnarkProofResponse {
     }
 }
 
+/// Creates and returns a named temporary file
+fn create_named_temp_file() -> Result<NamedTempFile, ProverServiceError> {
+    NamedTempFile::new().map_err(|error| {
+        ProverServiceError::UnexpectedError(format!(
+            "Failed to create temporary file! Error: {}",
+            error
+        ))
+    })
+}
+
 /// Encodes a Rapidsnark proof response into a Groth16 proof
-pub fn encode_proof(rapidsnark_proof_response: &RapidsnarkProofResponse) -> Result<Groth16Proof> {
+pub fn encode_proof(
+    rapidsnark_proof_response: &RapidsnarkProofResponse,
+) -> Result<Groth16Proof, ProverServiceError> {
     let new_pi_a = G1Bytes::new_unchecked(
         &rapidsnark_proof_response.pi_a[0],
         &rapidsnark_proof_response.pi_a[1],
@@ -355,4 +370,100 @@ pub fn encode_proof(rapidsnark_proof_response: &RapidsnarkProofResponse) -> Resu
     )?;
 
     Ok(Groth16Proof::new(new_pi_a, new_pi_b, new_pi_c))
+}
+
+/// Converts a file path to a string, returning an error if the conversion fails
+pub fn get_file_path_string(file_path: &Path) -> Result<String, ProverServiceError> {
+    let file_path_string = file_path.to_str().ok_or_else(|| {
+        ProverServiceError::UnexpectedError(format!(
+            "Failed to convert file path to string: {:?}",
+            file_path
+        ))
+    })?;
+    Ok(file_path_string.to_string())
+}
+
+/// Generates the witness file using the given prover config and circuit input signals
+pub fn generate_witness_file(
+    prover_service_config: Arc<ProverServiceConfig>,
+    circuit_input_signals: &CircuitInputSignals<Padded>,
+) -> Result<NamedTempFile, ProverServiceError> {
+    // Write the circuit input signals to a temporary file
+    let circuit_input_signals_string =
+        serde_json::to_string(&circuit_input_signals.to_json_value()).map_err(|error| {
+            ProverServiceError::UnexpectedError(format!(
+                "Failed to serialize circuit input signals to JSON! Error: {}",
+                error
+            ))
+        })?;
+    let input_file = create_named_temp_file()?;
+    fs::write(input_file.path(), circuit_input_signals_string.as_bytes()).map_err(|error| {
+        ProverServiceError::UnexpectedError(format!(
+            "Failed to write circuit input signals to temporary file! Error: {}",
+            error
+        ))
+    })?;
+
+    // Get the input and witness file paths
+    let generated_witness_file = create_named_temp_file()?;
+    let input_file_path = get_file_path_string(input_file.path())?;
+    let generated_witness_file_path = get_file_path_string(generated_witness_file.path())?;
+
+    // Run the witness generation command
+    let output = get_witness_generation_command(
+        &prover_service_config,
+        &input_file_path,
+        &generated_witness_file_path,
+    )
+    .output()
+    .map_err(|error| {
+        ProverServiceError::UnexpectedError(format!(
+            "Failed to execute witness generation command! Error: {}",
+            error
+        ))
+    })?;
+
+    // Check if the command executed successfully
+    if output.status.success() {
+        Ok(generated_witness_file)
+    } else {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        Err(ProverServiceError::UnexpectedError(format!(
+            "Witness generation command failed! Error: {}",
+            stderr
+        )))
+    }
+}
+
+// Returns the command to generate the witness file (non-x86_64 uses node + wasm)
+#[cfg(not(target_arch = "x86_64"))]
+fn get_witness_generation_command(
+    config: &ProverServiceConfig,
+    input_file_path: &str,
+    witness_file_path: &str,
+) -> Command {
+    // Create the command to run the witness generator
+    let mut command = Command::new("node");
+    command.args(&[
+        config.witness_gen_js_file_path(),
+        config.witness_gen_wasm_file_path(),
+        String::from(input_file_path),
+        String::from(witness_file_path),
+    ]);
+
+    command
+}
+
+// Returns the command to generate the witness file (x86_64 uses the native binary)
+#[cfg(target_arch = "x86_64")]
+fn get_witness_generation_command(
+    config: &ProverServiceConfig,
+    input_file_path: &str,
+    witness_file_path: &str,
+) -> Command {
+    // Create the command to run the witness generator
+    let mut command = Command::new(config.witness_gen_binary_file_path());
+    command.args([input_file_path, witness_file_path]);
+
+    command
 }

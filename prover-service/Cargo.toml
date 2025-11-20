@@ -21,15 +21,16 @@ aptos-infallible = { workspace = true }
 aptos-keyless-common = { workspace = true }
 aptos-logger = { workspace = true }
 aptos-metrics-core = { workspace = true }
+aptos-time-service = { workspace = true }
 aptos-types = { workspace = true }
 ark-bn254 = { workspace = true }
 ark-ff = { workspace = true }
 ark-groth16 = { workspace = true }
 ark-serialize = { workspace = true }
+async-trait = { workspace = true }
 base64 = { workspace = true }
 bcs = { workspace = true }
 clap = { workspace = true }
-dashmap = { workspace = true }
 figment = { workspace = true }
 hex = { workspace = true }
 http = { workspace = true }
@@ -52,3 +53,6 @@ shellexpand = { workspace = true }
 tempfile = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
+
+[dev-dependencies]
+aptos-time-service = { workspace = true, features = ["testing"] }

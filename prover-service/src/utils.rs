@@ -2,10 +2,23 @@
 
 use aptos_logger::{error, warn};
 use http::StatusCode;
+use reqwest::Client;
 use serde::Serialize;
 use std::fmt::Debug;
 use std::fs;
 use std::io::Write;
+use std::time::Duration;
+
+// Timeout for client requests
+const CLIENT_REQUEST_TIMEOUT_SECS: u64 = 15;
+
+/// Creates and returns a reqwest HTTP client with a timeout
+pub fn create_request_client() -> Client {
+    Client::builder()
+        .timeout(Duration::from_secs(CLIENT_REQUEST_TIMEOUT_SECS))
+        .build()
+        .expect("Failed to build the request client!")
+}
 
 /// Reads the value of a given environment variable. If
 /// the variable is not set, an error will be logged, and

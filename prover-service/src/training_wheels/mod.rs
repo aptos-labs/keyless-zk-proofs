@@ -3,8 +3,8 @@
 mod sign;
 pub mod verification_logic;
 
-use crate::external_resources::jwk_fetching;
-use crate::external_resources::jwk_fetching::get_federated_jwk;
+use crate::external_resources::jwk_fetcher;
+use crate::external_resources::jwk_fetcher::{get_federated_jwk, JWKCache};
 use crate::external_resources::prover_config::ProverServiceConfig;
 use crate::input_processing::types::VerifiedInput;
 use crate::request_handler::prover_state::ProverServiceState;
@@ -24,9 +24,10 @@ pub use verification_logic::validate_jwt_sig;
 pub async fn preprocess_and_validate_request(
     prover: &ProverServiceState,
     req: &RequestInput,
+    jwk_cache: JWKCache,
 ) -> anyhow::Result<VerifiedInput> {
     let jwt = DecodedJWT::from_b64(&req.jwt_b64)?;
-    let jwk = get_jwk(&prover.prover_service_config(), &jwt).await?;
+    let jwk = get_jwk(&prover.prover_service_config(), &jwt, jwk_cache).await?;
 
     {
         // Keyless relation condition 10 captured: https://github.com/aptos-foundation/AIPs/blob/f133e29d999adf31c4f41ce36ae1a808339af71e/aips/aip-108.md?plain=1#L95
@@ -90,8 +91,10 @@ pub async fn preprocess_and_validate_request(
 async fn get_jwk(
     prover_config: &ProverServiceConfig,
     jwt: &DecodedJWT,
+    jwk_cache: JWKCache,
 ) -> anyhow::Result<Arc<RSA_JWK>> {
-    let default_jwk = jwk_fetching::cached_decoding_key(&jwt.payload.iss, &jwt.header.kid);
+    let default_jwk =
+        jwk_fetcher::get_cached_jwk_as_rsa(&jwt.payload.iss, &jwt.header.kid, jwk_cache);
     if default_jwk.is_ok() {
         return default_jwk;
     }
