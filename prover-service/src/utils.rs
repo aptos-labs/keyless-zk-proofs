@@ -1,5 +1,6 @@
 // Copyright (c) Aptos Foundation
 
+use crate::error::ProverServiceError;
 use aptos_logger::{error, warn};
 use http::StatusCode;
 use reqwest::Client;
@@ -7,10 +8,22 @@ use serde::Serialize;
 use std::fmt::Debug;
 use std::fs;
 use std::io::Write;
+use std::path::Path;
 use std::time::Duration;
+use tempfile::NamedTempFile;
 
 // Timeout for client requests
 const CLIENT_REQUEST_TIMEOUT_SECS: u64 = 15;
+
+/// Creates and returns a named temporary file
+pub fn create_named_temp_file() -> Result<NamedTempFile, ProverServiceError> {
+    NamedTempFile::new().map_err(|error| {
+        ProverServiceError::UnexpectedError(format!(
+            "Failed to create temporary file! Error: {}",
+            error
+        ))
+    })
+}
 
 /// Creates and returns a reqwest HTTP client with a timeout
 pub fn create_request_client() -> Client {
@@ -18,6 +31,17 @@ pub fn create_request_client() -> Client {
         .timeout(Duration::from_secs(CLIENT_REQUEST_TIMEOUT_SECS))
         .build()
         .expect("Failed to build the request client!")
+}
+
+/// Converts a file path to a string, returning an error if the conversion fails
+pub fn get_file_path_string(file_path: &Path) -> Result<String, ProverServiceError> {
+    let file_path_string = file_path.to_str().ok_or_else(|| {
+        ProverServiceError::UnexpectedError(format!(
+            "Failed to convert file path to string: {:?}",
+            file_path
+        ))
+    })?;
+    Ok(file_path_string.to_string())
 }
 
 /// Reads the value of a given environment variable. If

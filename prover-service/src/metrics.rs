@@ -28,6 +28,17 @@ const TOTAL_METRIC_BYTES_LABEL: &str = "total_bytes";
 const TOTAL_METRIC_FAMILIES_OVER_2000_LABEL: &str = "families_over_2000";
 const TOTAL_METRICS_LABEL: &str = "total";
 
+// Useful metric labels for different phases of prove request handling
+pub const DERIVE_CIRCUIT_INPUT_SIGNALS_LABEL: &str = "derive_circuit_input_signals";
+pub const DESERIALIZE_PROVE_REQUEST_LABEL: &str = "deserialize_prove_request";
+pub const PROOF_DESERIALIZATION_LABEL: &str = "proof_deserialization";
+pub const PROOF_GENERATION_LABEL: &str = "proof_generation";
+pub const PROOF_TW_SIGNATURE_LABEL: &str = "proof_tw_signature";
+pub const PROOF_VERIFICATION_LABEL: &str = "proof_verification";
+pub const PROVER_RESPONSE_GENERATION_LABEL: &str = "prover_response_generation";
+pub const VALIDATE_PROVE_REQUEST_LABEL: &str = "validate_prove_request";
+pub const WITNESS_GENERATION_LABEL: &str = "witness_generation";
+
 // Invalid request path label
 const INVALID_PATH: &str = "invalid-path";
 
@@ -56,6 +67,17 @@ pub static NUM_TOTAL_METRICS: Lazy<IntCounterVec> = Lazy::new(|| {
         "keyless_prover_service_num_metrics",
         "Number of keyless prover metrics in certain states",
         &["type"]
+    )
+    .unwrap()
+});
+
+// Histogram for tracking the internal breakdown of prove request handling
+static PROVE_REQUEST_BREAKDOWN_SECONDS: Lazy<HistogramVec> = Lazy::new(|| {
+    register_histogram_vec!(
+        "keyless_prover_service_prove_request_breakdown_seconds",
+        "Time taken to handle various phases of the prove request.",
+        &["phase"],
+        LATENCY_BUCKETS.clone()
     )
     .unwrap()
 });
@@ -168,6 +190,13 @@ pub fn start_metrics_server(prover_service_config: Arc<ProverServiceConfig>) {
 pub fn update_jwk_fetch_metrics(issuer: &str, succeeded: bool, elapsed: Duration) {
     JWK_FETCH_SECONDS
         .with_label_values(&[issuer, &succeeded.to_string()])
+        .observe(elapsed.as_secs_f64());
+}
+
+/// Updates the prove request breakdown metrics with the given data
+pub fn update_prove_request_breakdown_metrics(phase: &str, elapsed: Duration) {
+    PROVE_REQUEST_BREAKDOWN_SECONDS
+        .with_label_values(&[phase])
         .observe(elapsed.as_secs_f64());
 }
 
