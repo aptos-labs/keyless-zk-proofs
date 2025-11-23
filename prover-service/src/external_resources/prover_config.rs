@@ -32,6 +32,27 @@ pub struct ProverServiceConfig {
     pub enable_federated_jwks: bool,
     #[serde(default)]
     pub use_insecure_jwk_for_test: bool,
+    pub max_committed_epk_bytes: usize,
+}
+
+impl Default for ProverServiceConfig {
+    fn default() -> Self {
+        Self {
+            setup_dir: "default".into(),                   // Default setup directory
+            resources_dir: "/resources/ceremonies".into(), // Default resources directory
+            zkey_filename: "prover_key.zkey".into(),       // Default zkey filename
+            verification_key_filename: "verification_key.json".into(), // Default verification key filename
+            witness_gen_binary_filename: "main_c".into(), // Default witness generation binary filename
+            jwk_issuers: vec![],                          // No OIDC providers by default
+            jwk_refresh_rate_secs: 10,                    // Refresh JWKs every 10 seconds
+            port: 8083,                                   // Run the prover service on port 8083
+            metrics_port: 9100,                           // Run the metrics service on port 9100
+            enable_test_provider: false, // Don't enable the test OIDC provider by default
+            enable_federated_jwks: false, // Disable federated JWKs by default
+            use_insecure_jwk_for_test: false, // Don't use insecure JWK for testing by default
+            max_committed_epk_bytes: 93, // 3 * BYTES_PACKED_PER_SCALAR (31) = 93
+        }
+    }
 }
 
 impl ProverServiceConfig {

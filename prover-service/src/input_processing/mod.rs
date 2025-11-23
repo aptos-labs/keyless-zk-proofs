@@ -9,6 +9,7 @@ pub mod types;
 use self::{
     field_check_input::field_check_input_signals, public_inputs_hash::compute_public_inputs_hash,
 };
+use crate::external_resources::prover_config::ProverServiceConfig;
 use crate::input_processing::types::VerifiedInput;
 use anyhow::Result;
 use aptos_keyless_common::{
@@ -20,18 +21,20 @@ use aptos_keyless_common::{
     },
     PoseidonHash,
 };
+use std::sync::Arc;
 
 pub fn derive_circuit_input_signals(
-    input: VerifiedInput,
+    prover_service_config: Arc<ProverServiceConfig>,
     config: &CircuitConfig,
+    input: VerifiedInput,
 ) -> Result<(CircuitInputSignals<Padded>, PoseidonHash), anyhow::Error> {
     let jwt_parts = &input.jwt_parts;
     let epk_blinder_fr = input.epk_blinder_fr;
     let unsigned_jwt_with_padding =
         with_sha_padding_bytes(input.jwt_parts.unsigned_undecoded().as_bytes());
     let (ephemeral_pubkey_frs, ephemeral_pubkey_len) =
-        public_inputs_hash::compute_ephemeral_pubkey_frs(&input)?;
-    let public_inputs_hash = compute_public_inputs_hash(&input, config)?;
+        public_inputs_hash::compute_ephemeral_pubkey_frs(prover_service_config.clone(), &input)?;
+    let public_inputs_hash = compute_public_inputs_hash(prover_service_config, config, &input)?;
 
     let mut circuit_input_signals = CircuitInputSignals::new()
         // "global" inputs

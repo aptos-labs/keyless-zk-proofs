@@ -319,9 +319,14 @@ async fn generate_witness_file_for_proof(
 ) -> Result<(NamedTempFile, PoseidonHash), ProverServiceError> {
     // Derive the circuit input signals from the verified input
     let circuit_input_signals_timer = Instant::now();
+    let prover_service_config = prover_service_state.prover_service_config();
     let circuit_config = prover_service_state.circuit_config();
     let (circuit_input_signals, public_inputs_hash) =
-        match input_processing::derive_circuit_input_signals(verified_input, circuit_config) {
+        match input_processing::derive_circuit_input_signals(
+            prover_service_config,
+            circuit_config,
+            verified_input,
+        ) {
             Ok((input_signals, input_hash)) => (input_signals, input_hash),
             Err(error) => {
                 return Err(ProverServiceError::UnexpectedError(format!(
