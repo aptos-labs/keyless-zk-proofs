@@ -1,5 +1,4 @@
 // Copyright (c) Aptos Foundation
-// SPDX-License-Identifier: Apache-2.0
 
 use aptos_build_info::build_information;
 use aptos_crypto::ed25519::Ed25519PublicKey;

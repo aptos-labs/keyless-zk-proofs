@@ -1,9 +1,8 @@
 // Copyright (c) Aptos Foundation
 
-use aptos_keyless_common::input_processing::encoding::{AsFr, DecodedJWT, FromB64, JwtParts};
-
-use crate::types::api::RequestInput;
+use crate::request_handler::types::RequestInput;
 use anyhow::Result;
+use aptos_keyless_common::input_processing::encoding::{AsFr, DecodedJWT, FromB64, JwtParts};
 use aptos_types::{jwks::rsa::RSA_JWK, transaction::authenticator::EphemeralPublicKey};
 use ark_bn254::Fr;
 use std::sync::Arc;

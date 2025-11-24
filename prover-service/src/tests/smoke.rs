@@ -1,6 +1,6 @@
 // Copyright (c) Aptos Foundation
 
-use crate::request_handler::prover_handler;
+use crate::request_handler::types;
 use crate::tests::common::{
     convert_prove_and_verify,
     types::{ProofTestCase, TestJWTPayload},
@@ -205,9 +205,8 @@ fn dummy_circuit_load_test() {
     for _i in 0..1000 {
         let (proof_json, _) = prover.prove("./resources/toy_circuit/toy.wtns").unwrap();
 
-        let proof =
-            prover_handler::encode_proof(&serde_json::from_str(proof_json).unwrap()).unwrap();
-        let g16vk = prover_handler::prepared_vk("./resources/toy_circuit/toy_vk.json").unwrap();
+        let proof = types::encode_proof(&serde_json::from_str(proof_json).unwrap()).unwrap();
+        let g16vk = types::prepared_vk("./resources/toy_circuit/toy_vk.json").unwrap();
         proof.verify_proof(2.into(), &g16vk).unwrap();
     }
 }

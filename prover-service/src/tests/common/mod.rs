@@ -2,13 +2,14 @@
 
 use self::types::{DefaultTestJWKKeyPair, TestJWKKeyPair, WithNonce};
 use crate::external_resources::jwk_fetcher::Issuer;
+use crate::external_resources::jwk_fetcher::KeyID;
 use crate::external_resources::prover_config::ProverServiceConfig;
 use crate::request_handler::deployment_information::DeploymentInformation;
 use crate::request_handler::prover_state::{ProverServiceState, TrainingWheelsKeyPair};
+use crate::request_handler::types::ProverServiceResponse;
 use crate::request_handler::{handler, prover_handler};
 use crate::tests::common::types::ProofTestCase;
-use crate::training_wheels;
-use crate::{external_resources::jwk_fetcher::KeyID, types::api::ProverServiceResponse};
+use crate::{request_handler, training_wheels};
 use aptos_crypto::{
     ed25519::{Ed25519PrivateKey, Ed25519PublicKey},
     encoding_type::EncodingType,
@@ -153,7 +154,7 @@ pub async fn convert_prove_and_verify(
             public_inputs_hash,
             ..
         } => {
-            let g16vk = prover_handler::prepared_vk(
+            let g16vk = request_handler::types::prepared_vk(
                 &testcase.prover_service_config.verification_key_file_path(),
             )
             .unwrap();
