@@ -2,6 +2,7 @@
 
 use crate::error::ProverServiceError;
 use crate::external_resources::prover_config::ProverServiceConfig;
+use crate::input_processing::input_signals;
 use crate::input_processing::types::VerifiedInput;
 use crate::metrics::{
     DERIVE_CIRCUIT_INPUT_SIGNALS_LABEL, DESERIALIZE_PROVE_REQUEST_LABEL,
@@ -11,10 +12,7 @@ use crate::metrics::{
 };
 use crate::request_handler::types::{ProverServiceResponse, RequestInput};
 use crate::request_handler::{handler, types};
-use crate::{
-    input_processing, metrics, request_handler::prover_state::ProverServiceState, training_wheels,
-    utils,
-};
+use crate::{metrics, request_handler::prover_state::ProverServiceState, training_wheels, utils};
 use aptos_keyless_common::input_processing::circuit_input_signals::{CircuitInputSignals, Padded};
 use aptos_keyless_common::PoseidonHash;
 use aptos_logger::{error, warn};
@@ -314,7 +312,7 @@ async fn generate_witness_file_for_proof(
     let prover_service_config = prover_service_state.prover_service_config();
     let circuit_config = prover_service_state.circuit_config();
     let (circuit_input_signals, public_inputs_hash) =
-        match input_processing::derive_circuit_input_signals(
+        match input_signals::derive_circuit_input_signals(
             prover_service_config,
             circuit_config,
             verified_input,
