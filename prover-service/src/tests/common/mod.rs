@@ -9,7 +9,7 @@ use crate::request_handler::prover_state::{ProverServiceState, TrainingWheelsKey
 use crate::request_handler::types::ProverServiceResponse;
 use crate::request_handler::{handler, prover_handler};
 use crate::tests::common::types::ProofTestCase;
-use crate::{request_handler, training_wheels};
+use crate::{request_handler, training_wheels, utils};
 use ::rsa::rand_core;
 use aptos_crypto::{
     ed25519::{Ed25519PrivateKey, Ed25519PublicKey},
@@ -18,12 +18,9 @@ use aptos_crypto::{
 };
 use aptos_infallible::Mutex;
 use aptos_keyless_common::input_processing::encoding::AsFr;
+use aptos_logger::info;
 use aptos_types::{
     jwks::rsa::RSA_JWK, keyless::Pepper, transaction::authenticator::EphemeralPublicKey,
-};
-use figment::{
-    providers::{Format as _, Yaml},
-    Figment,
 };
 use hyper::Body;
 use rand::{rngs::ThreadRng, thread_rng};
@@ -84,12 +81,24 @@ pub fn get_test_pepper() -> Pepper {
     Pepper::from_number(42)
 }
 
-// TDOO: avoid using figment!
 pub fn get_config() -> ProverServiceConfig {
-    Figment::new()
-        .merge(Yaml::file(LOCAL_TESTING_CONFIG_FILE_NAME))
-        .extract()
-        .expect("Couldn't load config file")
+    // Read the config file contents
+    let config_file_contents = utils::read_string_from_file_path(LOCAL_TESTING_CONFIG_FILE_NAME);
+
+    // Parse the config file contents into the config struct
+    match serde_yaml::from_str(&config_file_contents) {
+        Ok(prover_service_config) => {
+            info!(
+                "Loaded the prover service config: {:?}",
+                prover_service_config
+            );
+            prover_service_config
+        }
+        Err(error) => panic!(
+            "Failed to parse prover service config yaml file: {}! Error: {}",
+            LOCAL_TESTING_CONFIG_FILE_NAME, error
+        ),
+    }
 }
 
 pub async fn convert_prove_and_verify(

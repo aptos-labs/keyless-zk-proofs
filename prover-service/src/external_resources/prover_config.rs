@@ -15,7 +15,7 @@ const MAIN_WASM_FILE_NAME: &str = "main.wasm";
 
 /// The prover service configuration
 #[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(deny_unknown_fields)]
+#[serde(default, deny_unknown_fields)]
 pub struct ProverServiceConfig {
     pub setup_dir: String,
     pub resources_dir: String, // Directory with prover/verification key and witness gen binary
