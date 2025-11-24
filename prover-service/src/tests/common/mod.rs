@@ -10,6 +10,7 @@ use crate::request_handler::types::ProverServiceResponse;
 use crate::request_handler::{handler, prover_handler};
 use crate::tests::common::types::ProofTestCase;
 use crate::{request_handler, training_wheels};
+use ::rsa::rand_core;
 use aptos_crypto::{
     ed25519::{Ed25519PrivateKey, Ed25519PublicKey},
     encoding_type::EncodingType,
@@ -31,6 +32,7 @@ use std::collections::HashMap;
 use std::{str::FromStr, sync::Arc};
 // TODO: clean up the existing tests, and add more tests!
 
+pub mod rsa;
 pub mod types;
 
 // The name of the local testing config file
@@ -61,7 +63,7 @@ pub fn gen_test_jwk_keypair() -> impl TestJWKKeyPair {
 }
 
 pub fn gen_test_jwk_keypair_with_kid_override(kid: &str) -> impl TestJWKKeyPair {
-    let mut rng = rsa::rand_core::OsRng;
+    let mut rng = rand_core::OsRng;
     DefaultTestJWKKeyPair::new_with_kid_and_exp(
         &mut rng,
         kid,
