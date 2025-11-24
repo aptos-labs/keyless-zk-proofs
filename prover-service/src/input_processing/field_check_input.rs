@@ -1,7 +1,8 @@
 // Copyright (c) Aptos Foundation
 
-use super::{field_parser::ParsedField, types::VerifiedInput};
+use super::field_parser::ParsedField;
 use crate::input_processing::field_parser::FieldParser;
+use crate::request_handler::types::VerifiedInput;
 use anyhow::{bail, Result};
 use aptos_keyless_common::input_processing::circuit_input_signals::{
     CircuitInputSignals, Unpadded,

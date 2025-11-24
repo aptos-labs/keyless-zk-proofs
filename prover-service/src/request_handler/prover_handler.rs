@@ -3,14 +3,13 @@
 use crate::error::ProverServiceError;
 use crate::external_resources::prover_config::ProverServiceConfig;
 use crate::input_processing::input_signals;
-use crate::input_processing::types::VerifiedInput;
 use crate::metrics::{
     DERIVE_CIRCUIT_INPUT_SIGNALS_LABEL, DESERIALIZE_PROVE_REQUEST_LABEL,
     PROOF_DESERIALIZATION_LABEL, PROOF_GENERATION_LABEL, PROOF_TW_SIGNATURE_LABEL,
     PROOF_VERIFICATION_LABEL, PROVER_RESPONSE_GENERATION_LABEL, VALIDATE_PROVE_REQUEST_LABEL,
     WITNESS_GENERATION_LABEL,
 };
-use crate::request_handler::types::{ProverServiceResponse, RequestInput};
+use crate::request_handler::types::{ProverServiceResponse, RequestInput, VerifiedInput};
 use crate::request_handler::{handler, types};
 use crate::{metrics, request_handler::prover_state::ProverServiceState, training_wheels, utils};
 use aptos_keyless_common::input_processing::circuit_input_signals::{CircuitInputSignals, Padded};

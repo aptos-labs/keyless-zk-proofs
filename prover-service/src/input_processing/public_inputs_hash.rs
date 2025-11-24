@@ -2,7 +2,7 @@
 
 use super::field_check_input;
 use crate::external_resources::prover_config::ProverServiceConfig;
-use crate::input_processing::types::VerifiedInput;
+use crate::request_handler::types::VerifiedInput;
 use anyhow::{anyhow, Result};
 use aptos_crypto::poseidon_bn254;
 use aptos_keyless_common::input_processing::config::CircuitConfig;
@@ -173,7 +173,7 @@ pub fn compute_public_inputs_hash(
 mod tests {
     use super::compute_public_inputs_hash;
     use crate::external_resources::prover_config::ProverServiceConfig;
-    use crate::input_processing::types::VerifiedInput;
+    use crate::request_handler::types::VerifiedInput;
     use aptos_crypto::{
         ed25519::{Ed25519PrivateKey, Ed25519PublicKey},
         encoding_type::EncodingType,

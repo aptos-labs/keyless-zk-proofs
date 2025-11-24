@@ -4,7 +4,7 @@ use crate::external_resources::prover_config::ProverServiceConfig;
 use crate::input_processing::field_check_input::field_check_input_signals;
 use crate::input_processing::public_inputs_hash;
 use crate::input_processing::public_inputs_hash::compute_public_inputs_hash;
-use crate::input_processing::types::VerifiedInput;
+use crate::request_handler::types::VerifiedInput;
 use aptos_keyless_common::input_processing::circuit_input_signals::{CircuitInputSignals, Padded};
 use aptos_keyless_common::input_processing::config::CircuitConfig;
 use aptos_keyless_common::input_processing::encoding::{
@@ -40,7 +40,6 @@ pub fn derive_circuit_input_signals(
     // Derive the circuit input signals
     let jwt_parts = &verified_input.jwt_parts;
     let mut circuit_input_signals = CircuitInputSignals::new()
-        // "global" inputs
         .bytes_input("b64u_jwt_no_sig_sha2_padded", &unsigned_jwt_with_padding)
         .str_input(
             "b64u_jwt_header_w_dot",
