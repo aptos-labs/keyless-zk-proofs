@@ -1,12 +1,14 @@
 // Copyright (c) Aptos Foundation
 
 use super::field_check_input;
-use crate::input_processing::types::VerifiedInput;
+use crate::external_resources::prover_config::ProverServiceConfig;
+use crate::request_handler::types::VerifiedInput;
 use anyhow::{anyhow, Result};
 use aptos_crypto::poseidon_bn254;
 use aptos_keyless_common::input_processing::config::CircuitConfig;
-use aptos_types::keyless::{Configuration, IdCommitment};
+use aptos_types::keyless::IdCommitment;
 use ark_bn254::Fr;
+use std::sync::Arc;
 
 pub fn compute_idc_hash(
     input: &VerifiedInput,
@@ -46,11 +48,15 @@ pub fn compute_idc_hash(
 
 pub const RSA_MODULUS_BYTES: usize = 256;
 
-pub fn compute_ephemeral_pubkey_frs(input: &VerifiedInput) -> Result<([Fr; 3], Fr)> {
+pub fn compute_ephemeral_pubkey_frs(
+    prover_service_config: Arc<ProverServiceConfig>,
+    input: &VerifiedInput,
+) -> Result<([Fr; 3], Fr)> {
+    let max_committed_epk_bytes = prover_service_config.max_committed_epk_bytes;
     let ephemeral_pubkey_frs_with_len =
         poseidon_bn254::keyless::pad_and_pack_bytes_to_scalars_with_len(
             input.epk.to_bytes().as_slice(),
-            Configuration::new_for_devnet().max_commited_epk_bytes as usize, // TODO should put this in my local config
+            max_committed_epk_bytes,
         )?;
 
     Ok((
@@ -61,11 +67,16 @@ pub fn compute_ephemeral_pubkey_frs(input: &VerifiedInput) -> Result<([Fr; 3], F
     ))
 }
 
-pub fn compute_public_inputs_hash(input: &VerifiedInput, config: &CircuitConfig) -> Result<Fr> {
+pub fn compute_public_inputs_hash(
+    prover_service_config: Arc<ProverServiceConfig>,
+    config: &CircuitConfig,
+    input: &VerifiedInput,
+) -> Result<Fr> {
     let pepper_fr = input.pepper_fr;
     let jwt_parts = &input.jwt_parts;
     let jwk = &input.jwk;
-    let (temp_pubkey_frs, temp_pubkey_len) = compute_ephemeral_pubkey_frs(input)?;
+    let (temp_pubkey_frs, temp_pubkey_len) =
+        compute_ephemeral_pubkey_frs(prover_service_config, input)?;
 
     let extra_field = field_check_input::parsed_extra_field_or_default(input)?;
 
@@ -161,7 +172,8 @@ pub fn compute_public_inputs_hash(input: &VerifiedInput, config: &CircuitConfig)
 #[cfg(test)]
 mod tests {
     use super::compute_public_inputs_hash;
-    use crate::input_processing::types::VerifiedInput;
+    use crate::external_resources::prover_config::ProverServiceConfig;
+    use crate::request_handler::types::VerifiedInput;
     use aptos_crypto::{
         ed25519::{Ed25519PrivateKey, Ed25519PublicKey},
         encoding_type::EncodingType,
@@ -230,6 +242,7 @@ mod tests {
         )
         .unwrap();
 
+        let prover_service_config = Arc::new(ProverServiceConfig::default());
         let config: CircuitConfig = serde_yaml::from_str(
             &fs::read_to_string("circuit_config.yml").expect("Unable to read file"),
         )
@@ -241,7 +254,7 @@ mod tests {
             String::from_utf8(Vec::from(payload_decoded.as_bytes())).unwrap()
         );
 
-        let hash = compute_public_inputs_hash(&input, &config).unwrap();
+        let hash = compute_public_inputs_hash(prover_service_config, &config, &input).unwrap();
 
         assert_eq!(
             hash.to_string(),

@@ -8,7 +8,6 @@ pub mod input_processing;
 pub mod metrics;
 pub mod request_handler;
 pub mod training_wheels;
-pub mod types;
 pub mod utils;
 
 #[cfg(test)]

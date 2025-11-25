@@ -6,12 +6,10 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use super::{gen_test_ephemeral_pk, gen_test_ephemeral_pk_blinder, get_test_pepper};
 use crate::external_resources::prover_config::ProverServiceConfig;
+use crate::request_handler::types::{EphemeralPublicKeyBlinder, RequestInput};
 use crate::tests::common::get_config;
-use crate::{
-    input_processing::rsa::RsaPrivateKey,
-    training_wheels::verification_logic::compute_nonce,
-    types::api::{EphemeralPublicKeyBlinder, RequestInput},
-};
+use crate::tests::common::rsa::{RsaPrivateKey, RsaPublicKey};
+use crate::training_wheels::verification_logic::compute_nonce;
 use aptos_keyless_common::input_processing::encoding::FromFr;
 use aptos_types::{
     jwks::rsa::RSA_JWK, keyless::Pepper, transaction::authenticator::EphemeralPublicKey,
@@ -97,7 +95,7 @@ pub trait TestJWKKeyPair {
 
 pub struct DefaultTestJWKKeyPair {
     kid: String,
-    private_key: crate::input_processing::rsa::RsaPrivateKey,
+    private_key: RsaPrivateKey,
 }
 
 impl DefaultTestJWKKeyPair {
@@ -118,7 +116,7 @@ impl DefaultTestJWKKeyPair {
 
 impl TestJWKKeyPair for DefaultTestJWKKeyPair {
     fn pubkey_mod_b64(&self) -> String {
-        crate::input_processing::rsa::RsaPublicKey::from(&self.private_key).as_mod_b64()
+        RsaPublicKey::from(&self.private_key).as_mod_b64()
     }
 
     fn kid(&self) -> &str {

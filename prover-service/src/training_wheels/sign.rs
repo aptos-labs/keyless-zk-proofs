@@ -1,5 +1,6 @@
 // Copyright (c) Aptos Foundation
 
+use crate::request_handler::types::ProverServiceResponse;
 use aptos_crypto::{
     ed25519::{Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature},
     CryptoMaterialError, SigningKey,
@@ -9,8 +10,6 @@ use aptos_types::{
     keyless::{Groth16Proof, Groth16ProofAndStatement},
     transaction::authenticator::{EphemeralPublicKey, EphemeralSignature},
 };
-
-use crate::types::api::ProverServiceResponse;
 
 pub fn sign(
     private_key: &Ed25519PrivateKey,
