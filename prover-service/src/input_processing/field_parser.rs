@@ -3,6 +3,7 @@
 use std::{iter::Peekable, str::CharIndices};
 use thiserror::Error;
 
+/// A parsed field from a JWT
 #[derive(Debug, PartialEq, Eq)]
 pub struct ParsedField<IndexInJwt> {
     pub index: IndexInJwt,
@@ -13,13 +14,16 @@ pub struct ParsedField<IndexInJwt> {
     pub whole_field: String,
 }
 
+/// A simple struct to indicate that the index in the JWT is not set
 #[derive(Debug, PartialEq, Eq)]
 pub struct IndexInJwtNotSet {}
 
+// Useful type annotations
 pub type ConsumeResultStr = Result<(usize, String), FieldParserError>;
 pub type ConsumeResultChar = Result<(usize, char), FieldParserError>;
 pub type ConsumeResultEmpty = Result<(usize, ()), FieldParserError>;
 
+/// An error that occurred while parsing a field
 #[derive(Debug, PartialEq, Eq, Error)]
 #[error(
     "Parse error. {}. Occurred at index {} of {}",
@@ -33,6 +37,7 @@ pub struct FieldParserError {
     whole_str: String,
 }
 
+/// A simple field parser for JWT fields
 #[derive(Debug)]
 pub struct FieldParser<'a> {
     char_indices: Peekable<CharIndices<'a>>,
@@ -40,29 +45,32 @@ pub struct FieldParser<'a> {
 }
 
 impl<'a> FieldParser<'a> {
-    pub fn new(s: &'a str) -> Self {
-        let char_indices = s.char_indices().peekable();
+    pub fn new(whole_str: &'a str) -> Self {
+        let char_indices = whole_str.char_indices().peekable();
         Self {
             char_indices,
-            whole_str: String::from(s),
+            whole_str: whole_str.into(),
         }
     }
 
-    pub fn error(&mut self, explanation: &str) -> FieldParserError {
+    /// Creates and returns a field parser error with the given explanation
+    fn error(&mut self, explanation: &str) -> FieldParserError {
         FieldParserError {
-            explanation: String::from(explanation),
+            explanation: explanation.into(),
             index: match self.char_indices.peek() {
                 Some((i, _)) => *i,
                 None => self.whole_str.len(),
             },
-            whole_str: String::from(&self.whole_str),
+            whole_str: self.whole_str.clone(),
         }
     }
 
-    pub fn eos_error(&mut self) -> FieldParserError {
+    /// Creates and returns an end-of-stream error
+    fn eos_error(&mut self) -> FieldParserError {
         self.error("Unexpected end of stream")
     }
 
+    /// Parses a field from the input string
     pub fn parse(&mut self) -> Result<ParsedField<IndexInJwtNotSet>, FieldParserError> {
         let (_, key) = self.consume_string()?;
         let (colon_index, _) = self.consume_non_whitespace_char(&[':'])?;
@@ -72,7 +80,6 @@ impl<'a> FieldParser<'a> {
 
         Ok(ParsedField {
             index: IndexInJwtNotSet {},
-            // key should not have quotes
             key,
             value,
             colon_index,
@@ -81,34 +88,37 @@ impl<'a> FieldParser<'a> {
         })
     }
 
-    pub fn peek(&mut self) -> ConsumeResultChar {
+    /// Peeks at the next character without consuming it
+    fn peek(&mut self) -> ConsumeResultChar {
         match self.char_indices.peek() {
             Some(p) => Ok(*p),
             None => Err(self.eos_error()),
         }
     }
 
-    #[allow(clippy::all)]
-    pub fn next(&mut self) -> ConsumeResultChar {
+    /// Pops and returns the next character
+    fn pop(&mut self) -> ConsumeResultChar {
         self.char_indices.next().ok_or_else(|| self.eos_error())
     }
 
-    pub fn consume_whitespace(&mut self) -> ConsumeResultEmpty {
+    /// Consumes whitespace characters from the input
+    fn consume_whitespace(&mut self) -> ConsumeResultEmpty {
         let (index, _) = self.peek()?;
         while self.peek()?.1 == ' ' {
-            self.next().map_err(|_| self.eos_error())?;
+            self.pop().map_err(|_| self.eos_error())?;
         }
         Ok((index, ()))
     }
 
-    pub fn consume_non_whitespace_char(&mut self, char_options: &[char]) -> ConsumeResultChar {
+    /// Consumes the first non-whitespace character from the input (must be in char_options)
+    fn consume_non_whitespace_char(&mut self, char_options: &[char]) -> ConsumeResultChar {
         while self.peek()?.1 == ' ' {
-            self.next().map_err(|_| self.eos_error())?;
+            self.pop().map_err(|_| self.eos_error())?;
         }
 
         let c = self.peek()?.1;
         if char_options.contains(&c) {
-            self.next().map_err(|_| self.eos_error())
+            self.pop().map_err(|_| self.eos_error())
         } else {
             Err(self.error(&format!(
                 "Expected a character in {:?}, got {}",
@@ -117,6 +127,7 @@ impl<'a> FieldParser<'a> {
         }
     }
 
+    /// Consumes a value (either quoted string or unquoted)
     fn consume_value(&mut self) -> ConsumeResultStr {
         self.consume_whitespace()?;
         match self.peek()?.1 {
@@ -125,40 +136,43 @@ impl<'a> FieldParser<'a> {
         }
     }
 
-    // Should this handle escaped characters (e.g., quotes, newlines)? It doesn't currently.
+    // TODO: should this handle escaped characters (e.g., quotes, newlines)? It doesn't currently.
+    /// Consumes a quoted string from the input
     fn consume_string(&mut self) -> ConsumeResultStr {
         if self.peek()?.1 != '"' {
             Err(self.error("Expected a string here"))
         } else {
-            self.next()?; // ignore the '"'
+            self.pop()?; // ignore the '"'
 
             let (index, _) = self.peek()?;
             let mut result = String::new();
 
-            result.push(self.next()?.1); // push the '"'
+            result.push(self.pop()?.1); // push the '"'
 
             while self.peek()?.1 != '"' {
-                result.push(self.next()?.1);
+                result.push(self.pop()?.1);
             }
 
-            self.next()?; // ignore the '"'
+            self.pop()?; // ignore the '"'
 
-            // The circuit requires the value_index to be for the first character after the quote.
+            // The circuit requires the value_index to be for the first character after the quote
             Ok((index, result))
         }
     }
 
+    /// Consumes an unquoted value from the input
     fn consume_unquoted(&mut self) -> ConsumeResultStr {
         let (index, _) = self.peek()?;
         let mut result = String::new();
 
         while self.peek()?.1 != ' ' && self.peek()?.1 != ',' && self.peek()?.1 != '}' {
-            result.push(self.next()?.1);
+            result.push(self.pop()?.1);
         }
 
         Ok((index, result))
     }
 
+    /// Finds and parses the field with the given key from the JWT payload
     pub fn find_and_parse_field(
         jwt_payload: &'a str,
         key: &str,
@@ -191,79 +205,60 @@ impl<'a> FieldParser<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::{FieldParserError, IndexInJwtNotSet, ParsedField};
+    use super::{IndexInJwtNotSet, ParsedField};
     use crate::input_processing::field_parser::FieldParser;
 
-    // TODO other test cases to potentially use
-    //    const TEST_FIELDS : [&'static str; 16] = [
-    //        "\"iss\": \"https://accounts.google.com\",",
-    //        "\"azp\" : \"407408718192.apps.googleusercontent.com\",",
-    //        "\"aud\":\"407408718192.apps.googleusercontent.com\",",
-    //        "\"sub\"   :   \"113990307082899718775\",",
-    //        "\"hd\": \"aptoslabs.com\" ,",
-    //        "\"email\": \"michael@aptoslabs.com\" , DONTINCLUDETHISINRESULT",
-    //        "\"email_verified\": true,",
-    //        "\"at_hash\": \"bxIESuI59IoZb5alCASqBg\",",
-    //        "\"name\": \"Michael Straka\",",
-    //        "\"picture\": \"https://lh3.googleusercontent.com/a/ACg8ocJvY4kVUBRtLxe1IqKWL5i7tBDJzFp9YuWVXMzwPpbs=s96-c\",",
-    //        "\"given_name\": \"Michael\",",
-    //        "\"family_name\": \"Straka\",",
-    //        "\"locale\": \"en\",",
-    //        "\"exp\":2700259544}",
-    //        "\"exp\":2700259544 \"",
-    //        "\"sub   :   \"113990307082899718775\",",
-    //    ];
+    #[test]
+    fn test_parse_iss() {
+        // Parse the iss field
+        let result = FieldParser::new("\"iss\": \"https://accounts.google.com\",").parse();
+        let parsed_field = result.expect("Failed to parse iss field");
 
-    fn success(
+        // Verify the parsed field
+        let expected_parsed_field = create_parsed_field(
+            "iss",
+            "https://accounts.google.com",
+            5,
+            8,
+            "\"iss\": \"https://accounts.google.com\",",
+        );
+        assert_eq!(parsed_field, expected_parsed_field);
+    }
+
+    #[test]
+    fn test_parse_email_extra_chars() {
+        // Parse the email field
+        let result =
+            FieldParser::new("\"email\": \"michael@aptoslabs.com\" , DONTINCLUDETHISINRESULT")
+                .parse();
+        let parsed_field = result.expect("Failed to parse email field");
+
+        // Verify the parsed field
+        let expected_parsed_field = create_parsed_field(
+            "email",
+            "michael@aptoslabs.com",
+            7,
+            10,
+            "\"email\": \"michael@aptoslabs.com\" ,",
+        );
+        assert_eq!(parsed_field, expected_parsed_field);
+    }
+
+    /// Creates a parsed field using the given values (for testing)
+    fn create_parsed_field(
         key: &str,
         value: &str,
         colon_index: usize,
         value_index: usize,
         whole_field: &str,
-    ) -> Result<ParsedField<IndexInJwtNotSet>, FieldParserError> {
-        Ok(ParsedField {
+    ) -> ParsedField<IndexInJwtNotSet> {
+        ParsedField {
             index: IndexInJwtNotSet {},
-            key: String::from(key),
-            value: String::from(value),
+            key: key.into(),
+            value: value.into(),
             colon_index,
             value_index,
-            whole_field: String::from(whole_field),
-        })
-    }
-
-    #[test]
-    fn test_parse_iss() {
-        let result = FieldParser::new("\"iss\": \"https://accounts.google.com\",").parse();
-
-        assert_eq!(
-            result,
-            success(
-                "iss",
-                "https://accounts.google.com",
-                5,
-                8,
-                "\"iss\": \"https://accounts.google.com\","
-            )
-        );
-    }
-
-    #[test]
-    fn test_parse_email_extra_chars() {
-        let result =
-            FieldParser::new("\"email\": \"michael@aptoslabs.com\" , DONTINCLUDETHISINRESULT")
-                .parse();
-
-        println!("{:?}", result);
-
-        assert_eq!(
-            result,
-            success(
-                "email",
-                "michael@aptoslabs.com",
-                7,
-                10,
-                "\"email\": \"michael@aptoslabs.com\" ,"
-            )
-        );
+            whole_field: whole_field.into(),
+        }
     }
 }

@@ -1,7 +1,7 @@
 // Copyright (c) Aptos Foundation
 
 use crate::external_resources::prover_config::ProverServiceConfig;
-use crate::input_processing::field_check_input::field_check_input_signals;
+use crate::input_processing::field_check_input;
 use crate::input_processing::public_inputs_hash;
 use crate::input_processing::public_inputs_hash::compute_public_inputs_hash;
 use crate::request_handler::types::VerifiedInput;
@@ -88,7 +88,9 @@ pub fn derive_circuit_input_signals(
     // Add the public inputs hash and field check input signals
     circuit_input_signals = circuit_input_signals
         .fr_input("public_inputs_hash", public_inputs_hash)
-        .merge(field_check_input_signals(&verified_input)?)?;
+        .merge(field_check_input::field_check_input_signals(
+            &verified_input,
+        )?)?;
 
     // Return the padded input signals and the Poseidon hash of the public inputs hash
     let padded = circuit_input_signals.pad(circuit_config)?;

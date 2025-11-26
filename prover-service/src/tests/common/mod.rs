@@ -104,6 +104,9 @@ pub fn get_config() -> ProverServiceConfig {
 pub async fn convert_prove_and_verify(
     testcase: &ProofTestCase<impl Serialize + WithNonce + Clone>,
 ) -> Result<(), anyhow::Error> {
+    // Start the aptos logger (so test failures print logs)
+    aptos_logger::Logger::init_for_testing();
+
     let jwk_keypair = gen_test_jwk_keypair();
     let (tw_sk_default, tw_pk) = gen_test_training_wheels_keypair();
 
