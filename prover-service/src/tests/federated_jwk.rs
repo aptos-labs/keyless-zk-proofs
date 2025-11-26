@@ -5,6 +5,8 @@ use crate::tests::common::gen_test_jwk_keypair_with_kid_override;
 use crate::tests::common::types::{ProofTestCase, TestJWTPayload};
 use aptos_keyless_common::input_processing::encoding::DecodedJWT;
 
+// TODO: avoid the external test dependencies!
+
 // This test uses a demo auth0 tenant owned by oliver.he@aptoslabs.com
 #[tokio::test]
 async fn test_federated_jwk_fetch() {
