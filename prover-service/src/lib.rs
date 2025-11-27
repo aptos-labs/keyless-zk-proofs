@@ -7,7 +7,6 @@ pub mod external_resources;
 pub mod input_processing;
 pub mod metrics;
 pub mod request_handler;
-pub mod training_wheels;
 pub mod utils;
 
 #[cfg(test)]

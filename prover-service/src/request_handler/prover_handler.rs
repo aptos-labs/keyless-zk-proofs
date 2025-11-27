@@ -10,8 +10,8 @@ use crate::metrics::{
     WITNESS_GENERATION_LABEL,
 };
 use crate::request_handler::types::{ProverServiceResponse, RequestInput, VerifiedInput};
-use crate::request_handler::{handler, types};
-use crate::{metrics, request_handler::prover_state::ProverServiceState, training_wheels, utils};
+use crate::request_handler::{handler, training_wheels, types};
+use crate::{metrics, request_handler::prover_state::ProverServiceState, utils};
 use aptos_keyless_common::input_processing::circuit_input_signals::{CircuitInputSignals, Padded};
 use aptos_keyless_common::PoseidonHash;
 use aptos_logger::{error, warn};

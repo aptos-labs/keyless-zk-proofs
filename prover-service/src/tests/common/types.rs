@@ -6,10 +6,10 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use super::{gen_test_ephemeral_pk, gen_test_ephemeral_pk_blinder, get_test_pepper};
 use crate::external_resources::prover_config::ProverServiceConfig;
+use crate::request_handler::training_wheels;
 use crate::request_handler::types::{EphemeralPublicKeyBlinder, RequestInput};
 use crate::tests::common::get_config;
 use crate::tests::common::rsa::{RsaPrivateKey, RsaPublicKey};
-use crate::training_wheels::verification_logic::compute_nonce;
 use aptos_keyless_common::input_processing::encoding::FromFr;
 use aptos_types::{
     jwks::rsa::RSA_JWK, keyless::Pepper, transaction::authenticator::EphemeralPublicKey,
@@ -175,7 +175,8 @@ impl<T: Serialize + WithNonce + Clone> ProofTestCase<T> {
         let circuit_metadata = prover_service_config.load_circuit_params();
         let epk = gen_test_ephemeral_pk();
         let epk_blinder = gen_test_ephemeral_pk_blinder();
-        let nonce = compute_nonce(exp_date, &epk, epk_blinder, &circuit_metadata).unwrap();
+        let nonce =
+            training_wheels::compute_nonce(exp_date, &epk, epk_blinder, &circuit_metadata).unwrap();
         let payload_with_nonce = jwt_payload.with_nonce(&nonce.to_string());
 
         Self {
@@ -217,7 +218,7 @@ impl<T: Serialize + WithNonce + Clone> ProofTestCase<T> {
     pub fn compute_nonce(self) -> Self {
         assert!(*LOCAL_SETUP_PROCURED);
         let circuit_metadata = self.prover_service_config.load_circuit_params();
-        let nonce = compute_nonce(
+        let nonce = training_wheels::compute_nonce(
             self.epk_expiry_time_secs,
             &self.epk,
             self.epk_blinder_fr,

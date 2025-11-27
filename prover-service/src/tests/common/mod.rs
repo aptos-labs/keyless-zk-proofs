@@ -7,9 +7,9 @@ use crate::external_resources::prover_config::ProverServiceConfig;
 use crate::request_handler::deployment_information::DeploymentInformation;
 use crate::request_handler::prover_state::{ProverServiceState, TrainingWheelsKeyPair};
 use crate::request_handler::types::ProverServiceResponse;
-use crate::request_handler::{handler, prover_handler};
+use crate::request_handler::{handler, prover_handler, training_wheels};
 use crate::tests::common::types::ProofTestCase;
-use crate::{request_handler, training_wheels, utils};
+use crate::{request_handler, utils};
 use ::rsa::rand_core;
 use aptos_crypto::{
     ed25519::{Ed25519PrivateKey, Ed25519PublicKey},
@@ -173,7 +173,9 @@ pub async fn convert_prove_and_verify(
             )
             .unwrap();
             proof.verify_proof(public_inputs_hash.as_fr(), &g16vk)?;
-            training_wheels::verify(&response, &tw_pk)
+            training_wheels::verify(&response, &tw_pk).map_err(|error| {
+                anyhow::anyhow!("Failed to verify training wheels signature: {}", error)
+            })
         }
         ProverServiceResponse::Error { message } => {
             panic!("returned ProverServiceResponse::Error: {}", message)

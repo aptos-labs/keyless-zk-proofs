@@ -1,8 +1,8 @@
 // Copyright (c) Aptos Foundation
 
+use crate::request_handler::training_wheels;
 use crate::tests::common::types::{ProofTestCase, TestJWTPayload};
 use crate::tests::common::{gen_test_jwk_keypair, types::TestJWKKeyPair};
-use crate::training_wheels::validate_jwt_sig;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 fn test_jwt_validation(jwt_payload: TestJWTPayload) {
@@ -10,7 +10,11 @@ fn test_jwt_validation(jwt_payload: TestJWTPayload) {
 
     let jwk_keypair = gen_test_jwk_keypair();
     let prover_request_input = testcase.convert_to_prover_request(&jwk_keypair);
-    assert!(validate_jwt_sig(&jwk_keypair.into_rsa_jwk(), &prover_request_input.jwt_b64,).is_ok());
+    assert!(training_wheels::validate_jwt_signature(
+        &jwk_keypair.into_rsa_jwk(),
+        &prover_request_input.jwt_b64,
+    )
+    .is_ok());
 }
 
 #[test]
