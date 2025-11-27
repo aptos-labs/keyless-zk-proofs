@@ -47,7 +47,7 @@ pub trait JWKIssuerInterface {
 }
 
 /// A simple JWK issuer struct
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct JWKIssuer {
     issuer_name: String,
     issuer_jwk_url: String,

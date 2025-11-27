@@ -14,7 +14,7 @@ const GENERATE_WITNESS_JS_FILE_NAME: &str = "generate_witness.js";
 const MAIN_WASM_FILE_NAME: &str = "main.wasm";
 
 /// The prover service configuration
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(default, deny_unknown_fields)]
 pub struct ProverServiceConfig {
     pub setup_dir: String,
