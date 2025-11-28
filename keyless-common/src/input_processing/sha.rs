@@ -16,7 +16,7 @@ pub fn jwt_bit_len(jwt: &[u8]) -> usize {
 pub fn jwt_bit_len_binary(jwt_unsigned: &[u8]) -> Bits {
     let L = jwt_bit_len(jwt_unsigned);
 
-    Bits::raw(&format!("{L:064b}"))
+    Bits::new_with_bits(&format!("{L:064b}"))
 }
 
 /// input: jwt as base64 without padding.
@@ -27,7 +27,7 @@ pub fn compute_sha_padding(jwt_unsigned: &[u8]) -> Bits {
     // Following the spec linked here:
     //https://www.rfc-editor.org/rfc/rfc4634.html#section-4.1
     // Step 4.1.a: add bit '1'
-    padding_bits += Bits::raw("1");
+    padding_bits += Bits::new_with_bits("1");
     // Step 4.1.b Append K '0' bits where K is the smallest non-negative integer solution to L+1+K = 448 mod 512, and L is the length of the message in bits
     // i.e., K is smallest non-neg integer such that L + K + 1 + 64 == 0 mod 512
     // we never expect this to cause an error, so unwrapping here is ok
@@ -38,7 +38,7 @@ pub fn compute_sha_padding(jwt_unsigned: &[u8]) -> Bits {
     debug!("Computing sha padding: K_i64={}", K_i64);
     let K_usize = usize::try_from(K_i64).unwrap();
     debug!("Computing sha padding: K_usize={}", K_usize);
-    padding_bits += Bits::raw(&("0".repeat(K_usize)));
+    padding_bits += Bits::new_with_bits(&("0".repeat(K_usize)));
     // 4.1.c Append L in binary form (big-endian) as 64 bits
     padding_bits += jwt_bit_len_binary(jwt_unsigned);
 
@@ -51,7 +51,7 @@ pub fn compute_sha_padding_without_len(jwt_unsigned: &[u8]) -> Bits {
     // Following the spec linked here:
     //https://www.rfc-editor.org/rfc/rfc4634.html#section-4.1
     // Step 4.1.a: add bit '1'
-    padding_bits += Bits::raw("1");
+    padding_bits += Bits::new_with_bits("1");
     // Step 4.1.b Append K '0' bits where K is the smallest non-negative integer solution to L+1+K = 448 mod 512, and L is the length of the message in bits
     // i.e., K is smallest non-neg integer such that L + K + 1 + 64 == 0 mod 512
     // we never expect this to cause an error, so unwrapping here is ok
@@ -62,7 +62,7 @@ pub fn compute_sha_padding_without_len(jwt_unsigned: &[u8]) -> Bits {
     debug!("Computing sha padding: K_i64={}", K_i64);
     let K_usize = usize::try_from(K_i64).unwrap();
     debug!("Computing sha padding: K_usize={}", K_usize);
-    padding_bits += Bits::raw(&("0".repeat(K_usize)));
+    padding_bits += Bits::new_with_bits(&("0".repeat(K_usize)));
     // Skip 4.1.c
     padding_bits
 }

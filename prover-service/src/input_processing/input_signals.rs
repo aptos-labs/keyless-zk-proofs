@@ -13,7 +13,7 @@ use aptos_keyless_common::input_processing::encoding::{
 use aptos_keyless_common::input_processing::sha::{
     compute_sha_padding_without_len, jwt_bit_len_binary, with_sha_padding_bytes,
 };
-use aptos_keyless_common::PoseidonHash;
+use aptos_keyless_common::types::PoseidonHash;
 use std::sync::Arc;
 
 /// Derives the circuit input signals and public inputs hash from the verified input

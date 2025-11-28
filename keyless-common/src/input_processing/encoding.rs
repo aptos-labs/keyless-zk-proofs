@@ -1,6 +1,6 @@
 // Copyright (c) Aptos Foundation
 
-use crate::{EphemeralPublicKeyBlinder, PoseidonHash};
+use crate::types::{EphemeralPublicKeyBlinder, PoseidonHash};
 use anyhow::{anyhow, ensure, Result};
 use aptos_types::{
     jwks::rsa::RSA_JWK, keyless::Pepper, transaction::authenticator::EphemeralPublicKey,
