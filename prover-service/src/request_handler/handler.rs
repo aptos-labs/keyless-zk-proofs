@@ -16,11 +16,11 @@ use std::{convert::Infallible, sync::Arc};
 
 // The list of endpoints/paths offered by the Prover Service.
 // Note: if you update these paths, please also update the "ALL_PATHS" array below.
-const ABOUT_PATH: &str = "/about";
-const CONFIG_PATH: &str = "/config";
-const HEALTH_CHECK_PATH: &str = "/healthcheck";
+pub const ABOUT_PATH: &str = "/about";
+pub const CONFIG_PATH: &str = "/config";
+pub const HEALTH_CHECK_PATH: &str = "/healthcheck";
 pub const JWK_PATH: &str = "/cached/jwk";
-const PROVE_PATH: &str = "/v0/prove";
+pub const PROVE_PATH: &str = "/v0/prove";
 
 // An array of all known endpoints/paths
 pub const ALL_PATHS: [&str; 5] = [

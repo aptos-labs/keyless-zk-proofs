@@ -232,13 +232,20 @@ async fn generate_groth16_proof(
     // Generate the JSON proof
     let full_prover = prover_service_state.full_prover();
     let full_prover_locked = full_prover.lock().await;
-    let (proof_json, _internal_metrics) = match full_prover_locked.prove(witness_file_path) {
-        Ok((proof_json, metrics)) => (proof_json.to_string(), metrics),
-        Err(error) => {
-            return Err(ProverServiceError::UnexpectedError(format!(
-                "Failed to generate rapidsnark proof! Error: {:?}",
-                error
-            )));
+    let (proof_json, _internal_metrics) = match full_prover_locked.as_ref() {
+        Some(full_prover_locked) => match full_prover_locked.prove(witness_file_path) {
+            Ok((proof_json, metrics)) => (proof_json.to_string(), metrics),
+            Err(error) => {
+                return Err(ProverServiceError::UnexpectedError(format!(
+                    "Failed to generate rapidsnark proof! Error: {:?}",
+                    error
+                )));
+            }
+        },
+        None => {
+            return Err(ProverServiceError::UnexpectedError(
+                "The full prover was not initialized correctly!".into(),
+            ));
         }
     };
 

@@ -9,13 +9,16 @@ use rust_rapidsnark::FullProver;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
+#[cfg(test)]
+use aptos_crypto::Uniform;
+
 /// The shared state of the prover service (used across all requests)
 pub struct ProverServiceState {
     prover_service_config: Arc<ProverServiceConfig>,
     circuit_config: CircuitConfig,
     deployment_information: DeploymentInformation,
     training_wheels_key_pair: TrainingWheelsKeyPair,
-    full_prover: Arc<Mutex<FullProver>>,
+    full_prover: Arc<Mutex<Option<FullProver>>>,
     jwk_cache: JWKCache,
 }
 
@@ -39,7 +42,32 @@ impl ProverServiceState {
             circuit_config: circuit_configuration,
             deployment_information,
             training_wheels_key_pair,
-            full_prover: Arc::new(Mutex::new(full_prover)),
+            full_prover: Arc::new(Mutex::new(Some(full_prover))),
+            jwk_cache,
+        }
+    }
+
+    #[cfg(test)]
+    /// Creates a new prover service state for testing purposes
+    pub fn new_for_testing(
+        training_wheels_key_pair: TrainingWheelsKeyPair,
+        prover_service_config: Arc<ProverServiceConfig>,
+        deployment_information: DeploymentInformation,
+        jwk_cache: JWKCache,
+    ) -> Self {
+        // Create a circuit configuration for testing
+        let circuit_configuration = CircuitConfig::new();
+
+        // Don't initialize any full prover for testing
+        let full_prover = Arc::new(Mutex::new(None));
+
+        // Create the prover service state
+        ProverServiceState {
+            prover_service_config,
+            circuit_config: circuit_configuration,
+            deployment_information,
+            training_wheels_key_pair,
+            full_prover,
             jwk_cache,
         }
     }
@@ -59,8 +87,8 @@ impl ProverServiceState {
         self.jwk_cache.clone()
     }
 
-    /// Returns an Arc reference to the full prover instance
-    pub fn full_prover(&self) -> Arc<Mutex<FullProver>> {
+    /// Returns an Arc reference to the full prover instance (if one exists)
+    pub fn full_prover(&self) -> Arc<Mutex<Option<FullProver>>> {
         self.full_prover.clone()
     }
 
@@ -90,6 +118,13 @@ impl TrainingWheelsKeyPair {
             signing_key,
             verification_key,
         }
+    }
+
+    #[cfg(test)]
+    /// Creates a new training wheels key pair for testing purposes
+    pub fn new_for_testing() -> Self {
+        let signing_key = Ed25519PrivateKey::generate_for_testing();
+        Self::from_sk(signing_key)
     }
 
     /// Returns a reference to the signing key
