@@ -5,7 +5,7 @@ use crate::external_resources::prover_config::ProverServiceConfig;
 use crate::request_handler::types::VerifiedInput;
 use anyhow::{anyhow, Result};
 use aptos_crypto::poseidon_bn254;
-use aptos_keyless_common::input_processing::config::CircuitConfig;
+use aptos_keyless_common::input_processing::circuit_config::CircuitConfig;
 use aptos_types::keyless::IdCommitment;
 use ark_bn254::Fr;
 use std::sync::Arc;
@@ -167,7 +167,7 @@ mod tests {
     };
     use aptos_keyless_common::input_processing::encoding::DecodedJWT;
     use aptos_keyless_common::input_processing::{
-        config::CircuitConfig,
+        circuit_config::CircuitConfig,
         encoding::{FromB64, JwtParts},
     };
     use aptos_types::{jwks::rsa::RSA_JWK, transaction::authenticator::EphemeralPublicKey};

@@ -1,6 +1,6 @@
 // Copyright (c) Aptos Foundation
 
-use super::config::CircuitConfig;
+use super::circuit_config::CircuitConfig;
 use anyhow::{anyhow, bail, Result};
 use ark_bn254::Fr;
 use serde_json::Value;

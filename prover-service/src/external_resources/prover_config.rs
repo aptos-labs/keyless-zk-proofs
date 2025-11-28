@@ -2,7 +2,7 @@
 
 use crate::external_resources::jwk_fetcher::JWKIssuer;
 use crate::utils;
-use aptos_keyless_common::input_processing::config::CircuitConfig;
+use aptos_keyless_common::input_processing::circuit_config::CircuitConfig;
 use aptos_logger::info;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;

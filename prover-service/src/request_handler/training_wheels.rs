@@ -11,7 +11,7 @@ use aptos_crypto::{
     ed25519::{Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature},
     poseidon_bn254, CryptoMaterialError, SigningKey,
 };
-use aptos_keyless_common::input_processing::config::CircuitConfig;
+use aptos_keyless_common::input_processing::circuit_config::CircuitConfig;
 use aptos_keyless_common::input_processing::encoding::AsFr;
 use aptos_keyless_common::input_processing::encoding::DecodedJWT;
 use aptos_keyless_common::types::PoseidonHash;

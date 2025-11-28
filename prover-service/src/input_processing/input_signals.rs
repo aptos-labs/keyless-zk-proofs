@@ -5,8 +5,8 @@ use crate::input_processing::field_check_input;
 use crate::input_processing::public_inputs_hash;
 use crate::input_processing::public_inputs_hash::compute_public_inputs_hash;
 use crate::request_handler::types::VerifiedInput;
+use aptos_keyless_common::input_processing::circuit_config::CircuitConfig;
 use aptos_keyless_common::input_processing::circuit_input_signals::{CircuitInputSignals, Padded};
-use aptos_keyless_common::input_processing::config::CircuitConfig;
 use aptos_keyless_common::input_processing::encoding::{
     As64BitLimbs, TryFromFr, UnsignedJwtPartsWithPadding,
 };
