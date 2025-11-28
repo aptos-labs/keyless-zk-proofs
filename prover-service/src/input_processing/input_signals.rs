@@ -80,7 +80,7 @@ pub fn derive_circuit_input_signals(
         .bool_input("use_extra_field", verified_input.use_extra_field());
 
     // Add skip_aud_checks (if required)
-    if circuit_config.has_input_skip_aud_checks {
+    if circuit_config.has_input_skip_aud_checks() {
         circuit_input_signals =
             circuit_input_signals.bool_input("skip_aud_checks", verified_input.skip_aud_checks);
     }

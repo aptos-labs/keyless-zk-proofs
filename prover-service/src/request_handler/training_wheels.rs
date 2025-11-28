@@ -34,9 +34,10 @@ pub fn compute_nonce(
     circuit_config: &CircuitConfig,
 ) -> anyhow::Result<Fr> {
     // Pack the ephemeral public key bytes, expiration date, and blinder into scalars
+    let max_length_epk = circuit_config.get_max_length("epk")?;
     let mut frs = poseidon_bn254::keyless::pad_and_pack_bytes_to_scalars_with_len(
         ephemeral_public_key.to_bytes().as_slice(),
-        circuit_config.max_lengths["epk"] * poseidon_bn254::keyless::BYTES_PACKED_PER_SCALAR,
+        max_length_epk * poseidon_bn254::keyless::BYTES_PACKED_PER_SCALAR,
     )?;
     frs.push(Fr::from(expiration_date));
     frs.push(epk_blinder);

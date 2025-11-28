@@ -145,7 +145,10 @@ impl CircuitInputSignals<Unpadded> {
             .signals
             .into_iter()
             .map(|(k, v)| {
-                anyhow::Ok((String::from(&k), pad_if_needed(&k, v, &config.max_lengths)?))
+                anyhow::Ok((
+                    String::from(&k),
+                    pad_if_needed(&k, v, config.all_max_lengths())?,
+                ))
             })
             .collect();
 
