@@ -50,3 +50,39 @@ impl CircuitConfig {
         self
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_circuit_config_max_length() {
+        // Create a circuit config with some max lengths
+        let config = CircuitConfig::new()
+            .max_length("signal_a", 128)
+            .max_length("signal_b", 256);
+
+        // Test retrieval of max lengths
+        assert_eq!(config.get_max_length("signal_a").unwrap(), 128);
+        assert_eq!(config.get_max_length("signal_b").unwrap(), 256);
+        assert!(config.get_max_length("signal_c").is_err());
+    }
+
+    #[test]
+    fn test_circuit_config_has_input_skip_aud_checks() {
+        // Create a default circuit config
+        let config = CircuitConfig::new();
+
+        // Test that the default value is false
+        assert!(!config.has_input_skip_aud_checks());
+
+        // Create a circuit config with skip audit checks enabled
+        let config_with_skip = CircuitConfig {
+            max_lengths: BTreeMap::new(),
+            has_input_skip_aud_checks: true,
+        };
+
+        // Test that the value is true
+        assert!(config_with_skip.has_input_skip_aud_checks());
+    }
+}
