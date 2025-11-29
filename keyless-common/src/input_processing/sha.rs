@@ -1,76 +1,64 @@
 // Copyright (c) Aptos Foundation
 
-#![allow(non_upper_case_globals)]
-#![allow(non_camel_case_types)]
-#![allow(non_snake_case)]
-
 use super::bits::Bits;
 use aptos_logger::debug;
 
-pub fn jwt_bit_len(jwt: &[u8]) -> usize {
+/// Returns the length of the JWT in bits
+fn jwt_bit_len(jwt: &[u8]) -> usize {
     jwt.len() * 8
 }
 
-/// input: jwt as base64 without padding.
-/// output: length of bit representation of jwt, encoded in big-endian as 8 bits.
+/// Returns a Bits instance representing the length of the JWT. The input is
+/// the JWT as a byte slice (base64 without padding), and the output is the length
+/// of the JWT in bits, encoded as a 64-bit big-endian binary string.
+///
 pub fn jwt_bit_len_binary(jwt_unsigned: &[u8]) -> Bits {
-    let L = jwt_bit_len(jwt_unsigned);
-
-    Bits::new_with_bits(&format!("{L:064b}"))
+    let jwt_bit_length = jwt_bit_len(jwt_unsigned);
+    Bits::new_with_bits(&format!("{jwt_bit_length:064b}"))
 }
 
-/// input: jwt as base64 without padding.
-/// output: bit representation of sha padding
-pub fn compute_sha_padding(jwt_unsigned: &[u8]) -> Bits {
+/// Computes the SHA padding for the given JWT (unsigned,
+/// base64 without padding), and returns it as a Bits instance.
+/// If `with_length` is true, the length of the JWT in bits
+/// is included in the padding. If false, the length is omitted.
+pub fn compute_sha_padding(jwt_unsigned: &[u8], with_length: bool) -> Bits {
     let mut padding_bits = Bits::new();
-    let L = jwt_bit_len(jwt_unsigned);
+    let jwt_bit_length = jwt_bit_len(jwt_unsigned);
+
     // Following the spec linked here:
-    //https://www.rfc-editor.org/rfc/rfc4634.html#section-4.1
+    // https://www.rfc-editor.org/rfc/rfc4634.html#section-4.1
     // Step 4.1.a: add bit '1'
     padding_bits += Bits::new_with_bits("1");
-    // Step 4.1.b Append K '0' bits where K is the smallest non-negative integer solution to L+1+K = 448 mod 512, and L is the length of the message in bits
-    // i.e., K is smallest non-neg integer such that L + K + 1 + 64 == 0 mod 512
-    // we never expect this to cause an error, so unwrapping here is ok
-    // There was a bug here, which is why we are logging so much
-    let K_before_mod = 448 - (L as i64) - 1;
-    debug!("Computing sha padding: K_before_mod={}", K_before_mod);
-    let K_i64 = K_before_mod.rem_euclid(512);
-    debug!("Computing sha padding: K_i64={}", K_i64);
-    let K_usize = usize::try_from(K_i64).unwrap();
-    debug!("Computing sha padding: K_usize={}", K_usize);
-    padding_bits += Bits::new_with_bits(&("0".repeat(K_usize)));
-    // 4.1.c Append L in binary form (big-endian) as 64 bits
-    padding_bits += jwt_bit_len_binary(jwt_unsigned);
+
+    // Step 4.1.b: Append K '0' bits where K is the smallest non-negative integer solution to
+    // L+1+K = 448 mod 512, and L is the length of the message in bits, i.e., K is smallest
+    // non-neg integer such that L + K + 1 + 64 == 0 mod 512. Note:
+    // - We never expect this to cause an error, so unwrapping here is ok.
+    // - There was a bug here, which is why we are logging so much.
+    let k_before_mod = 448 - (jwt_bit_length as i64) - 1;
+    debug!("Computing sha padding: K_before_mod={}", k_before_mod);
+
+    let k_i64 = k_before_mod.rem_euclid(512);
+    debug!("Computing sha padding: K_i64={}", k_i64);
+
+    let k_usize = usize::try_from(k_i64).unwrap();
+    debug!("Computing sha padding: K_usize={}", k_usize);
+
+    padding_bits += Bits::new_with_bits(&("0".repeat(k_usize)));
+
+    // 4.1.c: Append the length in binary form (big-endian) as 64 bits
+    if with_length {
+        padding_bits += jwt_bit_len_binary(jwt_unsigned);
+    }
 
     padding_bits
 }
 
-pub fn compute_sha_padding_without_len(jwt_unsigned: &[u8]) -> Bits {
-    let mut padding_bits = Bits::new();
-    let L = jwt_bit_len(jwt_unsigned);
-    // Following the spec linked here:
-    //https://www.rfc-editor.org/rfc/rfc4634.html#section-4.1
-    // Step 4.1.a: add bit '1'
-    padding_bits += Bits::new_with_bits("1");
-    // Step 4.1.b Append K '0' bits where K is the smallest non-negative integer solution to L+1+K = 448 mod 512, and L is the length of the message in bits
-    // i.e., K is smallest non-neg integer such that L + K + 1 + 64 == 0 mod 512
-    // we never expect this to cause an error, so unwrapping here is ok
-    // There was a bug here, which is why we are logging so much
-    let K_before_mod = 448 - (L as i64) - 1;
-    debug!("Computing sha padding: K_before_mod={}", K_before_mod);
-    let K_i64 = K_before_mod.rem_euclid(512);
-    debug!("Computing sha padding: K_i64={}", K_i64);
-    let K_usize = usize::try_from(K_i64).unwrap();
-    debug!("Computing sha padding: K_usize={}", K_usize);
-    padding_bits += Bits::new_with_bits(&("0".repeat(K_usize)));
-    // Skip 4.1.c
-    padding_bits
-}
-
+/// Returns the JWT with SHA padding appended (as bytes)
 pub fn with_sha_padding_bytes(jwt_unsigned: &[u8]) -> Vec<u8> {
-    (Bits::bit_representation_of_bytes(jwt_unsigned) + compute_sha_padding(jwt_unsigned))
+    (Bits::bit_representation_of_bytes(jwt_unsigned) + compute_sha_padding(jwt_unsigned, true))
         .as_bytes()
-        .expect("Should have length a multiple of 8")
+        .expect("Should have length a multiple of 8!")
 }
 
 #[cfg(test)]

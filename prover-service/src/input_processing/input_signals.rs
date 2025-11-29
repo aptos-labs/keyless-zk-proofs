@@ -10,9 +10,8 @@ use aptos_keyless_common::input_processing::circuit_input_signals::{CircuitInput
 use aptos_keyless_common::input_processing::encoding::{
     As64BitLimbs, TryFromFr, UnsignedJwtPartsWithPadding,
 };
-use aptos_keyless_common::input_processing::sha::{
-    compute_sha_padding_without_len, jwt_bit_len_binary, with_sha_padding_bytes,
-};
+use aptos_keyless_common::input_processing::sha;
+use aptos_keyless_common::input_processing::sha::{jwt_bit_len_binary, with_sha_padding_bytes};
 use aptos_keyless_common::types::PoseidonHash;
 use std::sync::Arc;
 
@@ -66,7 +65,7 @@ pub fn derive_circuit_input_signals(
         )
         .bytes_input(
             "sha2_padding",
-            &compute_sha_padding_without_len(jwt_parts.unsigned_undecoded().as_bytes())
+            &sha::compute_sha_padding(jwt_parts.unsigned_undecoded().as_bytes(), false)
                 .as_bytes()?,
         )
         .limbs_input("signature", &verified_input.jwt.signature.as_64bit_limbs())
