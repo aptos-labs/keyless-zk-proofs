@@ -3,7 +3,8 @@
 use crate::error::ProverServiceError;
 use crate::utils;
 use aptos_crypto_derive::{BCSCryptoHash, CryptoHasher};
-use aptos_keyless_common::input_processing::encoding::{AsFr, DecodedJWT, FromB64, JwtParts};
+use aptos_keyless_common::input_processing::encoding::{AsFr, FromB64};
+use aptos_keyless_common::input_processing::jwt::{DecodedJWT, JwtParts};
 use aptos_keyless_common::types::PoseidonHash;
 use aptos_types::jwks::rsa::RSA_JWK;
 use aptos_types::keyless::{

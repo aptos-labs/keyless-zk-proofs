@@ -155,10 +155,9 @@ mod tests {
         ed25519::{Ed25519PrivateKey, Ed25519PublicKey},
         encoding_type::EncodingType,
     };
-    use aptos_keyless_common::input_processing::encoding::DecodedJWT;
+    use aptos_keyless_common::input_processing::jwt::{DecodedJWT, JwtParts};
     use aptos_keyless_common::input_processing::{
-        circuit_config::CircuitConfig,
-        encoding::{FromB64, JwtParts},
+        circuit_config::CircuitConfig, encoding::FromB64,
     };
     use aptos_types::{jwks::rsa::RSA_JWK, transaction::authenticator::EphemeralPublicKey};
     use ark_bn254::Fr;

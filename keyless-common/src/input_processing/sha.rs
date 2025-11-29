@@ -63,10 +63,9 @@ pub fn with_sha_padding_bytes(jwt_unsigned: &[u8]) -> Vec<u8> {
 
 #[cfg(test)]
 mod tests {
-    use crate::input_processing::{
-        encoding::{FromB64, JwtParts},
-        sha::with_sha_padding_bytes,
-    };
+    use crate::input_processing::encoding::FromB64;
+    use crate::input_processing::jwt::JwtParts;
+    use crate::input_processing::sha::with_sha_padding_bytes;
 
     #[test]
     fn test_compute_sha_padding_all_lengths() {

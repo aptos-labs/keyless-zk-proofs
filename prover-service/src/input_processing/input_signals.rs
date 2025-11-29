@@ -7,9 +7,8 @@ use crate::input_processing::public_inputs_hash::compute_public_inputs_hash;
 use crate::request_handler::types::VerifiedInput;
 use aptos_keyless_common::input_processing::circuit_config::CircuitConfig;
 use aptos_keyless_common::input_processing::circuit_input_signals::{CircuitInputSignals, Padded};
-use aptos_keyless_common::input_processing::encoding::{
-    As64BitLimbs, TryFromFr, UnsignedJwtPartsWithPadding,
-};
+use aptos_keyless_common::input_processing::encoding::{As64BitLimbs, TryFromFr};
+use aptos_keyless_common::input_processing::jwt::UnsignedJwtPartsWithPadding;
 use aptos_keyless_common::input_processing::sha;
 use aptos_keyless_common::input_processing::sha::{jwt_bit_len_binary, with_sha_padding_bytes};
 use aptos_keyless_common::types::PoseidonHash;

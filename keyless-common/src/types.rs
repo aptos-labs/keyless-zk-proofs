@@ -1,10 +1,44 @@
 // Copyright (c) Aptos Foundation
 
+use crate::input_processing::encoding::{AsFr, FromFr, TryFromFr};
+use anyhow::anyhow;
+use ark_bn254::Fr;
+use ark_ff::{BigInteger, PrimeField};
 use serde::{Deserialize, Serialize};
 
-// Useful type aliases for common keyless components
+// A type alias for ephemeral public key blinders
 pub type EphemeralPublicKeyBlinder = Vec<u8>;
+
+impl AsFr for EphemeralPublicKeyBlinder {
+    fn as_fr(&self) -> Fr {
+        Fr::from_le_bytes_mod_order(self)
+    }
+}
+
+impl FromFr for EphemeralPublicKeyBlinder {
+    fn from_fr(fr: &Fr) -> Self {
+        fr.into_bigint().to_bytes_le()
+    }
+}
+
+// A type alias for Poseidon hash outputs
 pub type PoseidonHash = [u8; 32];
+
+impl AsFr for PoseidonHash {
+    fn as_fr(&self) -> Fr {
+        Fr::from_le_bytes_mod_order(self.as_slice())
+    }
+}
+
+impl TryFromFr for PoseidonHash {
+    fn try_from_fr(fr: &Fr) -> anyhow::Result<Self> {
+        let v = fr.into_bigint().to_bytes_le();
+        let arr: PoseidonHash = v
+            .try_into()
+            .map_err(|_| anyhow!("Conversion from Fr to bytes failed!"))?;
+        Ok(arr)
+    }
+}
 
 /// This struct is a representation of a Groth16VerificationKey resource as found on-chain.
 /// See, for example:

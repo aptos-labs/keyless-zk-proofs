@@ -4,6 +4,7 @@ use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
+/// The configuration for a circuit, including maximum lengths for input signals
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(default, deny_unknown_fields)]
 pub struct CircuitConfig {

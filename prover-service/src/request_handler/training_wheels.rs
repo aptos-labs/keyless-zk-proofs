@@ -13,7 +13,7 @@ use aptos_crypto::{
 };
 use aptos_keyless_common::input_processing::circuit_config::CircuitConfig;
 use aptos_keyless_common::input_processing::encoding::AsFr;
-use aptos_keyless_common::input_processing::encoding::DecodedJWT;
+use aptos_keyless_common::input_processing::jwt::DecodedJWT;
 use aptos_keyless_common::types::PoseidonHash;
 use aptos_types::jwks::rsa::RSA_JWK;
 use aptos_types::keyless::Claims;
