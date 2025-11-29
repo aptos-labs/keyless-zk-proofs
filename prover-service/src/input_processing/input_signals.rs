@@ -5,15 +5,13 @@ use crate::input_processing::field_check_input;
 use crate::input_processing::public_inputs_hash;
 use crate::input_processing::public_inputs_hash::compute_public_inputs_hash;
 use crate::request_handler::types::VerifiedInput;
-use aptos_keyless_common::input_processing::circuit_input_signals::{CircuitInputSignals, Padded};
-use aptos_keyless_common::input_processing::config::CircuitConfig;
-use aptos_keyless_common::input_processing::encoding::{
-    As64BitLimbs, TryFromFr, UnsignedJwtPartsWithPadding,
-};
-use aptos_keyless_common::input_processing::sha::{
-    compute_sha_padding_without_len, jwt_bit_len_binary, with_sha_padding_bytes,
-};
-use aptos_keyless_common::PoseidonHash;
+use aptos_keyless_common::input_processing::circuit_config::CircuitConfig;
+use aptos_keyless_common::input_processing::circuit_input_signals::CircuitInputSignals;
+use aptos_keyless_common::input_processing::encoding::{As64BitLimbs, Padded, TryFromFr};
+use aptos_keyless_common::input_processing::jwt::UnsignedJwtPartsWithPadding;
+use aptos_keyless_common::input_processing::sha;
+use aptos_keyless_common::input_processing::sha::{jwt_bit_len_binary, with_sha_padding_bytes};
+use aptos_keyless_common::types::PoseidonHash;
 use std::sync::Arc;
 
 /// Derives the circuit input signals and public inputs hash from the verified input
@@ -66,7 +64,7 @@ pub fn derive_circuit_input_signals(
         )
         .bytes_input(
             "sha2_padding",
-            &compute_sha_padding_without_len(jwt_parts.unsigned_undecoded().as_bytes())
+            &sha::compute_sha_padding(jwt_parts.unsigned_undecoded().as_bytes(), false)
                 .as_bytes()?,
         )
         .limbs_input("signature", &verified_input.jwt.signature.as_64bit_limbs())
@@ -80,7 +78,7 @@ pub fn derive_circuit_input_signals(
         .bool_input("use_extra_field", verified_input.use_extra_field());
 
     // Add skip_aud_checks (if required)
-    if circuit_config.has_input_skip_aud_checks {
+    if circuit_config.has_input_skip_aud_checks() {
         circuit_input_signals =
             circuit_input_signals.bool_input("skip_aud_checks", verified_input.skip_aud_checks);
     }

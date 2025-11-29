@@ -11,10 +11,10 @@ use aptos_crypto::{
     ed25519::{Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature},
     poseidon_bn254, CryptoMaterialError, SigningKey,
 };
-use aptos_keyless_common::input_processing::config::CircuitConfig;
+use aptos_keyless_common::input_processing::circuit_config::CircuitConfig;
 use aptos_keyless_common::input_processing::encoding::AsFr;
-use aptos_keyless_common::input_processing::encoding::DecodedJWT;
-use aptos_keyless_common::PoseidonHash;
+use aptos_keyless_common::input_processing::jwt::DecodedJWT;
+use aptos_keyless_common::types::PoseidonHash;
 use aptos_types::jwks::rsa::RSA_JWK;
 use aptos_types::keyless::Claims;
 use aptos_types::{
@@ -34,9 +34,10 @@ pub fn compute_nonce(
     circuit_config: &CircuitConfig,
 ) -> anyhow::Result<Fr> {
     // Pack the ephemeral public key bytes, expiration date, and blinder into scalars
+    let max_length_epk = circuit_config.get_max_length("epk")?;
     let mut frs = poseidon_bn254::keyless::pad_and_pack_bytes_to_scalars_with_len(
         ephemeral_public_key.to_bytes().as_slice(),
-        circuit_config.max_lengths["epk"] * poseidon_bn254::keyless::BYTES_PACKED_PER_SCALAR,
+        max_length_epk * poseidon_bn254::keyless::BYTES_PACKED_PER_SCALAR,
     )?;
     frs.push(Fr::from(expiration_date));
     frs.push(epk_blinder);

@@ -3,7 +3,7 @@
 use crate::external_resources::jwk_fetcher::get_federated_jwk;
 use crate::tests::common::gen_test_jwk_keypair_with_kid_override;
 use crate::tests::common::types::{ProofTestCase, TestJWTPayload};
-use aptos_keyless_common::input_processing::encoding::DecodedJWT;
+use aptos_keyless_common::input_processing::jwt::DecodedJWT;
 
 // TODO: avoid the external test dependencies!
 

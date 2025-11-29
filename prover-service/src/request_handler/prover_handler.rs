@@ -12,8 +12,9 @@ use crate::metrics::{
 use crate::request_handler::types::{ProverServiceResponse, RequestInput, VerifiedInput};
 use crate::request_handler::{handler, training_wheels, types};
 use crate::{metrics, request_handler::prover_state::ProverServiceState, utils};
-use aptos_keyless_common::input_processing::circuit_input_signals::{CircuitInputSignals, Padded};
-use aptos_keyless_common::PoseidonHash;
+use aptos_keyless_common::input_processing::circuit_input_signals::CircuitInputSignals;
+use aptos_keyless_common::input_processing::encoding::Padded;
+use aptos_keyless_common::types::PoseidonHash;
 use aptos_logger::{error, warn};
 use aptos_types::keyless::Groth16Proof;
 use aptos_types::transaction::authenticator::EphemeralSignature;

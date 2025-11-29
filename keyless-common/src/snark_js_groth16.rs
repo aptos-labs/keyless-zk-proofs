@@ -1,36 +1,35 @@
 // Copyright (c) Aptos Foundation
 
 // TODO(Alin): This file should be removed from and reconciled with `prover/groth16_vk.rs`
+use crate::types::{OnChainGroth16VerificationKey, VKeyData};
 use anyhow::{anyhow, Result};
 use ark_bn254::{Fq, Fq2, G1Projective, G2Projective};
 use ark_ff::PrimeField;
 use num_bigint::BigUint;
 use num_traits::Num;
 use serde::{Deserialize, Serialize};
-#[cfg(test)]
-use std::fs::File;
-#[cfg(test)]
-use std::io::Write;
 
-//
-// Below are some utils for converting a VK from snarkjs to its on-chain representation.
-//
-
+// Type aliases for the various snarkjs representations
 type SnarkJsFqRepr = String;
+type SnarkJsFq2Repr = [SnarkJsFqRepr; 2];
+type SnarkJsG1Repr = [SnarkJsFqRepr; 3];
+type SnarkJsG2Repr = [SnarkJsFq2Repr; 3];
+
+/// Helper function to convert snarkjs Fq representation to ark Fq
 fn try_as_fq(repr: &SnarkJsFqRepr) -> Result<Fq> {
     let val = BigUint::from_str_radix(repr.as_str(), 10)?;
     let bytes = val.to_bytes_be();
     Ok(Fq::from_be_bytes_mod_order(bytes.as_slice()))
 }
 
-type SnarkJsFq2Repr = [SnarkJsFqRepr; 2];
+/// Helper function to convert snarkjs Fq2 representation to ark Fq2
 fn try_as_fq2(repr: &SnarkJsFq2Repr) -> Result<Fq2> {
     let x = try_as_fq(&repr[0])?;
     let y = try_as_fq(&repr[1])?;
     Ok(Fq2::new(x, y))
 }
 
-type SnarkJsG1Repr = [SnarkJsFqRepr; 3];
+/// Helper function to convert snarkjs G1 representation to ark G1Projective
 fn try_as_g1_proj(repr: &SnarkJsG1Repr) -> Result<G1Projective> {
     let a = try_as_fq(&repr[0])?;
     let b = try_as_fq(&repr[1])?;
@@ -38,7 +37,7 @@ fn try_as_g1_proj(repr: &SnarkJsG1Repr) -> Result<G1Projective> {
     Ok(G1Projective::new(a, b, c))
 }
 
-type SnarkJsG2Repr = [SnarkJsFq2Repr; 3];
+/// Helper function to convert snarkjs G2 representation to ark G2Projective
 fn try_as_g2_proj(repr: &SnarkJsG2Repr) -> Result<G2Projective> {
     let a = try_as_fq2(&repr[0])?;
     let b = try_as_fq2(&repr[1])?;
@@ -46,6 +45,7 @@ fn try_as_g2_proj(repr: &SnarkJsG2Repr) -> Result<G2Projective> {
     Ok(G2Projective::new(a, b, c))
 }
 
+/// Local representation of a Groth16 VK as outputted by snarkjs
 #[derive(Deserialize, Serialize, Debug)]
 pub struct SnarkJsGroth16VerificationKey {
     vk_alpha_1: SnarkJsG1Repr,
@@ -55,42 +55,8 @@ pub struct SnarkJsGroth16VerificationKey {
     #[serde(rename = "IC")]
     ic: Vec<SnarkJsG1Repr>,
 }
-#[test]
-fn groth16_vk_rewriter() {
-    if let (Ok(path_in), Ok(path_out)) = (
-        std::env::var("LOCAL_VK_IN"),
-        std::env::var("ONCHAIN_VK_OUT"),
-    ) {
-        let local_vk_json = std::fs::read_to_string(path_in.as_str()).unwrap();
-        let local_vk: SnarkJsGroth16VerificationKey = serde_json::from_str(&local_vk_json).unwrap();
-        let onchain_vk = OnChainGroth16VerificationKey::try_from(local_vk).unwrap();
-        let json_out = serde_json::to_string_pretty(&onchain_vk).unwrap();
-        File::create(path_out)
-            .unwrap()
-            .write_all(json_out.as_bytes())
-            .unwrap();
-    }
-}
 
-/// On-chain representation of a VK.
-///
-/// https://fullnode.testnet.aptoslabs.com/v1/accounts/0x1/resource/0x1::keyless_account::Groth16VerificationKey
-#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
-pub struct OnChainGroth16VerificationKey {
-    /// Some type info returned by node API.
-    pub r#type: String,
-    pub data: VKeyData,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
-pub struct VKeyData {
-    pub alpha_g1: String,
-    pub beta_g2: String,
-    pub delta_g2: String,
-    pub gamma_abc_g1: Vec<String>,
-    pub gamma_g2: String,
-}
-
+/// Conversion from local snarkjs representation to the on-chain representation
 impl TryFrom<SnarkJsGroth16VerificationKey> for OnChainGroth16VerificationKey {
     type Error = anyhow::Error;
 
@@ -138,8 +104,37 @@ impl TryFrom<SnarkJsGroth16VerificationKey> for OnChainGroth16VerificationKey {
     }
 }
 
+/// Helper function to convert an ark type to its on-chain hex representation
 fn as_onchain_repr<T: ark_serialize::CanonicalSerialize>(point: &T) -> Result<String> {
     let mut buf = vec![];
     point.serialize_compressed(&mut buf)?;
     Ok(format!("0x{}", hex::encode(buf)))
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::snark_js_groth16::SnarkJsGroth16VerificationKey;
+    use crate::types::OnChainGroth16VerificationKey;
+    use std::fs::File;
+    use std::io::Write;
+
+    // Utility test to convert a local snarkjs Groth16 VK JSON file to an on-chain VK JSON file.
+    // Input and output file paths are provided via environment variables, LOCAL_VK_IN and ONCHAIN_VK_OUT.
+    #[test]
+    fn groth16_vk_rewriter() {
+        if let (Ok(path_in), Ok(path_out)) = (
+            std::env::var("LOCAL_VK_IN"),
+            std::env::var("ONCHAIN_VK_OUT"),
+        ) {
+            let local_vk_json = std::fs::read_to_string(path_in.as_str()).unwrap();
+            let local_vk: SnarkJsGroth16VerificationKey =
+                serde_json::from_str(&local_vk_json).unwrap();
+            let onchain_vk = OnChainGroth16VerificationKey::try_from(local_vk).unwrap();
+            let json_out = serde_json::to_string_pretty(&onchain_vk).unwrap();
+            File::create(path_out)
+                .unwrap()
+                .write_all(json_out.as_bytes())
+                .unwrap();
+        }
+    }
 }
