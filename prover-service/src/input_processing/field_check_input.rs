@@ -4,9 +4,8 @@ use super::field_parser::ParsedField;
 use crate::input_processing::field_parser::FieldParser;
 use crate::request_handler::types::VerifiedInput;
 use anyhow::{bail, Result};
-use aptos_keyless_common::input_processing::circuit_input_signals::{
-    CircuitInputSignals, Unpadded,
-};
+use aptos_keyless_common::input_processing::circuit_input_signals::CircuitInputSignals;
+use aptos_keyless_common::input_processing::encoding::Unpadded;
 
 /// Calculates which bytes in the string are inside string bodies
 fn calc_string_bodies(string: &str) -> Vec<bool> {

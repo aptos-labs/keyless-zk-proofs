@@ -8,6 +8,14 @@ use ark_bn254::Fr;
 use ark_ff::PrimeField;
 use num_bigint::BigUint;
 
+/// A marker type for unpadding
+#[derive(Debug)]
+pub struct Unpadded;
+
+/// A marker type for padding
+#[derive(Debug)]
+pub struct Padded;
+
 /// Trait which signals that this type allows conversion into 64-bit limbs.
 /// Used for JWT signature and JWK modulus.
 pub trait As64BitLimbs {

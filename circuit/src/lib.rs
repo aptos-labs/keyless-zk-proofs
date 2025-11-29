@@ -3,7 +3,8 @@
 extern crate core;
 
 use anyhow::{anyhow, bail, ensure};
-use aptos_keyless_common::input_processing::circuit_input_signals::{CircuitInputSignals, Padded};
+use aptos_keyless_common::input_processing::circuit_input_signals::CircuitInputSignals;
+use aptos_keyless_common::input_processing::encoding::Padded;
 use std::path::Path;
 use std::time::Instant;
 use std::{env, fs, fs::File, io::Write, path::PathBuf, process::Command};
