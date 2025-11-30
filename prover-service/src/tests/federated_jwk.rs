@@ -4,8 +4,8 @@ use crate::external_resources::jwk_fetcher::{
     get_federated_jwk, AUTH0_ISSUER_NAME, AUTH0_REGEX_STR, COGNITO_ISSUER_NAME, COGNITO_REGEX_STR,
 };
 use crate::external_resources::jwk_types::{FederatedJWKIssuerInterface, FederatedJWKs, KeyID};
-use crate::tests::common::gen_test_jwk_keypair_with_kid_override;
-use crate::tests::common::types::{ProofTestCase, TestJWTPayload};
+use crate::tests::types::{ProofTestCase, TestJWTPayload};
+use crate::tests::utils;
 use aptos_keyless_common::input_processing::jwt::DecodedJWT;
 use aptos_types::jwks::rsa::{INSECURE_TEST_RSA_JWK, RSA_JWK};
 use regex::Regex;
@@ -189,7 +189,7 @@ async fn test_federated_jwk_fetch_fails_for_missing_kid() {
 fn get_decoded_jwt(kid: &str, jwt_payload: TestJWTPayload) -> DecodedJWT {
     // Create the prover request input
     let testcase = ProofTestCase::default_with_payload(jwt_payload).compute_nonce();
-    let jwk_keypair = gen_test_jwk_keypair_with_kid_override(kid);
+    let jwk_keypair = utils::gen_test_jwk_keypair_with_kid_override(kid);
     let prover_request_input = testcase.convert_to_prover_request(&jwk_keypair);
 
     // Return the decoded JWT

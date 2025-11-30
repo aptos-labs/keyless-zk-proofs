@@ -1,16 +1,14 @@
 // Copyright (c) Aptos Foundation
 
-use std::path::PathBuf;
-use std::process::Command;
-use std::time::{SystemTime, UNIX_EPOCH};
-
-use super::{gen_test_ephemeral_pk, gen_test_ephemeral_pk_blinder, get_test_pepper};
 use crate::external_resources::prover_config::ProverServiceConfig;
 use crate::request_handler::training_wheels;
 use crate::request_handler::types::{EphemeralPublicKeyBlinder, RequestInput};
-use crate::tests::common::get_config;
-use crate::tests::common::rsa::{RsaPrivateKey, RsaPublicKey};
+use crate::tests::utils::{RsaPrivateKey, RsaPublicKey};
+use crate::utils;
+use aptos_crypto::ed25519::{Ed25519PrivateKey, Ed25519PublicKey};
+use aptos_crypto::encoding_type::EncodingType;
 use aptos_keyless_common::input_processing::encoding::FromFr;
+use aptos_logger::info;
 use aptos_types::{
     jwks::rsa::RSA_JWK, keyless::Pepper, transaction::authenticator::EphemeralPublicKey,
 };
@@ -18,6 +16,13 @@ use ark_ff::{BigInteger, PrimeField};
 use jsonwebtoken::{Algorithm, Header};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
+use std::process::Command;
+use std::str::FromStr;
+use std::time::{SystemTime, UNIX_EPOCH};
+
+// The name of the local testing config file
+const LOCAL_TESTING_CONFIG_FILE_NAME: &str = "config_local_testing.yml";
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct TestJWTPayload {
@@ -267,3 +272,45 @@ static LOCAL_SETUP_PROCURED: Lazy<bool> = Lazy::new(|| {
         false
     }
 });
+
+pub fn gen_test_ephemeral_pk() -> EphemeralPublicKey {
+    let ephemeral_private_key: Ed25519PrivateKey = EncodingType::Hex
+        .decode_key(
+            "zkid test ephemeral private key",
+            "0x76b8e0ada0f13d90405d6ae55386bd28bdd219b8a08ded1aa836efcc8b770dc7"
+                .as_bytes()
+                .to_vec(),
+        )
+        .unwrap();
+    let ephemeral_public_key_unwrapped: Ed25519PublicKey =
+        Ed25519PublicKey::from(&ephemeral_private_key);
+    EphemeralPublicKey::ed25519(ephemeral_public_key_unwrapped)
+}
+
+pub fn get_test_pepper() -> Pepper {
+    Pepper::from_number(42)
+}
+
+pub fn gen_test_ephemeral_pk_blinder() -> ark_bn254::Fr {
+    ark_bn254::Fr::from_str("42").unwrap()
+}
+
+pub fn get_config() -> ProverServiceConfig {
+    // Read the config file contents
+    let config_file_contents = utils::read_string_from_file_path(LOCAL_TESTING_CONFIG_FILE_NAME);
+
+    // Parse the config file contents into the config struct
+    match serde_yaml::from_str(&config_file_contents) {
+        Ok(prover_service_config) => {
+            info!(
+                "Loaded the prover service config: {:?}",
+                prover_service_config
+            );
+            prover_service_config
+        }
+        Err(error) => panic!(
+            "Failed to parse prover service config yaml file: {}! Error: {}",
+            LOCAL_TESTING_CONFIG_FILE_NAME, error
+        ),
+    }
+}
