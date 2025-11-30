@@ -3,7 +3,7 @@
 use crate::{metrics, utils};
 use anyhow::{anyhow, Result};
 use aptos_infallible::Mutex;
-use aptos_keyless_common::input_processing::encoding::DecodedJWT;
+use aptos_keyless_common::input_processing::jwt::DecodedJWT;
 use aptos_logger::{info, warn};
 use aptos_time_service::{TimeService, TimeServiceTrait};
 use aptos_types::jwks::rsa::RSA_JWK;

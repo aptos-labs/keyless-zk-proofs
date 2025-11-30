@@ -3,7 +3,7 @@
 use crate::TestCircuitHandle;
 use aptos_crypto::poseidon_bn254;
 use aptos_keyless_common::input_processing::{
-    circuit_input_signals::CircuitInputSignals, config::CircuitConfig,
+    circuit_config::CircuitConfig, circuit_input_signals::CircuitInputSignals,
 };
 use ark_bn254::Fr;
 use ark_ff::{One, Zero};

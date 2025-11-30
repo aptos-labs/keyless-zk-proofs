@@ -3,9 +3,9 @@
 use super::field_check_input;
 use crate::external_resources::prover_config::ProverServiceConfig;
 use crate::request_handler::types::VerifiedInput;
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use aptos_crypto::poseidon_bn254;
-use aptos_keyless_common::input_processing::config::CircuitConfig;
+use aptos_keyless_common::input_processing::circuit_config::CircuitConfig;
 use aptos_types::keyless::IdCommitment;
 use ark_bn254::Fr;
 use std::sync::Arc;
@@ -24,7 +24,7 @@ fn compute_idc_hash(
     frs.push(pepper_fr);
 
     // Add the aud to the hash
-    let max_aud_bytes = get_max_bytes_from_config(circuit_config, "private_aud_value")?;
+    let max_aud_bytes = circuit_config.get_max_length("private_aud_value")?;
     let aud_hash_fr = poseidon_bn254::pad_and_hash_string(
         &field_check_input::private_aud_value(verified_input)?,
         max_aud_bytes,
@@ -32,13 +32,13 @@ fn compute_idc_hash(
     frs.push(aud_hash_fr);
 
     // Add the uid val to the hash
-    let max_uid_val_bytes = get_max_bytes_from_config(circuit_config, "uid_value")?;
+    let max_uid_val_bytes = circuit_config.get_max_length("uid_value")?;
     let uid_val_hash_fr =
         poseidon_bn254::pad_and_hash_string(&verified_input.uid_val, max_uid_val_bytes)?;
     frs.push(uid_val_hash_fr);
 
     // Add the uid key to the hash
-    let max_uid_key_bytes = get_max_bytes_from_config(circuit_config, "uid_name")?;
+    let max_uid_key_bytes = circuit_config.get_max_length("uid_name")?;
     let uid_key_hash_fr =
         poseidon_bn254::pad_and_hash_string(&verified_input.uid_key, max_uid_key_bytes)?;
     frs.push(uid_key_hash_fr);
@@ -100,7 +100,7 @@ pub fn compute_public_inputs_hash(
     frs.push(Fr::from(verified_input.exp_horizon_secs));
 
     // Add the iss value hash
-    let max_iss_bytes = get_max_bytes_from_config(circuit_config, "iss_value")?;
+    let max_iss_bytes = circuit_config.get_max_length("iss_value")?;
     let iss_val_hash =
         poseidon_bn254::pad_and_hash_string(&verified_input.jwt.payload.iss, max_iss_bytes)?;
     frs.push(iss_val_hash);
@@ -110,17 +110,16 @@ pub fn compute_public_inputs_hash(
     frs.push(use_extra_field_fr);
 
     // Add the extra field hash
-    let max_extra_field_bytes = get_max_bytes_from_config(circuit_config, "extra_field")?;
+    let max_extra_field_bytes = circuit_config.get_max_length("extra_field")?;
     let extra_field_hash =
         poseidon_bn254::pad_and_hash_string(&extra_field.whole_field, max_extra_field_bytes)?;
     frs.push(extra_field_hash);
 
     // Add the hash of the jwt_header with the "." separator appended
     let jwt_header_str = verified_input.jwt_parts.header_undecoded_with_dot();
-    let jwt_header_hash = poseidon_bn254::pad_and_hash_string(
-        &jwt_header_str,
-        circuit_config.max_lengths["b64u_jwt_header_w_dot"],
-    )?;
+    let max_jwt_header_bytes = circuit_config.get_max_length("b64u_jwt_header_w_dot")?;
+    let jwt_header_hash =
+        poseidon_bn254::pad_and_hash_string(&jwt_header_str, max_jwt_header_bytes)?;
     frs.push(jwt_header_hash);
 
     // Add the public key hash
@@ -147,15 +146,6 @@ pub fn compute_public_inputs_hash(
     Ok(result)
 }
 
-/// Retrieves the maximum byte length for a given key from the circuit config
-fn get_max_bytes_from_config(circuit_config: &CircuitConfig, key: &str) -> Result<usize> {
-    let max_lengths = &circuit_config.max_lengths;
-    let max_bytes = max_lengths
-        .get(key)
-        .ok_or_else(|| anyhow!("Can't find key {} in circuit config", key))?;
-    Ok(*max_bytes)
-}
-
 #[cfg(test)]
 mod tests {
     use super::compute_public_inputs_hash;
@@ -165,10 +155,9 @@ mod tests {
         ed25519::{Ed25519PrivateKey, Ed25519PublicKey},
         encoding_type::EncodingType,
     };
-    use aptos_keyless_common::input_processing::encoding::DecodedJWT;
+    use aptos_keyless_common::input_processing::jwt::{DecodedJWT, JwtParts};
     use aptos_keyless_common::input_processing::{
-        config::CircuitConfig,
-        encoding::{FromB64, JwtParts},
+        circuit_config::CircuitConfig, encoding::FromB64,
     };
     use aptos_types::{jwks::rsa::RSA_JWK, transaction::authenticator::EphemeralPublicKey};
     use ark_bn254::Fr;
