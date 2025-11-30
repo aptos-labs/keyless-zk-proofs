@@ -63,7 +63,7 @@ template ParseEmailVerifiedField(maxKVPairLen, maxNameLen, maxValueLen) {
     }
 
     signal whitespace_selector_one[maxKVPairLen] <== ArraySelectorComplex(maxKVPairLen)(name_len+2, colon_index); // Skip 2 quotes around name, stop 1 index before the colon
-    signal whitespace_selector_two[maxKVPairLen] <== ArraySelectorComplex(maxKVPairLen)(colon_index+1, value_index-1); // There could potentially be quotes around the value, so we don't contstrain the character before value_index to be whitespace
+    signal whitespace_selector_two[maxKVPairLen] <== ArraySelectorComplex(maxKVPairLen)(colon_index+1, value_index-1); // There could potentially be quotes around the value, so we don't constrain the character before value_index to be whitespace
     signal whitespace_selector_three[maxKVPairLen] <== ArraySelectorComplex(maxKVPairLen)(value_index+value_len+1, field_len-1); // similarly to before, don't constrain character just after value end
 
 

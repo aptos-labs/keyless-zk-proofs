@@ -2,7 +2,7 @@ pragma circom 2.2.2;
 
 /**
  * Outputs an array of bits containing the N-bit representation of the input number, with
- * the most significant bit first and the least signficant last (opposite of Num2Bits).
+ * the most significant bit first and the least significant last (opposite of Num2Bits).
  *
  * This effectively acts as a range check for the input number being in [0, 2^N).
  *
