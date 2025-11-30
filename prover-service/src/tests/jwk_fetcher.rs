@@ -1,12 +1,7 @@
 // Copyright (c) Aptos Foundation
 
-use crate::{
-    error::ProverServiceError,
-    external_resources::{
-        jwk_fetcher,
-        jwk_fetcher::{JWKCache, JWKIssuerInterface, KeyID},
-    },
-};
+use crate::external_resources::jwk_types::{JWKCache, JWKIssuerInterface, KeyID};
+use crate::{error::ProverServiceError, external_resources::jwk_fetcher};
 use aptos_infallible::Mutex;
 use aptos_time_service::TimeService;
 use aptos_types::{jwks, jwks::rsa::RSA_JWK};

@@ -49,7 +49,7 @@ async fn main() {
     );
 
     // Start the JWK fetchers
-    let jwk_cache = jwk_fetcher::start_jwk_fetchers(
+    let (jwk_cache, federated_jwks) = jwk_fetcher::start_jwk_fetchers(
         prover_service_config.jwk_issuers.clone(),
         Duration::from_secs(prover_service_config.jwk_refresh_rate_secs),
     );
@@ -60,6 +60,7 @@ async fn main() {
         prover_service_config.clone(),
         deployment_information,
         jwk_cache,
+        federated_jwks,
     ));
 
     // Load the verification key

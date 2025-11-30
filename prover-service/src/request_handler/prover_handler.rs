@@ -429,6 +429,7 @@ async fn validate_prove_request_input(
         prover_service_state,
         prove_request_input,
         prover_service_state.jwk_cache(),
+        prover_service_state.federated_jwks(),
     )
     .await
     {

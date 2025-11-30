@@ -2,7 +2,8 @@
 
 use crate::error::ProverServiceError;
 use crate::external_resources::jwk_fetcher;
-use crate::external_resources::jwk_fetcher::{get_federated_jwk, JWKCache};
+use crate::external_resources::jwk_fetcher::get_federated_jwk;
+use crate::external_resources::jwk_types::{FederatedJWKIssuer, FederatedJWKs, JWKCache};
 use crate::external_resources::prover_config::ProverServiceConfig;
 use crate::request_handler::prover_state::ProverServiceState;
 use crate::request_handler::types::{ProverServiceResponse, RequestInput, VerifiedInput};
@@ -52,6 +53,7 @@ async fn get_jwk(
     prover_service_config: &ProverServiceConfig,
     jwt: &DecodedJWT,
     jwk_cache: JWKCache,
+    federated_jwks: FederatedJWKs<FederatedJWKIssuer>,
 ) -> anyhow::Result<Arc<RSA_JWK>> {
     // Fetch the JWK from cache first
     let cached_jwk =
@@ -62,7 +64,7 @@ async fn get_jwk(
 
     // Otherwise, fetch the JWK from the federated JWKs (if enabled)
     if prover_service_config.enable_federated_jwks {
-        get_federated_jwk(jwt).await
+        get_federated_jwk(jwt, federated_jwks).await
     } else {
         bail!(
             "JWK not found in cache, and federated JWKs are disabled! Iss: {}, Kid: {}",
@@ -79,6 +81,7 @@ pub async fn preprocess_and_validate_request(
     prover_service_state: &ProverServiceState,
     request_input: &RequestInput,
     jwk_cache: JWKCache,
+    federated_jwks: FederatedJWKs<FederatedJWKIssuer>,
 ) -> anyhow::Result<VerifiedInput> {
     // Get the decoded JWT and the JWK
     let jwt = DecodedJWT::from_b64(&request_input.jwt_b64)?;
@@ -86,6 +89,7 @@ pub async fn preprocess_and_validate_request(
         &prover_service_state.prover_service_config(),
         &jwt,
         jwk_cache,
+        federated_jwks,
     )
     .await?;
 
