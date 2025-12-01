@@ -22,9 +22,9 @@ pragma circom 2.2.2;
  *    $bits[i] \in \{0, 1\}$
  *    $num = \sum_{i = 0}^{N-1} 2^{(N-1)-i} bits[i]$
  */
-template Num2BigEndianBits(n) {
+template Num2BigEndianBits(N) {
     signal input in;
-    signal output out[n];
+    signal output out[N];
 
     // incrementally-updated to eventually store the symbolic expression:
     //
@@ -33,8 +33,8 @@ template Num2BigEndianBits(n) {
     var num = 0;
     var pow2 = 1;
 
-    for (var i = 0; i < n; i++) {
-        var idx = (n - 1) - i;
+    for (var i = 0; i < N; i++) {
+        var idx = (N - 1) - i;
 
         out[idx] <-- (in >> i) & 1;
         out[idx] * (out[idx] - 1) === 0;
