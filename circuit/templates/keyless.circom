@@ -73,7 +73,7 @@ template keyless(
     MAX_EMAIL_VERIFIED_VALUE_LEN,      // ...ASCII email verified value
     MAX_UID_KV_PAIR_LEN,    // ...ASCII uid field
     MAX_UID_NAME_LEN,      // ...ASCII uid name
-    maxUIDValueLen,     // ...ASCII uid value
+    MAX_UID_VALUE_LEN,     // ...ASCII uid value
     MAX_EXTRA_FIELD_KV_PAIR_LEN  // ...ASCII extra field
 ) {
     // Several templates (e.g., Poseidon-BN254 templates, LessThan) assume the
@@ -313,9 +313,9 @@ template keyless(
     signal input uid_value_len;
     signal input uid_colon_index;
     signal input uid_name[MAX_UID_NAME_LEN];
-    signal input uid_value[maxUIDValueLen];
+    signal input uid_value[MAX_UID_VALUE_LEN];
 
-    ParseJWTFieldWithQuotedValue(MAX_UID_KV_PAIR_LEN, MAX_UID_NAME_LEN, maxUIDValueLen)(uid_field, uid_name, uid_value, uid_field_string_bodies, uid_field_len, uid_name_len, uid_value_index, uid_value_len, uid_colon_index, 0);
+    ParseJWTFieldWithQuotedValue(MAX_UID_KV_PAIR_LEN, MAX_UID_NAME_LEN, MAX_UID_VALUE_LEN)(uid_field, uid_name, uid_value, uid_field_string_bodies, uid_field_len, uid_name_len, uid_value_index, uid_value_len, uid_colon_index, 0);
 
     // Check extra field is in the JWT
     signal input extra_field[MAX_EXTRA_FIELD_KV_PAIR_LEN];
@@ -479,7 +479,7 @@ template keyless(
         hashable_private_aud_value[i] <== private_aud_value[i] * perform_aud_checks;
     }
     signal private_aud_val_hashed <== HashBytesToFieldWithLen(MAX_AUD_VALUE_LEN)(hashable_private_aud_value, private_aud_value_len);
-    signal uid_value_hashed <== HashBytesToFieldWithLen(maxUIDValueLen)(uid_value, uid_value_len);
+    signal uid_value_hashed <== HashBytesToFieldWithLen(MAX_UID_VALUE_LEN)(uid_value, uid_value_len);
     signal uid_name_hashed <== HashBytesToFieldWithLen(MAX_UID_NAME_LEN)(uid_name, uid_name_len);
     signal idc <== Poseidon(4)([
         pepper,
