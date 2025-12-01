@@ -62,7 +62,7 @@ template keyless(
     MAX_ISS_KV_PAIR_LEN,    // ...ASCII iss field
     MAX_ISS_NAME_LEN,      // ...ASCII iss name
     MAX_ISS_VALUE_LEN,  // ...ASCII iss value
-    maxIatKVPairLen,    // ...ASCII iat field
+    MAX_IAT_KV_PAIR_LEN,    // ...ASCII iat field
     maxIatNameLen,      // ...ASCII iat name
     maxIatValueLen,     // ...ASCII iat value
     maxNonceKVPairLen,  // ...ASCII nonce field
@@ -394,10 +394,10 @@ template keyless(
     }
 
     // Check iat field is in the JWT
-    signal input iat_field[maxIatKVPairLen];
+    signal input iat_field[MAX_IAT_KV_PAIR_LEN];
     signal input iat_field_len;
     signal input iat_index;
-    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, maxIatKVPairLen)(jwt_payload, jwt_payload_hash, iat_field, iat_field_len, iat_index);
+    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_IAT_KV_PAIR_LEN)(jwt_payload, jwt_payload_hash, iat_field, iat_field_len, iat_index);
 
     // Perform necessary checks on iat field
     var iat_name_len = 3; // iat
@@ -407,7 +407,7 @@ template keyless(
     signal input iat_name[maxIatNameLen];
     signal input iat_value[maxIatValueLen];
 
-    ParseJWTFieldWithUnquotedValue(maxIatKVPairLen, maxIatNameLen, maxIatValueLen)(iat_field, iat_name, iat_value, iat_field_len, iat_name_len, iat_value_index, iat_value_len, iat_colon_index, 0);
+    ParseJWTFieldWithUnquotedValue(MAX_IAT_KV_PAIR_LEN, maxIatNameLen, maxIatValueLen)(iat_field, iat_name, iat_value, iat_field_len, iat_name_len, iat_value_index, iat_value_len, iat_colon_index, 0);
     EnforceNotNested(MAX_JWT_PAYLOAD_LEN)(iss_index, iss_field_len, unquoted_brackets_depth_map);
 
     // Check that iat is not inside a string body

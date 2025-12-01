@@ -16,7 +16,7 @@ component main { public [public_inputs_hash] } = keyless(
     40,         // MAX_ISS_NAME_LEN
     120,        // MAX_ISS_VALUE_LEN
     /* iat field */
-    50,         // maxIatKVPairLen
+    50,         // MAX_IAT_KV_PAIR_LEN
     10,         // maxIatNameLen
     45,         // maxIatValueLen
     /* nonce field */
