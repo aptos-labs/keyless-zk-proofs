@@ -10,7 +10,7 @@ include "circomlib/circuits/bitify.circom";
 
 // Pkcs1v15 + Sha256
 // exp 65537
-template RSA_PKCS1_v1_5_Verify(w, nb) {
+template RSA_PKCS1_v1_5_Verify(LIMB_BIT_WIDTH, nb) {
     //signal input exp[nb];
     signal input sign[nb];      // least-significant-limb first
     signal input modulus[nb];   // least-significant-limb first
@@ -18,7 +18,7 @@ template RSA_PKCS1_v1_5_Verify(w, nb) {
     signal input hashed[4];     // least-significant-limb first
 
     // sign ** exp mod modulus
-    component pm = FpPow65537Mod(w, nb);
+    component pm = FpPow65537Mod(LIMB_BIT_WIDTH, nb);
     for (var i  = 0; i < nb; i++) {
         pm.base[i] <== sign[i];
         //pm.exp[i] <== exp[i];
@@ -37,7 +37,7 @@ template RSA_PKCS1_v1_5_Verify(w, nb) {
     pm.out[4] === 217300885422736416;
     pm.out[5] === 938447882527703397;
     // // remain 24 bit
-    component num2bits_6 = Num2Bits(w);
+    component num2bits_6 = Num2Bits(LIMB_BIT_WIDTH);
     num2bits_6.in <== pm.out[6];
     var remainsBits[32] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0];
     for (var i = 0; i < 32; i++) {
@@ -45,7 +45,7 @@ template RSA_PKCS1_v1_5_Verify(w, nb) {
     }
 
     // 3. Check PS and em[1] = 1. the same code like golang std lib rsa.VerifyPKCS1v15
-    for (var i = 32; i < w; i++) {
+    for (var i = 32; i < LIMB_BIT_WIDTH; i++) {
         num2bits_6.out[i] === 1;
     }
 
