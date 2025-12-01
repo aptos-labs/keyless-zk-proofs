@@ -6,20 +6,20 @@ include "./AssertIsAsciiDigits.circom";
 // Assumes:
 // - the number represented by the ASCII `digits` is smaller than the scalar field used by the circuit
 // - `digits` contains only ASCII digit values between 48 and 57 inclusive
-// Does not work when maxLen = 1
-template AsciiDigitsToScalar(maxLen) {
-    signal input digits[maxLen]; 
+// Does not work when MAX_LEN = 1
+template AsciiDigitsToScalar(MAX_LEN) {
+    signal input digits[MAX_LEN]; 
     signal input len; 
     signal output out;
 
-    AssertIsAsciiDigits(maxLen)(digits, len);
+    AssertIsAsciiDigits(MAX_LEN)(digits, len);
     // Set to 0 everywhere except len-1, which is 1
-    signal index_eq[maxLen - 1];
+    signal index_eq[MAX_LEN - 1];
 
     // For ASCII digits ['1','2','3','4','5'], acc_shifts[0..3] is [12,123,1234]
-    signal acc_shifts[maxLen - 1];
+    signal acc_shifts[MAX_LEN - 1];
     // accumulators[i] = acc_shifts[i-1] for all i < len, otherwise accumulators[i] = accumulators[i-1]
-    signal accumulators[maxLen];
+    signal accumulators[MAX_LEN];
 
     signal success;
     var index_eq_sum = 0;
@@ -27,7 +27,7 @@ template AsciiDigitsToScalar(maxLen) {
     var s = 1; 
 
     accumulators[0] <== digits[0]-48;
-    for (var i=1; i < maxLen; i++) {
+    for (var i=1; i < MAX_LEN; i++) {
         index_eq[i-1] <-- (len == i) ? 1 : 0;
         index_eq[i-1] * (len-i) === 0;
 
@@ -43,5 +43,5 @@ template AsciiDigitsToScalar(maxLen) {
     // Guarantee at most one element of index_eq is equal to 1
     success === 1;
 
-    out <== accumulators[maxLen - 1];
+    out <== accumulators[MAX_LEN - 1];
 }
