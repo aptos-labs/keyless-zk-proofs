@@ -24,7 +24,7 @@ component main { public [public_inputs_hash] } = keyless(
     10,         // MAX_NONCE_NAME_LEN
     100,        // MAX_NONCE_VALUE_LEN
     /* email_verified field */
-    30,         // maxEVKVPairLen
+    30,         // MAX_EMAIL_VERIFIED_KV_PAIR_LEN
     20,         // maxEVNameLen
     10,         // maxEVValueLen
     /* the user ID field (i.e., sub or email) */
