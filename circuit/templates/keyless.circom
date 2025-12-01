@@ -67,7 +67,7 @@ template keyless(
     MAX_IAT_VALUE_LEN,     // ...ASCII iat value
     MAX_NONCE_KV_PAIR_LEN,  // ...ASCII nonce field
     MAX_NONCE_NAME_LEN,    // ...ASCII nonce name
-    maxNonceValueLen,   // ...ASCII nonce value
+    MAX_NONCE_VALUE_LEN,   // ...ASCII nonce value
     maxEVKVPairLen,     // ...ASCII email verified field
     maxEVNameLen,       // ...ASCII email verified name
     maxEVValueLen,      // ...ASCII email verified value
@@ -442,9 +442,9 @@ template keyless(
     signal input nonce_value_len;
     signal input nonce_colon_index;
     signal input nonce_name[MAX_NONCE_NAME_LEN];
-    signal input nonce_value[maxNonceValueLen];
+    signal input nonce_value[MAX_NONCE_VALUE_LEN];
 
-    ParseJWTFieldWithQuotedValue(MAX_NONCE_KV_PAIR_LEN, MAX_NONCE_NAME_LEN, maxNonceValueLen)(nonce_field, nonce_name, nonce_value, nonce_field_string_bodies, nonce_field_len, nonce_name_len, nonce_value_index, nonce_value_len, nonce_colon_index, 0);
+    ParseJWTFieldWithQuotedValue(MAX_NONCE_KV_PAIR_LEN, MAX_NONCE_NAME_LEN, MAX_NONCE_VALUE_LEN)(nonce_field, nonce_name, nonce_value, nonce_field_string_bodies, nonce_field_len, nonce_name_len, nonce_value_index, nonce_value_len, nonce_colon_index, 0);
 
     // Check name of the nonce field is correct
     var required_nonce_name[nonce_name_len] = [110, 111, 110, 99, 101]; // nonce
@@ -465,7 +465,7 @@ template keyless(
     log("computed nonce is: ", computed_nonce);
 
     // Check nonce is correct
-    signal nonce_field_elem <== AsciiDigitsToScalar(maxNonceValueLen)(nonce_value, nonce_value_len);
+    signal nonce_field_elem <== AsciiDigitsToScalar(MAX_NONCE_VALUE_LEN)(nonce_value, nonce_value_len);
     
     nonce_field_elem === computed_nonce;
 

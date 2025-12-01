@@ -22,7 +22,7 @@ component main { public [public_inputs_hash] } = keyless(
     /* nonce field */
     105,        // MAX_NONCE_KV_PAIR_LEN
     10,         // MAX_NONCE_NAME_LEN
-    100,        // maxNonceValueLen
+    100,        // MAX_NONCE_VALUE_LEN
     /* email_verified field */
     30,         // maxEVKVPairLen
     20,         // maxEVNameLen
