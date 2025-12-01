@@ -39,9 +39,9 @@ template RSA_PKCS1_v1_5_Verify(LIMB_BIT_WIDTH, NUM_LIMBS) {
     // // remain 24 bit
     component num2bits_6 = Num2Bits(LIMB_BIT_WIDTH);
     num2bits_6.in <== pm.out[6];
-    var remainsBits[32] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0];
+    var REMAINS_BITS[32] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0];
     for (var i = 0; i < 32; i++) {
-        num2bits_6.out[i] === remainsBits[31 - i];
+        num2bits_6.out[i] === REMAINS_BITS[31 - i];
     }
 
     // 3. Check PS and em[1] = 1. the same code like golang std lib rsa.VerifyPKCS1v15
