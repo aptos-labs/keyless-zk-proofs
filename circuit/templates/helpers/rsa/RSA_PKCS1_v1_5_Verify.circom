@@ -10,16 +10,16 @@ include "circomlib/circuits/bitify.circom";
 
 // Pkcs1v15 + Sha256
 // exp 65537
-template RSA_PKCS1_v1_5_Verify(LIMB_BIT_WIDTH, nb) {
-    //signal input exp[nb];
-    signal input sign[nb];      // least-significant-limb first
-    signal input modulus[nb];   // least-significant-limb first
+template RSA_PKCS1_v1_5_Verify(LIMB_BIT_WIDTH, NUM_LIMBS) {
+    //signal input exp[NUM_LIMBS];
+    signal input sign[NUM_LIMBS];      // least-significant-limb first
+    signal input modulus[NUM_LIMBS];   // least-significant-limb first
 
     signal input hashed[4];     // least-significant-limb first
 
     // sign ** exp mod modulus
-    component pm = FpPow65537Mod(LIMB_BIT_WIDTH, nb);
-    for (var i  = 0; i < nb; i++) {
+    component pm = FpPow65537Mod(LIMB_BIT_WIDTH, NUM_LIMBS);
+    for (var i  = 0; i < NUM_LIMBS; i++) {
         pm.base[i] <== sign[i];
         //pm.exp[i] <== exp[i];
         pm.modulus[i] <== modulus[i];
