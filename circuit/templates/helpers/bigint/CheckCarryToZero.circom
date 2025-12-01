@@ -6,19 +6,19 @@ include "circomlib/circuits/bitify.circom";
 include "circomlib/circuits/comparators.circom";
 include "circomlib/circuits/gates.circom";
 
-template CheckCarryToZero(N, m, k) {
+template CheckCarryToZero(N, M, k) {
     assert(k >= 2);
 
     var EPSILON = 3;
 
-    assert(m + EPSILON <= 253);
+    assert(M + EPSILON <= 253);
 
     signal input in[k];
 
     signal carry[k];
     component carryRangeChecks[k];
     for (var i = 0; i < k-1; i++){
-        carryRangeChecks[i] = Num2Bits(m + EPSILON - N);
+        carryRangeChecks[i] = Num2Bits(M + EPSILON - N);
         if( i == 0 ){
             carry[i] <-- in[i] / (1<<N);
             in[i] === carry[i] * (1<<N);
@@ -27,8 +27,8 @@ template CheckCarryToZero(N, m, k) {
             carry[i] <-- (in[i]+carry[i-1]) / (1<<N);
             in[i] + carry[i-1] === carry[i] * (1<<N);
         }
-        // checking carry is in the range of - 2^(m-N-1+eps), 2^(m+-N-1+eps)
-        carryRangeChecks[i].in <== carry[i] + ( 1<< (m + EPSILON - N - 1));
+        // checking carry is in the range of - 2^(M-N-1+eps), 2^(M+-N-1+eps)
+        carryRangeChecks[i].in <== carry[i] + ( 1<< (M + EPSILON - N - 1));
     }
     in[k-1] + carry[k-2] === 0;
 }
