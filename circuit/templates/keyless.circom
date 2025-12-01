@@ -69,7 +69,7 @@ template keyless(
     MAX_NONCE_NAME_LEN,    // ...ASCII nonce name
     MAX_NONCE_VALUE_LEN,   // ...ASCII nonce value
     MAX_EMAIL_VERIFIED_KV_PAIR_LEN,     // ...ASCII email verified field
-    maxEVNameLen,       // ...ASCII email verified name
+    MAX_EMAIL_VERIFIED_NAME_LEN,       // ...ASCII email verified name
     maxEVValueLen,      // ...ASCII email verified value
     maxUIDKVPairLen,    // ...ASCII uid field
     maxUIDNameLen,      // ...ASCII uid name
@@ -345,7 +345,7 @@ template keyless(
     signal input ev_value_index;
     signal input ev_value_len;
     signal input ev_colon_index;
-    signal input ev_name[maxEVNameLen];
+    signal input ev_name[MAX_EMAIL_VERIFIED_NAME_LEN];
     signal input ev_value[maxEVValueLen];
 
     // Boolean truth table for checking whether we should fail on the results of 'EmailVerifiedCheck'
@@ -356,7 +356,7 @@ template keyless(
     //     1        |     0     |   0
     //     0        |     1     |   1
     //     0        |     0     |   1
-    signal uid_is_email <== EmailVerifiedCheck(maxEVNameLen, maxEVValueLen, maxUIDNameLen)(ev_name, ev_value, ev_value_len, uid_name, uid_name_len);
+    signal uid_is_email <== EmailVerifiedCheck(MAX_EMAIL_VERIFIED_NAME_LEN, maxEVValueLen, maxUIDNameLen)(ev_name, ev_value, ev_value_len, uid_name, uid_name_len);
     signal ev_in_jwt <== IsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_EMAIL_VERIFIED_KV_PAIR_LEN)(jwt_payload, jwt_payload_hash, ev_field, ev_field_len, ev_index);
     signal not_ev_in_jwt <== NOT()(ev_in_jwt);
     signal ev_fail <== AND()(uid_is_email, not_ev_in_jwt);
@@ -365,7 +365,7 @@ template keyless(
     EnforceNotNested(MAX_JWT_PAYLOAD_LEN)(ev_index, ev_field_len, unquoted_brackets_depth_map);
 
     // Need custom logic here because some providers apparently do not follow the OIDC spec and put the email_verified value in quotes
-    ParseEmailVerifiedField(MAX_EMAIL_VERIFIED_KV_PAIR_LEN, maxEVNameLen, maxEVValueLen)(ev_field, ev_name, ev_value, ev_field_len, ev_name_len, ev_value_index, ev_value_len, ev_colon_index);
+    ParseEmailVerifiedField(MAX_EMAIL_VERIFIED_KV_PAIR_LEN, MAX_EMAIL_VERIFIED_NAME_LEN, maxEVValueLen)(ev_field, ev_name, ev_value, ev_field_len, ev_name_len, ev_value_index, ev_value_len, ev_colon_index);
 
     // Check iss field is in the JWT
     // Note that because `iss_field` is a public input, we assume the verifier will perform correctness checks on it outside of the circuit. 
