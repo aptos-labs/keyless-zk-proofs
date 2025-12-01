@@ -47,16 +47,16 @@ template ChunksToFieldElems(NUM_CHUNKS, CHUNKS_PER_SCALAR, BITS_PER_CHUNK) {
     // Assign all but the last field element
     for (var i = 0; i < NUM_SCALARS - 1; i++) {
         for (var j = 0; j < CHUNKS_PER_SCALAR; j++) {
-            var index = (i * CHUNKS_PER_SCALAR) + j;
-            chunksToScalar[i].in[j] <== in[index];
+            var IDX = (i * CHUNKS_PER_SCALAR) + j;
+            chunksToScalar[i].in[j] <== in[IDX];
         }
         chunksToScalar[i].out ==> out[i];
     }
 
     // Assign the last field element
     for (var j = 0; j < NUM_CHUNKS_IN_LAST_SCALAR; j++) {
-        var index = (NUM_SCALARS - 1) * CHUNKS_PER_SCALAR + j;
-        chunksToScalar[NUM_SCALARS - 1].in[j] <== in[index];
+        var IDX = (NUM_SCALARS - 1) * CHUNKS_PER_SCALAR + j;
+        chunksToScalar[NUM_SCALARS - 1].in[j] <== in[IDX];
     }
     chunksToScalar[NUM_SCALARS - 1].out ==> out[NUM_SCALARS - 1];
 }
