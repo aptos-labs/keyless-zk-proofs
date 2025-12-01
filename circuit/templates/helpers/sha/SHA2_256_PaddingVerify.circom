@@ -8,8 +8,8 @@ include "../packing/BigEndianBits2Num.circom";
 include "circomlib/circuits/bitify.circom";
 
 // Verifies SHA2_256 input padding according to https://www.rfc-editor.org/rfc/rfc4634.html#section-4.1
-template SHA2_256_PaddingVerify(maxInputLen) {
-    signal input in[maxInputLen]; // byte array
+template SHA2_256_PaddingVerify(MAX_INPUT_LEN) {
+    signal input in[MAX_INPUT_LEN]; // byte array
     signal input num_blocks; // Number of 512-bit blocks in `in` including sha padding
     signal input padding_start; // equivalent to L/8, where L is the length of the unpadded message in bits as specified in RFC4634
     signal input L_byte_encoded[8]; // 64-bit encoding of L
@@ -22,9 +22,9 @@ template SHA2_256_PaddingVerify(maxInputLen) {
     // Ensure K is 9-bits (i.e., < 2^9 = 512)
     _ <== Num2Bits(9)(K);
 
-    signal in_hash <== HashBytesToFieldWithLen(maxInputLen)(in, num_blocks*64);
+    signal in_hash <== HashBytesToFieldWithLen(MAX_INPUT_LEN)(in, num_blocks*64);
     // 4.1.a
-    AssertIsSubstring(maxInputLen, 64)(in, in_hash, padding_without_len, (1+K)/8, padding_start);
+    AssertIsSubstring(MAX_INPUT_LEN, 64)(in, in_hash, padding_without_len, (1+K)/8, padding_start);
     padding_without_len[0] === 128; // in binary, 1_000_0000b
 
     // 4.1.b
@@ -33,7 +33,7 @@ template SHA2_256_PaddingVerify(maxInputLen) {
     }
 
     // 4.1.c
-    AssertIsSubstring(maxInputLen, 8)(in, in_hash, L_byte_encoded, 8, padding_start+(K+1)/8);
+    AssertIsSubstring(MAX_INPUT_LEN, 8)(in, in_hash, L_byte_encoded, 8, padding_start+(K+1)/8);
     signal L_bits[64] <== Bytes2BigEndianBits(8)(L_byte_encoded);
     signal L_decoded <== BigEndianBits2Num(64)(L_bits);
     L_decoded === 8*padding_start;
