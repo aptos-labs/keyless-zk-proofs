@@ -59,7 +59,7 @@ template keyless(
     MAX_AUD_KV_PAIR_LEN,    // ...ASCII aud field
     MAX_AUD_NAME_LEN,      // ...ASCII aud name
     MAX_AUD_VALUE_LEN,     // ...ASCII aud value
-    maxIssKVPairLen,    // ...ASCII iss field
+    MAX_ISS_KV_PAIR_LEN,    // ...ASCII iss field
     maxIssNameLen,      // ...ASCII iss name
     MAX_ISS_VALUE_LEN,  // ...ASCII iss value
     maxIatKVPairLen,    // ...ASCII iat field
@@ -369,12 +369,12 @@ template keyless(
 
     // Check iss field is in the JWT
     // Note that because `iss_field` is a public input, we assume the verifier will perform correctness checks on it outside of the circuit. 
-    signal input iss_field[maxIssKVPairLen];
-    signal input iss_field_string_bodies[maxIssKVPairLen];
+    signal input iss_field[MAX_ISS_KV_PAIR_LEN];
+    signal input iss_field_string_bodies[MAX_ISS_KV_PAIR_LEN];
     signal input iss_field_len;
     signal input iss_index;
-    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, maxIssKVPairLen)(jwt_payload, jwt_payload_hash, iss_field, iss_field_len, iss_index);
-    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, maxIssKVPairLen)(string_bodies, jwt_payload_hash, iss_field_string_bodies, iss_field_len, iss_index);
+    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_ISS_KV_PAIR_LEN)(jwt_payload, jwt_payload_hash, iss_field, iss_field_len, iss_index);
+    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_ISS_KV_PAIR_LEN)(string_bodies, jwt_payload_hash, iss_field_string_bodies, iss_field_len, iss_index);
     EnforceNotNested(MAX_JWT_PAYLOAD_LEN)(iss_index, iss_field_len, unquoted_brackets_depth_map);
 
     // Perform necessary checks on iss field
@@ -385,7 +385,7 @@ template keyless(
     signal input iss_name[maxIssNameLen];
     signal input iss_value[MAX_ISS_VALUE_LEN];
 
-    ParseJWTFieldWithQuotedValue(maxIssKVPairLen, maxIssNameLen, MAX_ISS_VALUE_LEN)(iss_field, iss_name, iss_value, iss_field_string_bodies, iss_field_len, iss_name_len, iss_value_index, iss_value_len, iss_colon_index, 0);
+    ParseJWTFieldWithQuotedValue(MAX_ISS_KV_PAIR_LEN, maxIssNameLen, MAX_ISS_VALUE_LEN)(iss_field, iss_name, iss_value, iss_field_string_bodies, iss_field_len, iss_name_len, iss_value_index, iss_value_len, iss_colon_index, 0);
 
     // Check name of the iss field is correct
     var required_iss_name[iss_name_len] = [105, 115, 115]; // iss
