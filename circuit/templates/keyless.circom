@@ -57,7 +57,7 @@ template keyless(
     MAX_B64U_JWT_HEADER_W_DOT_LEN,  // ...full base64url JWT header with a dot at the end
     MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN,   // ...full base64url JWT payload with SHA2 padding
     MAX_AUD_KV_PAIR_LEN,    // ...ASCII aud field
-    maxAudNameLen,      // ...ASCII aud name
+    MAX_AUD_NAME_LEN,      // ...ASCII aud name
     maxAudValueLen,     // ...ASCII aud value
     maxIssKVPairLen,    // ...ASCII iss field
     maxIssNameLen,      // ...ASCII iss name
@@ -265,7 +265,7 @@ template keyless(
     var aud_name_len = 3;
     signal input aud_value_index;
     signal input aud_colon_index;
-    signal input aud_name[maxAudNameLen];
+    signal input aud_name[MAX_AUD_NAME_LEN];
     signal input use_aud_override;
     use_aud_override * (1 - use_aud_override) === 0;
 
@@ -288,7 +288,7 @@ template keyless(
 
     signal aud_value_len <== (override_aud_value_len - private_aud_value_len) * use_aud_override + private_aud_value_len;
 
-    ParseJWTFieldWithQuotedValue(MAX_AUD_KV_PAIR_LEN, maxAudNameLen, maxAudValueLen)(aud_field, aud_name, aud_value, aud_field_string_bodies, aud_field_len, aud_name_len, aud_value_index, aud_value_len, aud_colon_index, skip_aud_checks);
+    ParseJWTFieldWithQuotedValue(MAX_AUD_KV_PAIR_LEN, MAX_AUD_NAME_LEN, maxAudValueLen)(aud_field, aud_name, aud_value, aud_field_string_bodies, aud_field_len, aud_name_len, aud_value_index, aud_value_len, aud_colon_index, skip_aud_checks);
 
 
     // Check aud name is correct
