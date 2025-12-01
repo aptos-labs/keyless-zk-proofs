@@ -8,7 +8,7 @@ component main { public [public_inputs_hash] } = keyless(
     300,        // MAX_B64U_JWT_HEADER_W_DOT_LEN
     192*8-64,   // MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN
     /* aud field */
-    140,        // maxAudKVPairLen
+    140,        // MAX_AUD_KV_PAIR_LEN
     40,         // maxAudNameLen
     120,        // maxAudValueLen
     /* iss field */
