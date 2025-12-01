@@ -3,16 +3,16 @@ pragma circom 2.2.2;
 include "./FpMul.circom";
 
 // Template copied from https://github.com/doubleblind-xyz/circom-rsa/blob/master/circuits/rsa.circom
-template FpPow65537Mod(n, K) {
+template FpPow65537Mod(N, K) {
     signal input base[K];
     // Exponent is hardcoded at 65537
     signal input modulus[K];
     signal output out[K];
 
     component doublers[16];
-    component adder = FpMul(n, K);
+    component adder = FpMul(N, K);
     for (var i = 0; i < 16; i++) {
-        doublers[i] = FpMul(n, K);
+        doublers[i] = FpMul(N, K);
     }
 
     for (var j = 0; j < K; j++) {
