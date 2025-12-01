@@ -9,7 +9,7 @@ include "../bigint/functions/all.circom";
 
 // These functions operate over values in Z/Zp for some integer p (typically,
 // but not necessarily prime). Values are stored as standard bignums with k
-// chunks of n bits, but intermediate values often have "overflow" bits inside
+// chunks of N bits, but intermediate values often have "overflow" bits inside
 // various chunks.
 //
 // These Fp functions will always correctly generate witnesses mod p, but they
@@ -24,8 +24,8 @@ include "../bigint/functions/all.circom";
 
 // a * b = r mod p
 // a * b - p * q - r for some q
-template FpMul(n, k) {
-    assert(n + n + log_ceil(k) + 2 <= 252);
+template FpMul(N, k) {
+    assert(N + N + log_ceil(k) + 2 <= 252);
     signal input a[k];
     signal input b[k];
     signal input p[k];
@@ -41,23 +41,23 @@ template FpMul(n, k) {
 
     var ab[200] = poly_interp(2*k-1, v_ab);
     // ab_proper has length 2*k
-    var ab_proper[200] = getProperRepresentation(n + n + log_ceil(k), n, 2*k-1, ab);
+    var ab_proper[200] = getProperRepresentation(N + N + log_ceil(k), N, 2*k-1, ab);
 
-    var long_div_out[2][100] = long_div(n, k, k, ab_proper, p);
+    var long_div_out[2][100] = long_div(N, k, k, ab_proper, p);
 
     // Since we're only computing a*b, we know that q < p will suffice, so we
-    // know it fits into k chunks and can do size n range checks.
+    // know it fits into k chunks and can do size N range checks.
     signal q[k];
     component q_range_check[k];
     signal r[k];
     component r_range_check[k];
     for (var i = 0; i < k; i++) {
         q[i] <-- long_div_out[0][i];
-        q_range_check[i] = Num2Bits(n);
+        q_range_check[i] = Num2Bits(N);
         q_range_check[i].in <== q[i];
 
         r[i] <-- long_div_out[1][i];
-        r_range_check[i] = Num2Bits(n);
+        r_range_check[i] = Num2Bits(N);
         r_range_check[i].in <== r[i];
     }
 
@@ -75,7 +75,7 @@ template FpMul(n, k) {
     }
 
     var t[200] = poly_interp(2*k-1, v_t);
-    component tCheck = CheckCarryToZero(n, n + n + log_ceil(k) + 2, 2*k-1);
+    component tCheck = CheckCarryToZero(N, N + N + log_ceil(k) + 2, 2*k-1);
     for (var i = 0; i < 2*k-1; i++) {
         tCheck.in[i] <== t[i];
     }
