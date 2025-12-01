@@ -72,7 +72,7 @@ template keyless(
     MAX_EMAIL_VERIFIED_NAME_LEN,       // ...ASCII email verified name
     MAX_EMAIL_VERIFIED_VALUE_LEN,      // ...ASCII email verified value
     MAX_UID_KV_PAIR_LEN,    // ...ASCII uid field
-    maxUIDNameLen,      // ...ASCII uid name
+    MAX_UID_NAME_LEN,      // ...ASCII uid name
     maxUIDValueLen,     // ...ASCII uid value
     MAX_EXTRA_FIELD_KV_PAIR_LEN  // ...ASCII extra field
 ) {
@@ -312,10 +312,10 @@ template keyless(
     signal input uid_value_index;
     signal input uid_value_len;
     signal input uid_colon_index;
-    signal input uid_name[maxUIDNameLen];
+    signal input uid_name[MAX_UID_NAME_LEN];
     signal input uid_value[maxUIDValueLen];
 
-    ParseJWTFieldWithQuotedValue(MAX_UID_KV_PAIR_LEN, maxUIDNameLen, maxUIDValueLen)(uid_field, uid_name, uid_value, uid_field_string_bodies, uid_field_len, uid_name_len, uid_value_index, uid_value_len, uid_colon_index, 0);
+    ParseJWTFieldWithQuotedValue(MAX_UID_KV_PAIR_LEN, MAX_UID_NAME_LEN, maxUIDValueLen)(uid_field, uid_name, uid_value, uid_field_string_bodies, uid_field_len, uid_name_len, uid_value_index, uid_value_len, uid_colon_index, 0);
 
     // Check extra field is in the JWT
     signal input extra_field[MAX_EXTRA_FIELD_KV_PAIR_LEN];
@@ -356,7 +356,7 @@ template keyless(
     //     1        |     0     |   0
     //     0        |     1     |   1
     //     0        |     0     |   1
-    signal uid_is_email <== EmailVerifiedCheck(MAX_EMAIL_VERIFIED_NAME_LEN, MAX_EMAIL_VERIFIED_VALUE_LEN, maxUIDNameLen)(ev_name, ev_value, ev_value_len, uid_name, uid_name_len);
+    signal uid_is_email <== EmailVerifiedCheck(MAX_EMAIL_VERIFIED_NAME_LEN, MAX_EMAIL_VERIFIED_VALUE_LEN, MAX_UID_NAME_LEN)(ev_name, ev_value, ev_value_len, uid_name, uid_name_len);
     signal ev_in_jwt <== IsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_EMAIL_VERIFIED_KV_PAIR_LEN)(jwt_payload, jwt_payload_hash, ev_field, ev_field_len, ev_index);
     signal not_ev_in_jwt <== NOT()(ev_in_jwt);
     signal ev_fail <== AND()(uid_is_email, not_ev_in_jwt);
@@ -480,7 +480,7 @@ template keyless(
     }
     signal private_aud_val_hashed <== HashBytesToFieldWithLen(MAX_AUD_VALUE_LEN)(hashable_private_aud_value, private_aud_value_len);
     signal uid_value_hashed <== HashBytesToFieldWithLen(maxUIDValueLen)(uid_value, uid_value_len);
-    signal uid_name_hashed <== HashBytesToFieldWithLen(maxUIDNameLen)(uid_name, uid_name_len);
+    signal uid_name_hashed <== HashBytesToFieldWithLen(MAX_UID_NAME_LEN)(uid_name, uid_name_len);
     signal idc <== Poseidon(4)([
         pepper,
         private_aud_val_hashed,
