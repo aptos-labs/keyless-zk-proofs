@@ -64,7 +64,7 @@ template keyless(
     MAX_ISS_VALUE_LEN,  // ...ASCII iss value
     MAX_IAT_KV_PAIR_LEN,    // ...ASCII iat field
     MAX_IAT_NAME_LEN,      // ...ASCII iat name
-    maxIatValueLen,     // ...ASCII iat value
+    MAX_IAT_VALUE_LEN,     // ...ASCII iat value
     maxNonceKVPairLen,  // ...ASCII nonce field
     maxNonceNameLen,    // ...ASCII nonce name
     maxNonceValueLen,   // ...ASCII nonce value
@@ -405,9 +405,9 @@ template keyless(
     signal input iat_value_len;
     signal input iat_colon_index;
     signal input iat_name[MAX_IAT_NAME_LEN];
-    signal input iat_value[maxIatValueLen];
+    signal input iat_value[MAX_IAT_VALUE_LEN];
 
-    ParseJWTFieldWithUnquotedValue(MAX_IAT_KV_PAIR_LEN, MAX_IAT_NAME_LEN, maxIatValueLen)(iat_field, iat_name, iat_value, iat_field_len, iat_name_len, iat_value_index, iat_value_len, iat_colon_index, 0);
+    ParseJWTFieldWithUnquotedValue(MAX_IAT_KV_PAIR_LEN, MAX_IAT_NAME_LEN, MAX_IAT_VALUE_LEN)(iat_field, iat_name, iat_value, iat_field_len, iat_name_len, iat_value_index, iat_value_len, iat_colon_index, 0);
     EnforceNotNested(MAX_JWT_PAYLOAD_LEN)(iss_index, iss_field_len, unquoted_brackets_depth_map);
 
     // Check that iat is not inside a string body
@@ -420,7 +420,7 @@ template keyless(
         iat_name[i] === required_iat_name[i];
     }
     
-    signal iat_field_elem <== AsciiDigitsToScalar(maxIatValueLen)(iat_value, iat_value_len);
+    signal iat_field_elem <== AsciiDigitsToScalar(MAX_IAT_VALUE_LEN)(iat_value, iat_value_len);
     
     signal input exp_date;
     signal input exp_horizon;
