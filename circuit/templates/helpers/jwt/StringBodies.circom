@@ -8,19 +8,19 @@ include "circomlib/circuits/gates.circom";
 // `1` in `out`, and are 0 otherwise. Escaped quotes are not considered quotes in this subcircuit
 // input =  { asdfsdf "as\"df" }
 // output = 00000000000111111000
-template StringBodies(len) {
-  signal input in[len];
+template StringBodies(LEN) {
+  signal input in[LEN];
   // TODO(Tags): Enforce binarity in a more type-safe way, rather than just declaring it here.
-  signal output {binary} out[len];
+  signal output {binary} out[LEN];
 
 
-  signal quotes[len];
-  signal quote_parity[len];
-  signal quote_parity_1[len];
-  signal quote_parity_2[len];
+  signal quotes[LEN];
+  signal quote_parity[LEN];
+  signal quote_parity_1[LEN];
+  signal quote_parity_2[LEN];
 
-  signal backslashes[len];
-  signal adjacent_backslash_parity[len];
+  signal backslashes[LEN];
+  signal adjacent_backslash_parity[LEN];
 
   quotes[0] <== IsEqual()([in[0], 34]); 
   quote_parity[0] <== IsEqual()([in[0], 34]); 
@@ -28,12 +28,12 @@ template StringBodies(len) {
   backslashes[0] <== IsEqual()([in[0], 92]);
   adjacent_backslash_parity[0] <== IsEqual()([in[0], 92]);
 
-  for (var i = 1; i < len; i++) {
+  for (var i = 1; i < LEN; i++) {
     backslashes[i] <== IsEqual()([in[i], 92]);
     adjacent_backslash_parity[i] <== backslashes[i] * (1 - adjacent_backslash_parity[i-1]);
   }
 
-  for (var i = 1; i < len; i++) {
+  for (var i = 1; i < LEN; i++) {
     var is_quote = IsEqual()([in[i], 34]); 
     var prev_is_odd_backslash = adjacent_backslash_parity[i-1];
     quotes[i] <== is_quote * (1 - prev_is_odd_backslash); // 1 iff there is a non-escaped quote at this position
@@ -45,7 +45,7 @@ template StringBodies(len) {
 
   out[0] <== 0;
 
-  for (var i = 1; i < len; i++) {
+  for (var i = 1; i < LEN; i++) {
     out[i] <== AND()(quote_parity[i-1], quote_parity[i]); // remove offset error
   }
 }

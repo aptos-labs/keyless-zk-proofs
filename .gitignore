@@ -4,7 +4,6 @@ formatted_input.json
 groth16_vk.json
 keyless_config.json
 onchain_vk.json
-onchain_vk_2.json
 prover_request_payload.json
 __pycache__
 rust-rapidsnark/rapidsnark/.cache
@@ -15,5 +14,7 @@ rust-rapidsnark/rapidsnark/subprojects/json-3.2.0
 rust-rapidsnark/rapidsnark/subprojects/scope_guard-0.9.1
 rust-rapidsnark/rapidsnark/subprojects/packagecache
 .DS_Store
-*.r1cs
 main_constraints.json
+*.r1cs
+*.sym
+*.zkey

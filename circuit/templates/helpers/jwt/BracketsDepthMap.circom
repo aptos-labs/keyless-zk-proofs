@@ -2,7 +2,7 @@ pragma circom 2.2.2;
 
 include "circomlib/circuits/comparators.circom";
 
-// Given an input array `arr` of length `len` containing `1`s corresponding to open
+// Given an input array `arr` of length `LEN` containing `1`s corresponding to open
 // brackets `{`, `-1`s corresponding to closed brackets `}`, and 0s everywhere else, outputs an array
 // containing a positive integer in each index between nested brackets which indicates the depth
 // of the brackets nesting at that index, and 0 everywhere else. The outermost open and
@@ -25,30 +25,30 @@ include "circomlib/circuits/comparators.circom";
 // prelim_out3:   00000112222111000000   replaces negative values with 0s
 // out:           00000011222111000000   correctly represents open brackets as being outside of bracket nesting
 // out: 0000001122 11 0000 0
-template BracketsDepthMap(len) {
-    signal input arr[len];
-    signal output out[len];
+template BracketsDepthMap(LEN) {
+    signal input arr[LEN];
+    signal output out[LEN];
 
-    signal prelim_out1[len];
-    signal prelim_out2[len];
-    signal prelim_out3[len];
+    signal prelim_out1[LEN];
+    signal prelim_out2[LEN];
+    signal prelim_out3[LEN];
     prelim_out1[0] <== arr[0];
-    for (var i = 1; i < len; i++) {
+    for (var i = 1; i < LEN; i++) {
         prelim_out1[i] <== prelim_out1[i-1] + arr[i];
     }
 
     // Subtracting 1 here from every index amounts to ignoring the outermost
     // open and closed brackets, which is what we want
-    for (var i = 0; i < len; i++) {
+    for (var i = 0; i < LEN; i++) {
         prelim_out2[i] <== prelim_out1[i]-1;
     }
     // Remove all negative numbers from the array and set their indices to 0
-    for (var i = 0; i < len; i++) {
+    for (var i = 0; i < LEN; i++) {
         var is_neg = LessThan(20)([prelim_out2[i], 0]);
         prelim_out3[i] <== prelim_out2[i] * (1-is_neg);
     }
     // Decrement the positions of open brackets by 1 to remove offset
-    for (var i = 1; i < len; i++) {
+    for (var i = 1; i < LEN; i++) {
         var is_inc = IsEqual()([prelim_out3[i], prelim_out3[i-1]+1]);
         out[i] <== prelim_out3[i] - is_inc;
     }

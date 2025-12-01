@@ -36,50 +36,50 @@ template Base64UrlDecode(N) {
     signal input in[M];
     signal output out[N];
 
-    component bits_in[M\4][4];
-    component bits_out[M\4][3];
-    component translate[M\4][4];
+    component bits_in[M \ 4][4];
+    component bits_out[M \ 4][3];
+    component translate[M \ 4][4];
 
     var idx = 0;
     for (var i = 0; i < M; i += 4) {
         for (var j = 0; j < 3; j++) {
-            bits_out[i\4][j] = Bits2Num(8);
+            bits_out[i \ 4][j] = Bits2Num(8);
         }
 
         //log("range_AZ: ", range_AZ);
         for (var j = 0; j < 4; j++) {
-            bits_in[i\4][j] = Num2Bits(6);
+            bits_in[i \ 4][j] = Num2Bits(6);
 
-            //log("translate[i\\4][j].in: ", in[i+j]);
+            //log("translate[i \\ 4][j].in: ", in[i + j]);
 
-            translate[i\4][j] = Base64UrlLookup();
-            translate[i\4][j].in <== in[i+j];
-            translate[i\4][j].out ==> bits_in[i\4][j].in;
+            translate[i \ 4][j] = Base64UrlLookup();
+            translate[i \ 4][j].in <== in[i + j];
+            translate[i \ 4][j].out ==> bits_in[i \ 4][j].in;
         }
 
         // Do the re-packing from four 6-bit words to three 8-bit words.
         for (var j = 0; j < 6; j++) {
-            bits_out[i\4][0].in[j+2] <== bits_in[i\4][0].out[j];
+            bits_out[i \ 4][0].in[j+2] <== bits_in[i \ 4][0].out[j];
         }
-        bits_out[i\4][0].in[0] <== bits_in[i\4][1].out[4];
-        bits_out[i\4][0].in[1] <== bits_in[i\4][1].out[5];
+        bits_out[i \ 4][0].in[0] <== bits_in[i \ 4][1].out[4];
+        bits_out[i \ 4][0].in[1] <== bits_in[i \ 4][1].out[5];
 
         for (var j = 0; j < 4; j++) {
-            bits_out[i\4][1].in[j+4] <== bits_in[i\4][1].out[j];
+            bits_out[i \ 4][1].in[j + 4] <== bits_in[i \ 4][1].out[j];
         }
         for (var j = 0; j < 4; j++) {
-            bits_out[i\4][1].in[j] <== bits_in[i\4][2].out[j+2];
+            bits_out[i \ 4][1].in[j] <== bits_in[i \ 4][2].out[j + 2];
         }
 
-        bits_out[i\4][2].in[6] <== bits_in[i\4][2].out[0];
-        bits_out[i\4][2].in[7] <== bits_in[i\4][2].out[1];
+        bits_out[i \ 4][2].in[6] <== bits_in[i \ 4][2].out[0];
+        bits_out[i \ 4][2].in[7] <== bits_in[i \ 4][2].out[1];
         for (var j = 0; j < 6; j++) {
-            bits_out[i\4][2].in[j] <== bits_in[i\4][3].out[j];
+            bits_out[i \ 4][2].in[j] <== bits_in[i \ 4][3].out[j];
         }
 
         for (var j = 0; j < 3; j++) {
-            if (idx+j < N) {
-                out[idx+j] <== bits_out[i\4][j].out;
+            if (idx + j < N) {
+                out[idx + j] <== bits_out[i \ 4][j].out;
             }
         }
         idx += 3;

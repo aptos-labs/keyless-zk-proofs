@@ -17,52 +17,51 @@ include "circomlib/circuits/poseidon.circom";
 // Enforces:
 // - that `left` is 0-padded after `left_len` values
 // - full_string = left || right where || is concatenation
-template AssertIsConcatenation(maxFullStringLen, maxLeftStringLen, maxRightStringLen) {
-    signal input full_string[maxFullStringLen];
-    signal input left[maxLeftStringLen];
-    signal input right[maxRightStringLen];
+template AssertIsConcatenation(MAX_FULL_STR_LEN, MAX_LEFT_STR_LEN, MAX_RIGHT_STR_LEN) {
+    signal input full_string[MAX_FULL_STR_LEN];
+    signal input left[MAX_LEFT_STR_LEN];
+    signal input right[MAX_RIGHT_STR_LEN];
     signal input left_len;
     signal input right_len;
     
-    signal left_hash <== HashBytesToFieldWithLen(maxLeftStringLen)(left, left_len); 
-    signal right_hash <== HashBytesToFieldWithLen(maxRightStringLen)(right, right_len);
-    signal full_hash <== HashBytesToFieldWithLen(maxFullStringLen)(full_string, left_len+right_len);
+    signal left_hash <== HashBytesToFieldWithLen(MAX_LEFT_STR_LEN)(left, left_len); 
+    signal right_hash <== HashBytesToFieldWithLen(MAX_RIGHT_STR_LEN)(right, right_len);
+    signal full_hash <== HashBytesToFieldWithLen(MAX_FULL_STR_LEN)(full_string, left_len+right_len);
     signal random_challenge <== Poseidon(4)([left_hash, right_hash, full_hash, left_len]);
 
     // Enforce that all values to the right of `left_len` in `left` are 0-padding. Otherwise an attacker could place the leftmost part of `right` at the end of `left` and still have the polynomial check pass
-    signal left_selector[maxLeftStringLen] <== RightArraySelector(maxLeftStringLen)(left_len-1);
-    for (var i = 0; i < maxLeftStringLen; i++) {
+    signal left_selector[MAX_LEFT_STR_LEN] <== RightArraySelector(MAX_LEFT_STR_LEN)(left_len-1);
+    for (var i = 0; i < MAX_LEFT_STR_LEN; i++) {
         left_selector[i] * left[i] === 0;
     }
         
-
-    signal challenge_powers[maxFullStringLen];
+    signal challenge_powers[MAX_FULL_STR_LEN];
     challenge_powers[0] <== 1;
     challenge_powers[1] <== random_challenge;
-    for (var i = 2; i < maxFullStringLen; i++) {
+    for (var i = 2; i < MAX_FULL_STR_LEN; i++) {
        challenge_powers[i] <== challenge_powers[i-1] * random_challenge; 
     }
     
-    signal left_poly[maxLeftStringLen];
-    for (var i = 0; i < maxLeftStringLen; i++) {
+    signal left_poly[MAX_LEFT_STR_LEN];
+    for (var i = 0; i < MAX_LEFT_STR_LEN; i++) {
        left_poly[i] <== left[i] * challenge_powers[i];
     }
 
-    signal right_poly[maxRightStringLen];
-    for (var i = 0; i < maxRightStringLen; i++) {
+    signal right_poly[MAX_RIGHT_STR_LEN];
+    for (var i = 0; i < MAX_RIGHT_STR_LEN; i++) {
         right_poly[i] <== right[i] * challenge_powers[i];
     }
 
-    signal full_poly[maxFullStringLen];
-    for (var i = 0; i < maxFullStringLen; i++) {
+    signal full_poly[MAX_FULL_STR_LEN];
+    for (var i = 0; i < MAX_FULL_STR_LEN; i++) {
         full_poly[i] <== full_string[i] * challenge_powers[i];
     }
 
-    signal left_poly_eval <== Sum(maxLeftStringLen)(left_poly);
-    signal right_poly_eval <== Sum(maxRightStringLen)(right_poly);
-    signal full_poly_eval <== Sum(maxFullStringLen)(full_poly);
+    signal left_poly_eval <== Sum(MAX_LEFT_STR_LEN)(left_poly);
+    signal right_poly_eval <== Sum(MAX_RIGHT_STR_LEN)(right_poly);
+    signal full_poly_eval <== Sum(MAX_FULL_STR_LEN)(full_poly);
 
-    var distinguishing_value = SelectArrayValue(maxFullStringLen)(challenge_powers, left_len);
+    var distinguishing_value = SelectArrayValue(MAX_FULL_STR_LEN)(challenge_powers, left_len);
 
     full_poly_eval === left_poly_eval + distinguishing_value * right_poly_eval;
 }
