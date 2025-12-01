@@ -58,7 +58,7 @@ template keyless(
     MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN,   // ...full base64url JWT payload with SHA2 padding
     MAX_AUD_KV_PAIR_LEN,    // ...ASCII aud field
     MAX_AUD_NAME_LEN,      // ...ASCII aud name
-    maxAudValueLen,     // ...ASCII aud value
+    MAX_AUD_VALUE_LEN,     // ...ASCII aud value
     maxIssKVPairLen,    // ...ASCII iss field
     maxIssNameLen,      // ...ASCII iss name
     MAX_ISS_VALUE_LEN,  // ...ASCII iss value
@@ -269,9 +269,9 @@ template keyless(
     signal input use_aud_override;
     use_aud_override * (1 - use_aud_override) === 0;
 
-    signal aud_value[maxAudValueLen];
-    signal input private_aud_value[maxAudValueLen];
-    signal input override_aud_value[maxAudValueLen];
+    signal aud_value[MAX_AUD_VALUE_LEN];
+    signal input private_aud_value[MAX_AUD_VALUE_LEN];
+    signal input override_aud_value[MAX_AUD_VALUE_LEN];
     signal input private_aud_value_len;
     signal input override_aud_value_len;
     signal input skip_aud_checks;
@@ -282,13 +282,13 @@ template keyless(
     skip_aud_checks_and_use_aud_override === 0;
 
     skip_aud_checks * (skip_aud_checks - 1) === 0; // Ensure equal to 0 or 1
-    for (var i = 0; i < maxAudValueLen; i++) {
+    for (var i = 0; i < MAX_AUD_VALUE_LEN; i++) {
         aud_value[i] <== (override_aud_value[i] - private_aud_value[i]) * use_aud_override + private_aud_value[i];
     }
 
     signal aud_value_len <== (override_aud_value_len - private_aud_value_len) * use_aud_override + private_aud_value_len;
 
-    ParseJWTFieldWithQuotedValue(MAX_AUD_KV_PAIR_LEN, MAX_AUD_NAME_LEN, maxAudValueLen)(aud_field, aud_name, aud_value, aud_field_string_bodies, aud_field_len, aud_name_len, aud_value_index, aud_value_len, aud_colon_index, skip_aud_checks);
+    ParseJWTFieldWithQuotedValue(MAX_AUD_KV_PAIR_LEN, MAX_AUD_NAME_LEN, MAX_AUD_VALUE_LEN)(aud_field, aud_name, aud_value, aud_field_string_bodies, aud_field_len, aud_name_len, aud_value_index, aud_value_len, aud_colon_index, skip_aud_checks);
 
 
     // Check aud name is correct
@@ -474,11 +474,11 @@ template keyless(
     //
 
     signal input pepper;
-    signal hashable_private_aud_value[maxAudValueLen];
-    for (var i = 0; i < maxAudValueLen; i++) {
+    signal hashable_private_aud_value[MAX_AUD_VALUE_LEN];
+    for (var i = 0; i < MAX_AUD_VALUE_LEN; i++) {
         hashable_private_aud_value[i] <== private_aud_value[i] * perform_aud_checks;
     }
-    signal private_aud_val_hashed <== HashBytesToFieldWithLen(maxAudValueLen)(hashable_private_aud_value, private_aud_value_len);
+    signal private_aud_val_hashed <== HashBytesToFieldWithLen(MAX_AUD_VALUE_LEN)(hashable_private_aud_value, private_aud_value_len);
     signal uid_value_hashed <== HashBytesToFieldWithLen(maxUIDValueLen)(uid_value, uid_value_len);
     signal uid_name_hashed <== HashBytesToFieldWithLen(maxUIDNameLen)(uid_name, uid_name_len);
     signal idc <== Poseidon(4)([
@@ -502,7 +502,7 @@ template keyless(
     pubkey_modulus_tagged.maxbits = 64;
     pubkey_modulus_tagged <== pubkey_modulus;
 
-    signal override_aud_val_hashed <== HashBytesToFieldWithLen(maxAudValueLen)(override_aud_value, override_aud_value_len);
+    signal override_aud_val_hashed <== HashBytesToFieldWithLen(MAX_AUD_VALUE_LEN)(override_aud_value, override_aud_value_len);
     signal hashed_jwt_header <== HashBytesToFieldWithLen(MAX_B64U_JWT_HEADER_W_DOT_LEN)(b64u_jwt_header_w_dot, b64u_jwt_header_w_dot_len);
     signal hashed_pubkey_modulus <== Hash64BitLimbsToFieldWithLen(SIGNATURE_NUM_LIMBS)(pubkey_modulus_tagged, 256);
     signal hashed_iss_value <== HashBytesToFieldWithLen(MAX_ISS_VALUE_LEN)(iss_value, iss_value_len);
