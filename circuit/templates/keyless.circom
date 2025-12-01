@@ -60,7 +60,7 @@ template keyless(
     MAX_AUD_NAME_LEN,      // ...ASCII aud name
     MAX_AUD_VALUE_LEN,     // ...ASCII aud value
     MAX_ISS_KV_PAIR_LEN,    // ...ASCII iss field
-    maxIssNameLen,      // ...ASCII iss name
+    MAX_ISS_NAME_LEN,      // ...ASCII iss name
     MAX_ISS_VALUE_LEN,  // ...ASCII iss value
     maxIatKVPairLen,    // ...ASCII iat field
     maxIatNameLen,      // ...ASCII iat name
@@ -382,10 +382,10 @@ template keyless(
     signal input iss_value_index;
     signal input iss_value_len;
     signal input iss_colon_index;
-    signal input iss_name[maxIssNameLen];
+    signal input iss_name[MAX_ISS_NAME_LEN];
     signal input iss_value[MAX_ISS_VALUE_LEN];
 
-    ParseJWTFieldWithQuotedValue(MAX_ISS_KV_PAIR_LEN, maxIssNameLen, MAX_ISS_VALUE_LEN)(iss_field, iss_name, iss_value, iss_field_string_bodies, iss_field_len, iss_name_len, iss_value_index, iss_value_len, iss_colon_index, 0);
+    ParseJWTFieldWithQuotedValue(MAX_ISS_KV_PAIR_LEN, MAX_ISS_NAME_LEN, MAX_ISS_VALUE_LEN)(iss_field, iss_name, iss_value, iss_field_string_bodies, iss_field_len, iss_name_len, iss_value_index, iss_value_len, iss_colon_index, 0);
 
     // Check name of the iss field is correct
     var required_iss_name[iss_name_len] = [105, 115, 115]; // iss

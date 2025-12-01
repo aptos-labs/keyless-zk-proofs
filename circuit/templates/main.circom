@@ -13,7 +13,7 @@ component main { public [public_inputs_hash] } = keyless(
     120,        // MAX_AUD_VALUE_LEN
     /* iss field */
     140,        // MAX_ISS_KV_PAIR_LEN
-    40,         // maxIssNameLen
+    40,         // MAX_ISS_NAME_LEN
     120,        // MAX_ISS_VALUE_LEN
     /* iat field */
     50,         // maxIatKVPairLen
