@@ -14,7 +14,7 @@ component main { public [public_inputs_hash] } = keyless(
     /* iss field */
     140,        // maxIssKVPairLen
     40,         // maxIssNameLen
-    120,        // maxIssValueLen
+    120,        // MAX_ISS_VALUE_LEN
     /* iat field */
     50,         // maxIatKVPairLen
     10,         // maxIatNameLen
@@ -32,5 +32,5 @@ component main { public [public_inputs_hash] } = keyless(
     30,         // maxUIDNameLen
     330,        // maxUIDValueLen
     /* any extra field (e.g., the name field) */
-    350         // maxEFKVPairLen
+    350         // MAX_EXTRA_FIELD_KV_PAIR_LEN
 );

@@ -61,7 +61,7 @@ template keyless(
     maxAudValueLen,     // ...ASCII aud value
     maxIssKVPairLen,    // ...ASCII iss field
     maxIssNameLen,      // ...ASCII iss name
-    maxIssValueLen,     // ...ASCII iss value
+    MAX_ISS_VALUE_LEN,  // ...ASCII iss value
     maxIatKVPairLen,    // ...ASCII iat field
     maxIatNameLen,      // ...ASCII iat name
     maxIatValueLen,     // ...ASCII iat value
@@ -74,7 +74,7 @@ template keyless(
     maxUIDKVPairLen,    // ...ASCII uid field
     maxUIDNameLen,      // ...ASCII uid name
     maxUIDValueLen,     // ...ASCII uid value
-    maxEFKVPairLen      // ...ASCII extra field
+    MAX_EXTRA_FIELD_KV_PAIR_LEN  // ...ASCII extra field
 ) {
     // Several templates (e.g., Poseidon-BN254 templates, LessThan) assume the
     // BN254 curve is used, whose scalar field can represent any 253-bit number
@@ -318,13 +318,13 @@ template keyless(
     ParseJWTFieldWithQuotedValue(maxUIDKVPairLen, maxUIDNameLen, maxUIDValueLen)(uid_field, uid_name, uid_value, uid_field_string_bodies, uid_field_len, uid_name_len, uid_value_index, uid_value_len, uid_colon_index, 0);
 
     // Check extra field is in the JWT
-    signal input extra_field[maxEFKVPairLen];
+    signal input extra_field[MAX_EXTRA_FIELD_KV_PAIR_LEN];
     signal input extra_field_len;
     signal input extra_index;
     signal input use_extra_field;
     use_extra_field * (use_extra_field - 1) === 0; // Ensure 0 or 1
 
-    signal ef_passes <== IsSubstring(MAX_JWT_PAYLOAD_LEN, maxEFKVPairLen)(jwt_payload, jwt_payload_hash, extra_field, extra_field_len, extra_index);
+    signal ef_passes <== IsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_EXTRA_FIELD_KV_PAIR_LEN)(jwt_payload, jwt_payload_hash, extra_field, extra_field_len, extra_index);
     EnforceNotNested(MAX_JWT_PAYLOAD_LEN)(extra_index, extra_field_len, unquoted_brackets_depth_map);
 
     // Fail if use_extra_field = 1 and ef_passes = 0
@@ -383,9 +383,9 @@ template keyless(
     signal input iss_value_len;
     signal input iss_colon_index;
     signal input iss_name[maxIssNameLen];
-    signal input iss_value[maxIssValueLen];
+    signal input iss_value[MAX_ISS_VALUE_LEN];
 
-    ParseJWTFieldWithQuotedValue(maxIssKVPairLen, maxIssNameLen, maxIssValueLen)(iss_field, iss_name, iss_value, iss_field_string_bodies, iss_field_len, iss_name_len, iss_value_index, iss_value_len, iss_colon_index, 0);
+    ParseJWTFieldWithQuotedValue(maxIssKVPairLen, maxIssNameLen, MAX_ISS_VALUE_LEN)(iss_field, iss_name, iss_value, iss_field_string_bodies, iss_field_len, iss_name_len, iss_value_index, iss_value_len, iss_colon_index, 0);
 
     // Check name of the iss field is correct
     var required_iss_name[iss_name_len] = [105, 115, 115]; // iss
@@ -505,8 +505,8 @@ template keyless(
     signal override_aud_val_hashed <== HashBytesToFieldWithLen(maxAudValueLen)(override_aud_value, override_aud_value_len);
     signal hashed_jwt_header <== HashBytesToFieldWithLen(MAX_B64U_JWT_HEADER_W_DOT_LEN)(b64u_jwt_header_w_dot, b64u_jwt_header_w_dot_len);
     signal hashed_pubkey_modulus <== Hash64BitLimbsToFieldWithLen(SIGNATURE_NUM_LIMBS)(pubkey_modulus_tagged, 256);
-    signal hashed_iss_value <== HashBytesToFieldWithLen(maxIssValueLen)(iss_value, iss_value_len);
-    signal hashed_extra_field <== HashBytesToFieldWithLen(maxEFKVPairLen)(extra_field, extra_field_len);
+    signal hashed_iss_value <== HashBytesToFieldWithLen(MAX_ISS_VALUE_LEN)(iss_value, iss_value_len);
+    signal hashed_extra_field <== HashBytesToFieldWithLen(MAX_EXTRA_FIELD_KV_PAIR_LEN)(extra_field, extra_field_len);
     signal computed_public_inputs_hash <== Poseidon(14)([
         epk[0], epk[1], epk[2], epk_len,
         idc,
