@@ -1,67 +1,197 @@
 // Copyright (c) Aptos Foundation
 
-use crate::external_resources::jwk_fetcher::get_federated_jwk;
+use crate::external_resources::jwk_fetcher::{
+    get_federated_jwk, AUTH0_ISSUER_NAME, AUTH0_REGEX_STR, COGNITO_ISSUER_NAME, COGNITO_REGEX_STR,
+};
+use crate::external_resources::jwk_types::{FederatedJWKIssuerInterface, FederatedJWKs, KeyID};
 use crate::tests::common::gen_test_jwk_keypair_with_kid_override;
 use crate::tests::common::types::{ProofTestCase, TestJWTPayload};
 use aptos_keyless_common::input_processing::jwt::DecodedJWT;
+use aptos_types::jwks::rsa::{INSECURE_TEST_RSA_JWK, RSA_JWK};
+use regex::Regex;
+use std::collections::HashMap;
+use std::ops::Deref;
+use std::sync::Arc;
 
-// TODO: avoid the external test dependencies!
+/// A mock federated JWK issuer (for testing JWK regex matching and fetching)
+#[derive(Clone, Debug)]
+struct MockFederatedJWKIssuer {
+    issuer_name: String,
+    jwks: HashMap<KeyID, Arc<RSA_JWK>>,
+    regex: Regex,
+}
 
-// This test uses a demo auth0 tenant owned by oliver.he@aptoslabs.com
+impl MockFederatedJWKIssuer {
+    pub fn new(
+        issuer_name: String,
+        jwks: HashMap<KeyID, Arc<RSA_JWK>>,
+        regex_pattern: String,
+    ) -> Self {
+        let regex = Regex::new(&regex_pattern).expect("Failed to create regex!");
+        Self {
+            issuer_name,
+            jwks,
+            regex,
+        }
+    }
+}
+
+#[async_trait::async_trait]
+impl FederatedJWKIssuerInterface for MockFederatedJWKIssuer {
+    fn issuer_name(&self) -> String {
+        self.issuer_name.clone()
+    }
+
+    async fn fetch_jwks(
+        &self,
+        _jwt_issuer: String,
+    ) -> anyhow::Result<HashMap<KeyID, Arc<RSA_JWK>>> {
+        Ok(self.jwks.clone())
+    }
+
+    fn regex(&self) -> &Regex {
+        &self.regex
+    }
+}
+
 #[tokio::test]
 async fn test_federated_jwk_fetch() {
-    // The endpoint can be found at https://dev-qtdgjv22jh0v1k7g.us.auth0.com/.well-known/jwks.json
-    let iss = "https://dev-qtdgjv22jh0v1k7g.us.auth0.com/";
-    let kid = "OYryNKGFtFhtHVOd1d_BU";
+    // Create test jwks to be returned by the mock issuer
+    let mut test_jwks: HashMap<KeyID, Arc<RSA_JWK>> = HashMap::new();
+    let test_kid = "test_kid";
+    let test_rsa_jwk = Arc::new(INSECURE_TEST_RSA_JWK.deref().clone());
+    test_jwks.insert(test_kid.into(), test_rsa_jwk.clone());
+
+    // Create the mock federated JWK issuer
+    let mock_issuer =
+        MockFederatedJWKIssuer::new(AUTH0_ISSUER_NAME.into(), test_jwks, AUTH0_REGEX_STR.into());
+    let federated_jwks = FederatedJWKs::new(vec![mock_issuer]);
+
+    // Create the test JWT payload with a valid auth0 issuer
+    let iss = "https://test.us.auth0.com/";
     let jwt_payload = TestJWTPayload {
         iss: String::from(iss),
         ..TestJWTPayload::default()
     };
 
-    let testcase = ProofTestCase::default_with_payload(jwt_payload).compute_nonce();
+    // Get a decoded JWT with the correct kid
+    let decoded_jwt = get_decoded_jwt(test_kid, jwt_payload);
 
-    let jwk_keypair = gen_test_jwk_keypair_with_kid_override(kid);
-    let prover_request_input = testcase.convert_to_prover_request(&jwk_keypair);
-    let jwt = DecodedJWT::from_b64(&prover_request_input.jwt_b64).unwrap();
-    assert!(get_federated_jwk(&jwt).await.is_ok());
+    // Fetch the federated JWK
+    let federated_jwk_result = get_federated_jwk(&decoded_jwt, federated_jwks).await;
+
+    // Verify that the JWK was fetched successfully
+    assert_eq!(federated_jwk_result.unwrap(), test_rsa_jwk);
 }
 
 #[tokio::test]
-async fn test_federated_jwk_fetch_fails_for_bad_iss() {
-    // bad iss
-    let iss = "https://dev-qtdgjv22jh0v1k7g.us.random.com/";
-    let kid = "OYryNKGFtFhtHVOd1d_BU";
+async fn test_federated_jwk_fetch_multiple_issuers() {
+    // Create test jwks to be returned by the third issuer
+    let mut test_jwks: HashMap<KeyID, Arc<RSA_JWK>> = HashMap::new();
+    let test_kid = "falcon_kid";
+    let test_rsa_jwk = Arc::new(INSECURE_TEST_RSA_JWK.deref().clone());
+    test_jwks.insert(test_kid.into(), test_rsa_jwk.clone());
+
+    // Create several mock federated JWK issuers
+    let mock_issuer_1 = MockFederatedJWKIssuer::new(
+        AUTH0_ISSUER_NAME.into(),
+        HashMap::new(), // Empty JWKs
+        AUTH0_REGEX_STR.into(),
+    );
+    let mock_issuer_2 = MockFederatedJWKIssuer::new(
+        COGNITO_ISSUER_NAME.into(),
+        HashMap::new(), // Empty JWKs
+        COGNITO_REGEX_STR.into(),
+    );
+    let mock_issuer_3 = MockFederatedJWKIssuer::new(
+        "falcon".into(),
+        test_jwks,
+        r"^https://[a-zA-Z0-9_-]+\.falcon\.com/".into(),
+    );
+    let federated_jwks = FederatedJWKs::new(vec![mock_issuer_1, mock_issuer_2, mock_issuer_3]);
+
+    // Create the test JWT payload with an issuer that matches the third issuer
+    let iss = "https://example.falcon.com/";
     let jwt_payload = TestJWTPayload {
         iss: String::from(iss),
         ..TestJWTPayload::default()
     };
 
-    let testcase = ProofTestCase::default_with_payload(jwt_payload).compute_nonce();
+    // Get a decoded JWT with the correct kid
+    let decoded_jwt = get_decoded_jwt(test_kid, jwt_payload);
 
-    let jwk_keypair = gen_test_jwk_keypair_with_kid_override(kid);
-    let prover_request_input = testcase.convert_to_prover_request(&jwk_keypair);
-    let jwt = DecodedJWT::from_b64(&prover_request_input.jwt_b64).unwrap();
-    let error_message = get_federated_jwk(&jwt).await.unwrap_err().to_string();
+    // Fetch the federated JWK
+    let federated_jwk_result = get_federated_jwk(&decoded_jwt, federated_jwks).await;
 
-    assert!(error_message.contains("Unsupported federated issuer"))
+    // Verify that the JWK was fetched successfully
+    assert_eq!(federated_jwk_result.unwrap(), test_rsa_jwk);
 }
 
 #[tokio::test]
-async fn test_federated_jwk_fetch_fails_for_bad_kid() {
-    let iss = "https://dev-qtdgjv22jh0v1k7g.us.auth0.com/";
-    // bad kid
-    let kid = "bad_kid";
+async fn test_federated_jwk_fetch_fails_for_bad_issuer() {
+    // Create the mock federated JWK issuer
+    let mock_issuer = MockFederatedJWKIssuer::new(
+        AUTH0_ISSUER_NAME.into(),
+        HashMap::new(), // Empty JWKs
+        AUTH0_REGEX_STR.into(),
+    );
+    let federated_jwks = FederatedJWKs::new(vec![mock_issuer]);
+
+    // Create the test JWT payload with a bad issuer
+    let iss = "https://test.us.random.com/";
+    let kid = "kid";
     let jwt_payload = TestJWTPayload {
         iss: String::from(iss),
         ..TestJWTPayload::default()
     };
 
-    let testcase = ProofTestCase::default_with_payload(jwt_payload).compute_nonce();
+    // Get a decoded JWT with the correct kid
+    let decoded_jwt = get_decoded_jwt(kid, jwt_payload);
 
+    // Fetch the federated JWK
+    let federated_jwk_result = get_federated_jwk(&decoded_jwt, federated_jwks).await;
+
+    // Verify that the JWK issuer was not found
+    let error_message = federated_jwk_result.unwrap_err().to_string();
+    assert!(error_message.contains("Unsupported federated issuer: https://test.us.random.com/"));
+}
+
+#[tokio::test]
+async fn test_federated_jwk_fetch_fails_for_missing_kid() {
+    // Create the mock federated JWK issuer
+    let mock_issuer = MockFederatedJWKIssuer::new(
+        AUTH0_ISSUER_NAME.into(),
+        HashMap::new(), // Empty JWKs
+        AUTH0_REGEX_STR.into(),
+    );
+    let federated_jwks = FederatedJWKs::new(vec![mock_issuer]);
+
+    // Create the test JWT payload with a valid issuer
+    let iss = "https://test.us.auth0.com/";
+    let kid = "missing_kid"; // This kid will not be found
+    let jwt_payload = TestJWTPayload {
+        iss: String::from(iss),
+        ..TestJWTPayload::default()
+    };
+
+    // Get a decoded JWT with the correct kid
+    let decoded_jwt = get_decoded_jwt(kid, jwt_payload);
+
+    // Fetch the federated JWK
+    let federated_jwk_result = get_federated_jwk(&decoded_jwt, federated_jwks).await;
+
+    // Verify that the JWK was not found
+    let error_message = federated_jwk_result.unwrap_err().to_string();
+    assert!(error_message.contains("Unknown kid: missing_kid"));
+}
+
+/// Helper function to create a decoded JWT from a given kid and payload
+fn get_decoded_jwt(kid: &str, jwt_payload: TestJWTPayload) -> DecodedJWT {
+    // Create the prover request input
+    let testcase = ProofTestCase::default_with_payload(jwt_payload).compute_nonce();
     let jwk_keypair = gen_test_jwk_keypair_with_kid_override(kid);
     let prover_request_input = testcase.convert_to_prover_request(&jwk_keypair);
-    let jwt = DecodedJWT::from_b64(&prover_request_input.jwt_b64).unwrap();
-    let error_message = get_federated_jwk(&jwt).await.unwrap_err().to_string();
 
-    assert!(error_message.contains("Unknown kid"))
+    // Return the decoded JWT
+    DecodedJWT::from_b64(&prover_request_input.jwt_b64).unwrap()
 }

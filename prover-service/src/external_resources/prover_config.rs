@@ -1,6 +1,6 @@
 // Copyright (c) Aptos Foundation
 
-use crate::external_resources::jwk_fetcher::JWKIssuer;
+use crate::external_resources::jwk_types::JWKIssuer;
 use crate::utils;
 use aptos_keyless_common::input_processing::circuit_config::CircuitConfig;
 use aptos_logger::info;

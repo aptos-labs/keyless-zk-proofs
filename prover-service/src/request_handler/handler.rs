@@ -1,6 +1,6 @@
 // Copyright (c) Aptos Foundation
 
-use crate::external_resources::jwk_fetcher::JWKCache;
+use crate::external_resources::jwk_types::JWKCache;
 use crate::external_resources::prover_config::ProverServiceConfig;
 use crate::request_handler::deployment_information::DeploymentInformation;
 use crate::request_handler::prover_handler;

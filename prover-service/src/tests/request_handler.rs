@@ -1,6 +1,6 @@
 // Copyright (c) Aptos Foundation
 
-use crate::external_resources::jwk_fetcher::JWKCache;
+use crate::external_resources::jwk_types::{FederatedJWKs, JWKCache};
 use crate::external_resources::prover_config::ProverServiceConfig;
 use crate::request_handler::deployment_information::DeploymentInformation;
 use crate::request_handler::handler;
@@ -323,12 +323,16 @@ async fn send_request_to_path(
     // Get or create a JWK cache
     let jwk_cache = jwk_cache.unwrap_or_else(|| Arc::new(Mutex::new(HashMap::new())));
 
+    // Create a federated JWKs object
+    let federated_jwks = FederatedJWKs::new_empty();
+
     // Create the prover service state
     let prover_service_state = Arc::new(ProverServiceState::new_for_testing(
         training_wheels_key_pair,
         prover_service_config,
         deployment_information,
         jwk_cache,
+        federated_jwks,
     ));
 
     // Serve the request

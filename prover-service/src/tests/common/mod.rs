@@ -1,8 +1,7 @@
 // Copyright (c) Aptos Foundation
 
 use self::types::{DefaultTestJWKKeyPair, TestJWKKeyPair, WithNonce};
-use crate::external_resources::jwk_fetcher::Issuer;
-use crate::external_resources::jwk_fetcher::KeyID;
+use crate::external_resources::jwk_types::{FederatedJWKs, Issuer, KeyID};
 use crate::external_resources::prover_config::ProverServiceConfig;
 use crate::request_handler::deployment_information::DeploymentInformation;
 use crate::request_handler::prover_state::{ProverServiceState, TrainingWheelsKeyPair};
@@ -114,6 +113,7 @@ pub async fn convert_prove_and_verify(
         HashMap::from_iter([("test-rsa".to_owned(), Arc::new(jwk_keypair.into_rsa_jwk()))]);
     let jwk_cache: HashMap<Issuer, HashMap<KeyID, Arc<RSA_JWK>>> =
         HashMap::from_iter([("test.oidc.provider".into(), test_jwk)]);
+    let federated_jwks = FederatedJWKs::new_empty();
 
     println!(
         "Prover service resources dir: {}",
@@ -130,6 +130,7 @@ pub async fn convert_prove_and_verify(
         prover_service_config,
         DeploymentInformation::new(),
         Arc::new(Mutex::new(jwk_cache)),
+        federated_jwks,
     );
 
     let prover_request_input = testcase.convert_to_prover_request(&jwk_keypair);

@@ -1,6 +1,5 @@
 // Copyright (c) Aptos Foundation
 
-use crate::external_resources::jwk_fetcher::JWKCache;
 use crate::external_resources::prover_config::ProverServiceConfig;
 use crate::request_handler::deployment_information::DeploymentInformation;
 use aptos_crypto::ed25519::{Ed25519PrivateKey, Ed25519PublicKey};
@@ -9,6 +8,7 @@ use rust_rapidsnark::FullProver;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
+use crate::external_resources::jwk_types::{FederatedJWKIssuer, FederatedJWKs, JWKCache};
 #[cfg(test)]
 use aptos_crypto::Uniform;
 
@@ -20,6 +20,7 @@ pub struct ProverServiceState {
     training_wheels_key_pair: TrainingWheelsKeyPair,
     full_prover: Arc<Mutex<Option<FullProver>>>,
     jwk_cache: JWKCache,
+    federated_jwks: FederatedJWKs<FederatedJWKIssuer>,
 }
 
 impl ProverServiceState {
@@ -28,6 +29,7 @@ impl ProverServiceState {
         prover_service_config: Arc<ProverServiceConfig>,
         deployment_information: DeploymentInformation,
         jwk_cache: JWKCache,
+        federated_jwks: FederatedJWKs<FederatedJWKIssuer>,
     ) -> Self {
         // Load the circuit configuration
         let circuit_configuration = prover_service_config.load_circuit_params();
@@ -44,6 +46,7 @@ impl ProverServiceState {
             training_wheels_key_pair,
             full_prover: Arc::new(Mutex::new(Some(full_prover))),
             jwk_cache,
+            federated_jwks,
         }
     }
 
@@ -54,6 +57,7 @@ impl ProverServiceState {
         prover_service_config: Arc<ProverServiceConfig>,
         deployment_information: DeploymentInformation,
         jwk_cache: JWKCache,
+        federated_jwks: FederatedJWKs<FederatedJWKIssuer>,
     ) -> Self {
         // Create a circuit configuration for testing
         let circuit_configuration = CircuitConfig::new();
@@ -69,6 +73,7 @@ impl ProverServiceState {
             training_wheels_key_pair,
             full_prover,
             jwk_cache,
+            federated_jwks,
         }
     }
 
@@ -85,6 +90,11 @@ impl ProverServiceState {
     /// Returns an Arc reference to the JWK cache
     pub fn jwk_cache(&self) -> JWKCache {
         self.jwk_cache.clone()
+    }
+
+    /// Returns an Arc reference to the federated JWKs
+    pub fn federated_jwks(&self) -> FederatedJWKs<FederatedJWKIssuer> {
+        self.federated_jwks.clone()
     }
 
     /// Returns an Arc reference to the full prover instance (if one exists)
