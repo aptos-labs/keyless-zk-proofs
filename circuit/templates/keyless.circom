@@ -262,7 +262,7 @@ template keyless(
     EnforceNotNested(MAX_JWT_PAYLOAD_LEN)(aud_index, aud_field_len, unquoted_brackets_depth_map);
 
     // Perform necessary checks on aud field
-    var aud_name_len = 3;
+    var AUD_NAME_LEN = 3;
     signal input aud_value_index;
     signal input aud_colon_index;
     signal input aud_name[MAX_AUD_NAME_LEN];
@@ -288,14 +288,14 @@ template keyless(
 
     signal aud_value_len <== (override_aud_value_len - private_aud_value_len) * use_aud_override + private_aud_value_len;
 
-    ParseJWTFieldWithQuotedValue(MAX_AUD_KV_PAIR_LEN, MAX_AUD_NAME_LEN, MAX_AUD_VALUE_LEN)(aud_field, aud_name, aud_value, aud_field_string_bodies, aud_field_len, aud_name_len, aud_value_index, aud_value_len, aud_colon_index, skip_aud_checks);
+    ParseJWTFieldWithQuotedValue(MAX_AUD_KV_PAIR_LEN, MAX_AUD_NAME_LEN, MAX_AUD_VALUE_LEN)(aud_field, aud_name, aud_value, aud_field_string_bodies, aud_field_len, AUD_NAME_LEN, aud_value_index, aud_value_len, aud_colon_index, skip_aud_checks);
 
 
     // Check aud name is correct
     signal perform_aud_checks <== NOT()(skip_aud_checks);
-    var required_aud_name[aud_name_len] = [97, 117, 100]; // aud
-    for (var i = 0; i < aud_name_len; i++) {
-        aud_name[i] * perform_aud_checks === required_aud_name[i] * perform_aud_checks;
+    var EXPECTED_AUD_NAME[AUD_NAME_LEN] = [97, 117, 100]; // aud
+    for (var i = 0; i < AUD_NAME_LEN; i++) {
+        aud_name[i] * perform_aud_checks === EXPECTED_AUD_NAME[i] * perform_aud_checks;
     }
 
     // Check user id field is in the JWT
@@ -341,7 +341,7 @@ template keyless(
     signal input ev_field_len;
     signal input ev_index;
 
-    var ev_name_len = 14;
+    var EV_NAME_LEN = 14;
     signal input ev_value_index;
     signal input ev_value_len;
     signal input ev_colon_index;
@@ -365,7 +365,7 @@ template keyless(
     EnforceNotNested(MAX_JWT_PAYLOAD_LEN)(ev_index, ev_field_len, unquoted_brackets_depth_map);
 
     // Need custom logic here because some providers apparently do not follow the OIDC spec and put the email_verified value in quotes
-    ParseEmailVerifiedField(MAX_EMAIL_VERIFIED_KV_PAIR_LEN, MAX_EMAIL_VERIFIED_NAME_LEN, MAX_EMAIL_VERIFIED_VALUE_LEN)(ev_field, ev_name, ev_value, ev_field_len, ev_name_len, ev_value_index, ev_value_len, ev_colon_index);
+    ParseEmailVerifiedField(MAX_EMAIL_VERIFIED_KV_PAIR_LEN, MAX_EMAIL_VERIFIED_NAME_LEN, MAX_EMAIL_VERIFIED_VALUE_LEN)(ev_field, ev_name, ev_value, ev_field_len, EV_NAME_LEN, ev_value_index, ev_value_len, ev_colon_index);
 
     // Check iss field is in the JWT
     // Note that because `iss_field` is a public input, we assume the verifier will perform correctness checks on it outside of the circuit. 
@@ -378,19 +378,19 @@ template keyless(
     EnforceNotNested(MAX_JWT_PAYLOAD_LEN)(iss_index, iss_field_len, unquoted_brackets_depth_map);
 
     // Perform necessary checks on iss field
-    var iss_name_len = 3; // iss
+    var ISS_NAME_LEN = 3; // iss
     signal input iss_value_index;
     signal input iss_value_len;
     signal input iss_colon_index;
     signal input iss_name[MAX_ISS_NAME_LEN];
     signal input iss_value[MAX_ISS_VALUE_LEN];
 
-    ParseJWTFieldWithQuotedValue(MAX_ISS_KV_PAIR_LEN, MAX_ISS_NAME_LEN, MAX_ISS_VALUE_LEN)(iss_field, iss_name, iss_value, iss_field_string_bodies, iss_field_len, iss_name_len, iss_value_index, iss_value_len, iss_colon_index, 0);
+    ParseJWTFieldWithQuotedValue(MAX_ISS_KV_PAIR_LEN, MAX_ISS_NAME_LEN, MAX_ISS_VALUE_LEN)(iss_field, iss_name, iss_value, iss_field_string_bodies, iss_field_len, ISS_NAME_LEN, iss_value_index, iss_value_len, iss_colon_index, 0);
 
     // Check name of the iss field is correct
-    var required_iss_name[iss_name_len] = [105, 115, 115]; // iss
-    for (var i = 0; i < iss_name_len; i++) {
-        iss_name[i] === required_iss_name[i];
+    var EXPECTED_ISS_NAME[ISS_NAME_LEN] = [105, 115, 115]; // iss
+    for (var i = 0; i < ISS_NAME_LEN; i++) {
+        iss_name[i] === EXPECTED_ISS_NAME[i];
     }
 
     // Check iat field is in the JWT
@@ -400,14 +400,14 @@ template keyless(
     AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_IAT_KV_PAIR_LEN)(jwt_payload, jwt_payload_hash, iat_field, iat_field_len, iat_index);
 
     // Perform necessary checks on iat field
-    var iat_name_len = 3; // iat
+    var IAT_NAME_LEN = 3; // iat
     signal input iat_value_index;
     signal input iat_value_len;
     signal input iat_colon_index;
     signal input iat_name[MAX_IAT_NAME_LEN];
     signal input iat_value[MAX_IAT_VALUE_LEN];
 
-    ParseJWTFieldWithUnquotedValue(MAX_IAT_KV_PAIR_LEN, MAX_IAT_NAME_LEN, MAX_IAT_VALUE_LEN)(iat_field, iat_name, iat_value, iat_field_len, iat_name_len, iat_value_index, iat_value_len, iat_colon_index, 0);
+    ParseJWTFieldWithUnquotedValue(MAX_IAT_KV_PAIR_LEN, MAX_IAT_NAME_LEN, MAX_IAT_VALUE_LEN)(iat_field, iat_name, iat_value, iat_field_len, IAT_NAME_LEN, iat_value_index, iat_value_len, iat_colon_index, 0);
     EnforceNotNested(MAX_JWT_PAYLOAD_LEN)(iss_index, iss_field_len, unquoted_brackets_depth_map);
 
     // Check that iat is not inside a string body
@@ -415,9 +415,9 @@ template keyless(
     iat_start_char === 0;
 
     // Check name of the iat field is correct
-    var required_iat_name[iat_name_len] = [105, 97, 116]; // iat
-    for (var i = 0; i < iat_name_len; i++) {
-        iat_name[i] === required_iat_name[i];
+    var EXPECTED_IAT_NAME[IAT_NAME_LEN] = [105, 97, 116]; // iat
+    for (var i = 0; i < IAT_NAME_LEN; i++) {
+        iat_name[i] === EXPECTED_IAT_NAME[i];
     }
     
     signal iat_field_elem <== AsciiDigitsToScalar(MAX_IAT_VALUE_LEN)(iat_value, iat_value_len);
@@ -437,19 +437,19 @@ template keyless(
     EnforceNotNested(MAX_JWT_PAYLOAD_LEN)(nonce_index, nonce_field_len, unquoted_brackets_depth_map);
 
     // Perform necessary checks on nonce field
-    var nonce_name_len = 5; // nonce
+    var NONCE_NAME_LEN = 5; // nonce
     signal input nonce_value_index;
     signal input nonce_value_len;
     signal input nonce_colon_index;
     signal input nonce_name[MAX_NONCE_NAME_LEN];
     signal input nonce_value[MAX_NONCE_VALUE_LEN];
 
-    ParseJWTFieldWithQuotedValue(MAX_NONCE_KV_PAIR_LEN, MAX_NONCE_NAME_LEN, MAX_NONCE_VALUE_LEN)(nonce_field, nonce_name, nonce_value, nonce_field_string_bodies, nonce_field_len, nonce_name_len, nonce_value_index, nonce_value_len, nonce_colon_index, 0);
+    ParseJWTFieldWithQuotedValue(MAX_NONCE_KV_PAIR_LEN, MAX_NONCE_NAME_LEN, MAX_NONCE_VALUE_LEN)(nonce_field, nonce_name, nonce_value, nonce_field_string_bodies, nonce_field_len, NONCE_NAME_LEN, nonce_value_index, nonce_value_len, nonce_colon_index, 0);
 
     // Check name of the nonce field is correct
-    var required_nonce_name[nonce_name_len] = [110, 111, 110, 99, 101]; // nonce
-    for (var i = 0; i < nonce_name_len; i++) {
-        nonce_name[i] === required_nonce_name[i];
+    var EXPECTED_NONCE_NAME[NONCE_NAME_LEN] = [110, 111, 110, 99, 101]; // nonce
+    for (var i = 0; i < NONCE_NAME_LEN; i++) {
+        nonce_name[i] === EXPECTED_NONCE_NAME[i];
     }
 
     //
