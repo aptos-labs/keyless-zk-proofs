@@ -11,8 +11,8 @@ include "circomlib/circuits/comparators.circom";
 // Similar to `sha256_unsafe` in https://github.com/TheFrozenFire/snark-jwt-verify/blob/master/circuits/sha256.circom
 // Hashes a bit array message using SHA2_256, hashing every block up to and including `tBlock`. All blocks after `tBlock` are ignored in the output
 // Expects the bit array input to be padded according to https://www.rfc-editor.org/rfc/rfc4634.html#section-4.1 up to tBlock. 
-template SHA2_256_Prepadded_Hash(maxNumBlocks) {
-    signal input in[maxNumBlocks * 512];
+template SHA2_256_Prepadded_Hash(MAX_NUM_BLOCKS) {
+    signal input in[MAX_NUM_BLOCKS * 512];
     signal input tBlock;
     
     signal output out[256];
@@ -26,9 +26,9 @@ template SHA2_256_Prepadded_Hash(maxNumBlocks) {
     component hg0 = H(6);
     component hh0 = H(7);
 
-    component sha256compression[maxNumBlocks];
+    component sha256compression[MAX_NUM_BLOCKS];
 
-    for(var i=0; i < maxNumBlocks; i++) {
+    for(var i = 0; i < MAX_NUM_BLOCKS; i++) {
 
         sha256compression[i] = Sha256compression();
 
@@ -63,14 +63,14 @@ template SHA2_256_Prepadded_Hash(maxNumBlocks) {
     
     // Collapse the hashing result at the terminating data block
     component calcTotal[256];
-    signal eqs[maxNumBlocks] <== SingleOneArray(maxNumBlocks)(tBlock);
+    signal eqs[MAX_NUM_BLOCKS] <== SingleOneArray(MAX_NUM_BLOCKS)(tBlock);
 
     // For each bit of the output
     for(var k = 0; k < 256; k++) {
-        calcTotal[k] = Sum(maxNumBlocks);
+        calcTotal[k] = Sum(MAX_NUM_BLOCKS);
         
         // For each possible block
-        for (var i = 0; i < maxNumBlocks; i++) {
+        for (var i = 0; i < MAX_NUM_BLOCKS; i++) {
 
             // eqs[i] is 1 if the index matches. As such, at most one input to calcTotal is not 0.
             // The bit corresponding to the terminating data block will be raised
