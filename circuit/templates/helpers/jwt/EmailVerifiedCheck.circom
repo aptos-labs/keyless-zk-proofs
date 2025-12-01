@@ -6,21 +6,21 @@ include "circomlib/circuits/comparators.circom";
 include "circomlib/circuits/gates.circom";
 
 // Enforce that if uid name is "email", the email verified field is either true or "true"
-template EmailVerifiedCheck(maxEVNameLen, maxEVValueLen, maxUIDNameLen) {
-    signal input ev_name[maxEVNameLen];
-    signal input ev_value[maxEVValueLen];
+template EmailVerifiedCheck(MAX_EV_NAME_LEN, MAX_EV_VALUE_LEN, MAX_UID_NAME_LEN) {
+    signal input ev_name[MAX_EV_NAME_LEN];
+    signal input ev_value[MAX_EV_VALUE_LEN];
     signal input ev_value_len;
-    signal input uid_name[maxUIDNameLen];
+    signal input uid_name[MAX_UID_NAME_LEN];
     signal input uid_name_len;
     signal output {binary} uid_is_email;
 
-    var email[5] = [101, 109, 97, 105, 108]; // email
+    var EMAIL[5] = [101, 109, 97, 105, 108]; // email
 
-    var uid_starts_with_email_0 = IsEqual()([email[0], uid_name[0]]);
-    var uid_starts_with_email_1 = IsEqual()([email[1], uid_name[1]]);
-    var uid_starts_with_email_2 = IsEqual()([email[2], uid_name[2]]);
-    var uid_starts_with_email_3 = IsEqual()([email[3], uid_name[3]]);
-    var uid_starts_with_email_4 = IsEqual()([email[4], uid_name[4]]);
+    var uid_starts_with_email_0 = IsEqual()([EMAIL[0], uid_name[0]]);
+    var uid_starts_with_email_1 = IsEqual()([EMAIL[1], uid_name[1]]);
+    var uid_starts_with_email_2 = IsEqual()([EMAIL[2], uid_name[2]]);
+    var uid_starts_with_email_3 = IsEqual()([EMAIL[3], uid_name[3]]);
+    var uid_starts_with_email_4 = IsEqual()([EMAIL[4], uid_name[4]]);
 
     var uid_starts_with_email = MultiAND(5)([uid_starts_with_email_0, uid_starts_with_email_1, uid_starts_with_email_2, uid_starts_with_email_3, uid_starts_with_email_4]);
 
