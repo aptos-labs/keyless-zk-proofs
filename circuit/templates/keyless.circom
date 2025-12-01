@@ -71,7 +71,7 @@ template keyless(
     MAX_EMAIL_VERIFIED_KV_PAIR_LEN,     // ...ASCII email verified field
     MAX_EMAIL_VERIFIED_NAME_LEN,       // ...ASCII email verified name
     MAX_EMAIL_VERIFIED_VALUE_LEN,      // ...ASCII email verified value
-    maxUIDKVPairLen,    // ...ASCII uid field
+    MAX_UID_KV_PAIR_LEN,    // ...ASCII uid field
     maxUIDNameLen,      // ...ASCII uid name
     maxUIDValueLen,     // ...ASCII uid value
     MAX_EXTRA_FIELD_KV_PAIR_LEN  // ...ASCII extra field
@@ -299,12 +299,12 @@ template keyless(
     }
 
     // Check user id field is in the JWT
-    signal input uid_field[maxUIDKVPairLen];
-    signal input uid_field_string_bodies[maxUIDKVPairLen];
+    signal input uid_field[MAX_UID_KV_PAIR_LEN];
+    signal input uid_field_string_bodies[MAX_UID_KV_PAIR_LEN];
     signal input uid_field_len;
     signal input uid_index;
-    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, maxUIDKVPairLen)(jwt_payload, jwt_payload_hash, uid_field, uid_field_len, uid_index);
-    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, maxUIDKVPairLen)(string_bodies, jwt_payload_hash, uid_field_string_bodies, uid_field_len, uid_index);
+    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_UID_KV_PAIR_LEN)(jwt_payload, jwt_payload_hash, uid_field, uid_field_len, uid_index);
+    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_UID_KV_PAIR_LEN)(string_bodies, jwt_payload_hash, uid_field_string_bodies, uid_field_len, uid_index);
     EnforceNotNested(MAX_JWT_PAYLOAD_LEN)(uid_index, uid_field_len, unquoted_brackets_depth_map);
 
     // Perform necessary checks on user id field. Some fields this might be in practice are "sub" or "email"
@@ -315,7 +315,7 @@ template keyless(
     signal input uid_name[maxUIDNameLen];
     signal input uid_value[maxUIDValueLen];
 
-    ParseJWTFieldWithQuotedValue(maxUIDKVPairLen, maxUIDNameLen, maxUIDValueLen)(uid_field, uid_name, uid_value, uid_field_string_bodies, uid_field_len, uid_name_len, uid_value_index, uid_value_len, uid_colon_index, 0);
+    ParseJWTFieldWithQuotedValue(MAX_UID_KV_PAIR_LEN, maxUIDNameLen, maxUIDValueLen)(uid_field, uid_name, uid_value, uid_field_string_bodies, uid_field_len, uid_name_len, uid_value_index, uid_value_len, uid_colon_index, 0);
 
     // Check extra field is in the JWT
     signal input extra_field[MAX_EXTRA_FIELD_KV_PAIR_LEN];
