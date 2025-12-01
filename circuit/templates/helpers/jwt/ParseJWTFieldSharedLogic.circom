@@ -22,10 +22,10 @@ include "circomlib/circuits/gates.circom";
 //
 // Note that this template is NOT secure on its own, but must be called from
 // `ParseJWTFieldWithQuotedValue` or `ParseJWTFieldWithUnquotedValue`
-template ParseJWTFieldSharedLogic(maxKVPairLen, maxNameLen, maxValueLen) {
-    signal input field[maxKVPairLen]; // ASCII
-    signal input name[maxNameLen]; // ASCII
-    signal input value[maxValueLen]; // ASCII
+template ParseJWTFieldSharedLogic(MAX_KV_PAIR_LEN, MAX_NAME_LEN, MAX_VALUE_LEN) {
+    signal input field[MAX_KV_PAIR_LEN]; // ASCII
+    signal input name[MAX_NAME_LEN]; // ASCII
+    signal input value[MAX_VALUE_LEN]; // ASCII
     signal input field_len;
     signal input name_len;
     signal input value_index; // index of value within `field`
@@ -46,23 +46,23 @@ template ParseJWTFieldSharedLogic(maxKVPairLen, maxNameLen, maxValueLen) {
     signal field_len_ok <== GreaterThan(20)([field_len, name_len + value_len]);
     checks[2] <== IsEqual()([field_len_ok, 1]);
 
-    signal field_hash <== HashBytesToFieldWithLen(maxKVPairLen)(field, field_len);
+    signal field_hash <== HashBytesToFieldWithLen(MAX_KV_PAIR_LEN)(field, field_len);
 
-    signal name_first_quote <== SelectArrayValue(maxKVPairLen)(field, 0);
+    signal name_first_quote <== SelectArrayValue(MAX_KV_PAIR_LEN)(field, 0);
     checks[3] <== IsEqual()([name_first_quote, 34]); // '"'
 
-    checks[4] <== IsSubstring(maxKVPairLen, maxNameLen)(field, field_hash, name, name_len, 1);
+    checks[4] <== IsSubstring(MAX_KV_PAIR_LEN, MAX_NAME_LEN)(field, field_hash, name, name_len, 1);
 
-    signal name_second_quote <== SelectArrayValue(maxKVPairLen)(field, name_len+1);
+    signal name_second_quote <== SelectArrayValue(MAX_KV_PAIR_LEN)(field, name_len+1);
     checks[5] <== IsEqual()([name_second_quote, 34]); // '"'
 
-    signal colon <== SelectArrayValue(maxKVPairLen)(field, colon_index);
+    signal colon <== SelectArrayValue(MAX_KV_PAIR_LEN)(field, colon_index);
     checks[6] <== IsEqual()([colon, 58]); // ':'
 
-    checks[7] <== IsSubstring(maxKVPairLen, maxValueLen)(field, field_hash, value, value_len, value_index);
+    checks[7] <== IsSubstring(MAX_KV_PAIR_LEN, MAX_VALUE_LEN)(field, field_hash, value, value_len, value_index);
 
     // Enforce last character of `field` is comma or end brace
-    signal last_char <== SelectArrayValue(maxKVPairLen)(field, field_len-1);
+    signal last_char <== SelectArrayValue(MAX_KV_PAIR_LEN)(field, field_len-1);
     checks[8] <== IsEqual()([(last_char - 44) * (last_char - 125),0]); // ',' or '}'
 
     signal checks_pass <== MultiAND(9)(checks);
