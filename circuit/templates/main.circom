@@ -7,30 +7,37 @@ component main { public [public_inputs_hash] } = keyless(
     192*8,      // MAX_B64U_JWT_NO_SIG_LEN
     300,        // MAX_B64U_JWT_HEADER_W_DOT_LEN
     192*8-64,   // MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN
+
     /* aud field */
     140,        // MAX_AUD_KV_PAIR_LEN
     40,         // MAX_AUD_NAME_LEN
     120,        // MAX_AUD_VALUE_LEN
+
     /* iss field */
     140,        // MAX_ISS_KV_PAIR_LEN
     40,         // MAX_ISS_NAME_LEN
     120,        // MAX_ISS_VALUE_LEN
+
     /* iat field */
     50,         // MAX_IAT_KV_PAIR_LEN
     10,         // MAX_IAT_NAME_LEN
     45,         // MAX_IAT_VALUE_LEN
+
     /* nonce field */
     105,        // MAX_NONCE_KV_PAIR_LEN
     10,         // MAX_NONCE_NAME_LEN
     100,        // MAX_NONCE_VALUE_LEN
+
     /* email_verified field */
     30,         // MAX_EMAIL_VERIFIED_KV_PAIR_LEN
     20,         // MAX_EMAIL_VERIFIED_NAME_LEN
     10,         // MAX_EMAIL_VERIFIED_VALUE_LEN
+
     /* the user ID field (i.e., sub or email) */
     350,        // MAX_UID_KV_PAIR_LEN
     30,         // MAX_UID_NAME_LEN
     330,        // MAX_UID_VALUE_LEN
+
     /* any extra field (e.g., the name field) */
     350         // MAX_EXTRA_FIELD_KV_PAIR_LEN
 );

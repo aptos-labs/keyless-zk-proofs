@@ -53,28 +53,28 @@ include "./stdlib/circuits/InvertBinaryArray.circom";
 // The main Aptos Keyless circuit. The parameters below are max lengths, 
 // in bytes, for the...
 template keyless(
-    MAX_B64U_JWT_NO_SIG_LEN,    // ...full base64url JWT without the signature, but with SHA2 padding
-    MAX_B64U_JWT_HEADER_W_DOT_LEN,  // ...full base64url JWT header with a dot at the end
-    MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN,   // ...full base64url JWT payload with SHA2 padding
-    MAX_AUD_KV_PAIR_LEN,    // ...ASCII aud field
-    MAX_AUD_NAME_LEN,      // ...ASCII aud name
-    MAX_AUD_VALUE_LEN,     // ...ASCII aud value
-    MAX_ISS_KV_PAIR_LEN,    // ...ASCII iss field
-    MAX_ISS_NAME_LEN,      // ...ASCII iss name
-    MAX_ISS_VALUE_LEN,  // ...ASCII iss value
-    MAX_IAT_KV_PAIR_LEN,    // ...ASCII iat field
-    MAX_IAT_NAME_LEN,      // ...ASCII iat name
-    MAX_IAT_VALUE_LEN,     // ...ASCII iat value
-    MAX_NONCE_KV_PAIR_LEN,  // ...ASCII nonce field
-    MAX_NONCE_NAME_LEN,    // ...ASCII nonce name
-    MAX_NONCE_VALUE_LEN,   // ...ASCII nonce value
-    MAX_EMAIL_VERIFIED_KV_PAIR_LEN,     // ...ASCII email verified field
-    MAX_EMAIL_VERIFIED_NAME_LEN,       // ...ASCII email verified name
-    MAX_EMAIL_VERIFIED_VALUE_LEN,      // ...ASCII email verified value
-    MAX_UID_KV_PAIR_LEN,    // ...ASCII uid field
-    MAX_UID_NAME_LEN,      // ...ASCII uid name
-    MAX_UID_VALUE_LEN,     // ...ASCII uid value
-    MAX_EXTRA_FIELD_KV_PAIR_LEN  // ...ASCII extra field
+    MAX_B64U_JWT_NO_SIG_LEN,               // ...full base64url JWT without the signature, but with SHA2 padding
+    MAX_B64U_JWT_HEADER_W_DOT_LEN,         // ...full base64url JWT header with a dot at the end
+    MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN,  // ...full base64url JWT payload with SHA2 padding
+    MAX_AUD_KV_PAIR_LEN,                   // ...ASCII aud field
+    MAX_AUD_NAME_LEN,                      // ...ASCII aud name
+    MAX_AUD_VALUE_LEN,                     // ...ASCII aud value
+    MAX_ISS_KV_PAIR_LEN,                   // ...ASCII iss field
+    MAX_ISS_NAME_LEN,                      // ...ASCII iss name
+    MAX_ISS_VALUE_LEN,                     // ...ASCII iss value
+    MAX_IAT_KV_PAIR_LEN,                   // ...ASCII iat field
+    MAX_IAT_NAME_LEN,                      // ...ASCII iat name
+    MAX_IAT_VALUE_LEN,                     // ...ASCII iat value
+    MAX_NONCE_KV_PAIR_LEN,                 // ...ASCII nonce field
+    MAX_NONCE_NAME_LEN,                    // ...ASCII nonce name
+    MAX_NONCE_VALUE_LEN,                   // ...ASCII nonce value
+    MAX_EMAIL_VERIFIED_KV_PAIR_LEN,        // ...ASCII email verified field
+    MAX_EMAIL_VERIFIED_NAME_LEN,           // ...ASCII email verified name
+    MAX_EMAIL_VERIFIED_VALUE_LEN,          // ...ASCII email verified value
+    MAX_UID_KV_PAIR_LEN,                   // ...ASCII uid field
+    MAX_UID_NAME_LEN,                      // ...ASCII uid name
+    MAX_UID_VALUE_LEN,                     // ...ASCII uid value
+    MAX_EXTRA_FIELD_KV_PAIR_LEN            // ...ASCII extra field
 ) {
     // Several templates (e.g., Poseidon-BN254 templates, LessThan) assume the
     // BN254 curve is used, whose scalar field can represent any 253-bit number
