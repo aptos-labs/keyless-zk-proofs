@@ -13,11 +13,11 @@ include "circomlib/circuits/comparators.circom";
 // brackets:  10010001-1000000-1-1
 //
 // where `arr` is represented by its ASCII encoding, i.e. `{` = 123
-template BracketsMap(len) {
-    signal input arr[len];
-    signal output brackets[len];
+template BracketsMap(LEN) {
+    signal input arr[LEN];
+    signal output brackets[LEN];
 
-    for (var i = 0; i < len; i++) {
+    for (var i = 0; i < LEN; i++) {
         var is_open_bracket = IsEqual()([arr[i], 123]); // 123 = `{`
         var is_closed_bracket = IsEqual()([arr[i], 125]); // 125 = '}'
         brackets[i] <== is_open_bracket + (0 - is_closed_bracket);
