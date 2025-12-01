@@ -65,7 +65,7 @@ template keyless(
     MAX_IAT_KV_PAIR_LEN,    // ...ASCII iat field
     MAX_IAT_NAME_LEN,      // ...ASCII iat name
     MAX_IAT_VALUE_LEN,     // ...ASCII iat value
-    maxNonceKVPairLen,  // ...ASCII nonce field
+    MAX_NONCE_KV_PAIR_LEN,  // ...ASCII nonce field
     maxNonceNameLen,    // ...ASCII nonce name
     maxNonceValueLen,   // ...ASCII nonce value
     maxEVKVPairLen,     // ...ASCII email verified field
@@ -428,12 +428,12 @@ template keyless(
     jwt_not_expired === 1;
 
     // Check nonce field is in the JWT
-    signal input nonce_field[maxNonceKVPairLen];
-    signal input nonce_field_string_bodies[maxNonceKVPairLen];
+    signal input nonce_field[MAX_NONCE_KV_PAIR_LEN];
+    signal input nonce_field_string_bodies[MAX_NONCE_KV_PAIR_LEN];
     signal input nonce_field_len;
     signal input nonce_index;
-    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, maxNonceKVPairLen)(jwt_payload, jwt_payload_hash, nonce_field, nonce_field_len, nonce_index);
-    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, maxNonceKVPairLen)(string_bodies, jwt_payload_hash, nonce_field_string_bodies, nonce_field_len, nonce_index);
+    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_NONCE_KV_PAIR_LEN)(jwt_payload, jwt_payload_hash, nonce_field, nonce_field_len, nonce_index);
+    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_NONCE_KV_PAIR_LEN)(string_bodies, jwt_payload_hash, nonce_field_string_bodies, nonce_field_len, nonce_index);
     EnforceNotNested(MAX_JWT_PAYLOAD_LEN)(nonce_index, nonce_field_len, unquoted_brackets_depth_map);
 
     // Perform necessary checks on nonce field
@@ -444,7 +444,7 @@ template keyless(
     signal input nonce_name[maxNonceNameLen];
     signal input nonce_value[maxNonceValueLen];
 
-    ParseJWTFieldWithQuotedValue(maxNonceKVPairLen, maxNonceNameLen, maxNonceValueLen)(nonce_field, nonce_name, nonce_value, nonce_field_string_bodies, nonce_field_len, nonce_name_len, nonce_value_index, nonce_value_len, nonce_colon_index, 0);
+    ParseJWTFieldWithQuotedValue(MAX_NONCE_KV_PAIR_LEN, maxNonceNameLen, maxNonceValueLen)(nonce_field, nonce_name, nonce_value, nonce_field_string_bodies, nonce_field_len, nonce_name_len, nonce_value_index, nonce_value_len, nonce_colon_index, 0);
 
     // Check name of the nonce field is correct
     var required_nonce_name[nonce_name_len] = [110, 111, 110, 99, 101]; // nonce
