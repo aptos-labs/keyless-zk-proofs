@@ -87,16 +87,15 @@ impl From<&RsaPrivateKey> for RsaPublicKey {
     }
 }
 
-pub fn gen_test_jwk_keypair() -> impl TestJWKKeyPair {
-    gen_test_jwk_keypair_with_kid_override("test-rsa")
+/// Generates a test JWK keypair
+pub fn generate_test_jwk_keypair() -> impl TestJWKKeyPair {
+    generate_test_jwk_keypair_with_kid("test-rsa")
 }
 
-pub fn gen_test_jwk_keypair_with_kid_override(kid: &str) -> impl TestJWKKeyPair {
+/// Generates a test JWK keypair with the given KID
+pub fn generate_test_jwk_keypair_with_kid(kid: &str) -> impl TestJWKKeyPair {
+    let exp = BigUint::from_str(TEST_JWK_EXPONENT_STR).unwrap();
     let mut rng = rand_core::OsRng;
-    DefaultTestJWKKeyPair::new_with_kid_and_exp(
-        &mut rng,
-        kid,
-        num_bigint::BigUint::from_str(TEST_JWK_EXPONENT_STR).unwrap(),
-    )
-    .unwrap()
+
+    DefaultTestJWKKeyPair::new_with_kid_and_exp(&mut rng, kid, exp).unwrap()
 }

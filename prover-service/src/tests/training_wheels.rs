@@ -26,11 +26,11 @@ fn test_validate_jwt_invalid_signature() {
 
     // Create a test case and convert it to a prover request input
     let testcase = ProofTestCase::default_with_payload(jwt_payload).compute_nonce();
-    let jwk_keypair = utils::gen_test_jwk_keypair();
+    let jwk_keypair = utils::generate_test_jwk_keypair();
     let prover_request_input = testcase.convert_to_prover_request(&jwk_keypair);
 
     // Verify the JWT signature using a different keypair to simulate an invalid signature
-    let another_jwk_keypair = utils::gen_test_jwk_keypair();
+    let another_jwk_keypair = utils::generate_test_jwk_keypair();
     let result = training_wheels::validate_jwt_signature(
         &another_jwk_keypair.into_rsa_jwk(),
         &prover_request_input.jwt_b64,
@@ -59,7 +59,7 @@ fn test_validate_jwt_sig_and_dates_expired() {
 fn test_jwt_signature_validation(jwt_payload: TestJWTPayload, expect_success: bool) {
     // Create a test case and convert it to a prover request input
     let testcase = ProofTestCase::default_with_payload(jwt_payload).compute_nonce();
-    let jwk_keypair = utils::gen_test_jwk_keypair();
+    let jwk_keypair = utils::generate_test_jwk_keypair();
     let prover_request_input = testcase.convert_to_prover_request(&jwk_keypair);
 
     // Verify the JWT signature

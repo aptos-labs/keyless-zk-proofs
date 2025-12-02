@@ -189,7 +189,7 @@ async fn test_federated_jwk_fetch_fails_for_missing_kid() {
 fn get_decoded_jwt(kid: &str, jwt_payload: TestJWTPayload) -> DecodedJWT {
     // Create the prover request input
     let testcase = ProofTestCase::default_with_payload(jwt_payload).compute_nonce();
-    let jwk_keypair = utils::gen_test_jwk_keypair_with_kid_override(kid);
+    let jwk_keypair = utils::generate_test_jwk_keypair_with_kid(kid);
     let prover_request_input = testcase.convert_to_prover_request(&jwk_keypair);
 
     // Return the decoded JWT
