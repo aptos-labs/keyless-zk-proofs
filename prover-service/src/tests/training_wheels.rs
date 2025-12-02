@@ -32,7 +32,7 @@ fn test_validate_jwt_invalid_signature() {
     // Verify the JWT signature using a different keypair to simulate an invalid signature
     let another_jwk_keypair = utils::generate_test_jwk_keypair();
     let result = training_wheels::validate_jwt_signature(
-        &another_jwk_keypair.into_rsa_jwk(),
+        &another_jwk_keypair.get_rsa_jwk(),
         &prover_request_input.jwt_b64,
     );
 
@@ -64,7 +64,7 @@ fn test_jwt_signature_validation(jwt_payload: TestJWTPayload, expect_success: bo
 
     // Verify the JWT signature
     let result = training_wheels::validate_jwt_signature(
-        &jwk_keypair.into_rsa_jwk(),
+        &jwk_keypair.get_rsa_jwk(),
         &prover_request_input.jwt_b64,
     );
     if expect_success {

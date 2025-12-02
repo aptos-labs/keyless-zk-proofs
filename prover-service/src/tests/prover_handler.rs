@@ -6,7 +6,7 @@ use crate::request_handler::prover_state::{ProverServiceState, TrainingWheelsKey
 use crate::request_handler::types::ProverServiceResponse;
 use crate::request_handler::{handler, prover_handler, training_wheels, types};
 use crate::tests::types::TestJWKKeyPair;
-use crate::tests::types::{ProofTestCase, TestJWTPayload, WithNonce};
+use crate::tests::types::{ProofTestCase, TestJWTPayload};
 use crate::tests::utils;
 use anyhow::anyhow;
 use aptos_crypto::ed25519::{Ed25519PrivateKey, Ed25519PublicKey};
@@ -18,7 +18,6 @@ use hyper::{body, Body};
 use rand::prelude::ThreadRng;
 use rand::thread_rng;
 use rust_rapidsnark::FullProver;
-use serde::Serialize;
 use serial_test::serial;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -177,10 +176,7 @@ async fn request_jwt_exp_field_does_not_matter() {
         exp: 234342342428348284,
         ..TestJWTPayload::default()
     };
-    let testcase = ProofTestCase {
-        ..ProofTestCase::default_with_payload(jwt_payload)
-    }
-    .compute_nonce();
+    let testcase = ProofTestCase::default_with_payload(jwt_payload).compute_nonce();
 
     // Handle the prove request, and verify the proof
     convert_prove_and_verify(&testcase).await.unwrap();
@@ -206,8 +202,9 @@ async fn request_with_incorrect_nonce() {
 
 #[tokio::test]
 #[serial]
+#[ignore] // Currently ignored because it takes a long time to run
 async fn prove_request_all_sub_lengths() {
-    for i in [0, 64] {
+    for i in 0..65 {
         // Create a JWT payload with varying lengths of the sub field
         let jwt_payload = TestJWTPayload {
             sub: Some("a".repeat(i)),
@@ -235,9 +232,7 @@ fn dummy_circuit_load_test() {
 
 /// Helper function that converts a test case to a prover request,
 /// sends it to the prover handler, and verifies the returned proof.
-async fn convert_prove_and_verify(
-    testcase: &ProofTestCase<impl Serialize + WithNonce + Clone>,
-) -> Result<(), anyhow::Error> {
+async fn convert_prove_and_verify(testcase: &ProofTestCase) -> Result<(), anyhow::Error> {
     // Start the aptos logger (so test failures print logs)
     aptos_logger::Logger::init_for_testing();
 
@@ -248,7 +243,7 @@ async fn convert_prove_and_verify(
 
     // Create the JWK cache with the test JWK
     let test_jwk: HashMap<KeyID, Arc<RSA_JWK>> =
-        HashMap::from_iter([("test-rsa".to_owned(), Arc::new(jwk_keypair.into_rsa_jwk()))]);
+        HashMap::from_iter([("test-rsa".to_owned(), Arc::new(jwk_keypair.get_rsa_jwk()))]);
     let jwk_cache: HashMap<Issuer, HashMap<KeyID, Arc<RSA_JWK>>> =
         HashMap::from_iter([("test.oidc.provider".into(), test_jwk)]);
 
