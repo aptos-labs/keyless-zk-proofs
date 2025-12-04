@@ -1,34 +1,57 @@
 // Copyright (c) Aptos Foundation
 
-use std::path::PathBuf;
-use std::process::Command;
-use std::time::{SystemTime, UNIX_EPOCH};
-
-use super::{gen_test_ephemeral_pk, gen_test_ephemeral_pk_blinder, get_test_pepper};
 use crate::external_resources::prover_config::ProverServiceConfig;
 use crate::request_handler::training_wheels;
 use crate::request_handler::types::{EphemeralPublicKeyBlinder, RequestInput};
-use crate::tests::common::get_config;
-use crate::tests::common::rsa::{RsaPrivateKey, RsaPublicKey};
+use crate::tests::utils::{RsaPrivateKey, RsaPublicKey};
+use crate::utils;
+use aptos_crypto::ed25519::Ed25519PrivateKey;
+use aptos_crypto::encoding_type::EncodingType;
+use aptos_crypto::PrivateKey;
 use aptos_keyless_common::input_processing::encoding::FromFr;
+use aptos_logger::info;
 use aptos_types::{
     jwks::rsa::RSA_JWK, keyless::Pepper, transaction::authenticator::EphemeralPublicKey,
 };
-use ark_ff::{BigInteger, PrimeField};
 use jsonwebtoken::{Algorithm, Header};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
+use std::process::Command;
+use std::str::FromStr;
+use std::time::{SystemTime, UNIX_EPOCH};
 
+// The name of the local testing config file
+const LOCAL_TESTING_CONFIG_FILE_NAME: &str = "config_local_testing.yml";
+
+// Ensures that the local testing setup has been procured
+static LOCAL_SETUP_PROCURED: Lazy<bool> = Lazy::new(|| {
+    // Determine the repository root directory
+    let mut repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let repo_root_found = repo_root.pop();
+
+    // Run the setup script to procure the local testing setup
+    if repo_root_found {
+        Command::new("bash")
+            .arg("scripts/task.sh")
+            .arg("setup")
+            .arg("procure-testing-setup")
+            .current_dir(repo_root)
+            .status()
+            .is_ok()
+    } else {
+        false
+    }
+});
+
+/// JWT payload struct for testing
 #[derive(Serialize, Deserialize, Clone)]
 pub struct TestJWTPayload {
     pub azp: String,
     pub aud: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub sub: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub email: Option<String>,
     pub hd: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub email_verified: Option<bool>,
     pub at_hash: String,
     pub name: String,
@@ -42,12 +65,9 @@ pub struct TestJWTPayload {
     pub nonce: String,
 }
 
-pub trait WithNonce {
-    fn with_nonce(&self, nonce: &str) -> Self;
-}
-
-impl WithNonce for TestJWTPayload {
-    fn with_nonce(&self, nonce: &str) -> Self {
+impl TestJWTPayload {
+    /// Creates a new TestJWTPayload with the given nonce
+    fn new_with_nonce(&self, nonce: &str) -> Self {
         Self {
             nonce: String::from(nonce),
             ..self.clone()
@@ -83,16 +103,15 @@ impl Default for TestJWTPayload {
     }
 }
 
-// JWK keypair trait/struct
-
+/// Trait for test JWK key pairs
 pub trait TestJWKKeyPair {
     fn pubkey_mod_b64(&self) -> String;
     fn kid(&self) -> &str;
     fn sign(&self, payload: &impl Serialize) -> String;
-    #[allow(clippy::all)]
-    fn into_rsa_jwk(&self) -> RSA_JWK;
+    fn get_rsa_jwk(&self) -> RSA_JWK;
 }
 
+/// Default implementation of TestJWKKeyPair using RSA keys
 pub struct DefaultTestJWKKeyPair {
     kid: String,
     private_key: RsaPrivateKey,
@@ -123,30 +142,34 @@ impl TestJWKKeyPair for DefaultTestJWKKeyPair {
         &self.kid
     }
 
-    #[allow(clippy::all)]
+    #[allow(clippy::field_reassign_with_default)]
     fn sign(&self, payload: &impl Serialize) -> String {
+        // Create the JWT header
         let mut header = Header::default();
         header.alg = Algorithm::RS256;
         header.kid = Some(self.kid.clone());
 
+        // Create the JWT
         let jwt =
             jsonwebtoken::encode(&header, &payload, &self.private_key.as_encoding_key()).unwrap();
 
+        // Verify the signature before returning (to ensure correctness)
         let jwk = RSA_JWK::new_256_aqab(self.kid.as_str(), &self.pubkey_mod_b64());
         assert!(jwk.verify_signature_without_exp_check(&jwt).is_ok());
 
         jwt
     }
 
-    fn into_rsa_jwk(&self) -> RSA_JWK {
+    fn get_rsa_jwk(&self) -> RSA_JWK {
         RSA_JWK::new_256_aqab(&self.kid, &self.pubkey_mod_b64())
     }
 }
 
+/// Struct representing a proof test case
 #[derive(Clone)]
-pub struct ProofTestCase<T: Serialize + WithNonce + Clone> {
+pub struct ProofTestCase {
     pub prover_service_config: ProverServiceConfig,
-    pub jwt_payload: T,
+    pub jwt_payload: TestJWTPayload,
     pub epk: EphemeralPublicKey,
     pub epk_blinder_fr: ark_bn254::Fr,
     pub pepper: Pepper,
@@ -158,65 +181,38 @@ pub struct ProofTestCase<T: Serialize + WithNonce + Clone> {
     pub skip_aud_checks: bool,
 }
 
-impl<T: Serialize + WithNonce + Clone> ProofTestCase<T> {
-    #[allow(clippy::all)]
-    #[allow(dead_code)]
-    pub fn new_with_test_epk_and_blinder(
-        jwt_payload: T,
-        pepper: Pepper,
-        exp_date: u64,
-        exp_horizon: u64,
-        extra_field: Option<String>,
-        uid_key: String,
-        idc_aud: Option<String>,
-    ) -> Self {
+impl ProofTestCase {
+    /// Creates a default test case with the given JWT payload
+    pub fn default_with_payload(jwt_payload: TestJWTPayload) -> Self {
+        // Ensure that the local setup has been procured
         assert!(*LOCAL_SETUP_PROCURED);
-        let prover_service_config = get_config();
-        let circuit_metadata = prover_service_config.load_circuit_params();
-        let epk = gen_test_ephemeral_pk();
-        let epk_blinder = gen_test_ephemeral_pk_blinder();
-        let nonce =
-            training_wheels::compute_nonce(exp_date, &epk, epk_blinder, &circuit_metadata).unwrap();
-        let payload_with_nonce = jwt_payload.with_nonce(&nonce.to_string());
+
+        // Generate test ephemeral public key and blinder
+        let epk = generate_test_ephemeral_pk();
+        let epk_blinder = ark_bn254::Fr::from_str("42").unwrap();
+        let pepper = Pepper::from_number(42);
 
         Self {
-            prover_service_config,
-            jwt_payload: payload_with_nonce as T,
-            epk,
-            epk_blinder_fr: epk_blinder,
-            pepper,
-            epk_expiry_time_secs: exp_date,
-            epk_expiry_horizon_secs: exp_horizon,
-            extra_field,
-            uid_key,
-            idc_aud,
-            skip_aud_checks: false,
-        }
-    }
-
-    pub fn default_with_payload(jwt_payload: T) -> Self {
-        assert!(*LOCAL_SETUP_PROCURED);
-        let epk = gen_test_ephemeral_pk();
-        let epk_blinder = gen_test_ephemeral_pk_blinder();
-        let pepper = get_test_pepper();
-
-        Self {
-            prover_service_config: get_config(),
+            prover_service_config: get_prover_service_config(),
             jwt_payload,
             epk,
             epk_blinder_fr: epk_blinder,
             pepper,
             epk_expiry_time_secs: 0,
             epk_expiry_horizon_secs: 100,
-            extra_field: Some(String::from("name")),
-            uid_key: String::from("email"),
+            extra_field: Some("name".into()),
+            uid_key: "email".into(),
             idc_aud: None,
             skip_aud_checks: false,
         }
     }
 
+    /// Computes the nonce and returns a new test case with the updated JWT payload
     pub fn compute_nonce(self) -> Self {
+        // Ensure that the local setup has been procured
         assert!(*LOCAL_SETUP_PROCURED);
+
+        // Compute the nonce
         let circuit_metadata = self.prover_service_config.load_circuit_params();
         let nonce = training_wheels::compute_nonce(
             self.epk_expiry_time_secs,
@@ -225,17 +221,18 @@ impl<T: Serialize + WithNonce + Clone> ProofTestCase<T> {
             &circuit_metadata,
         )
         .unwrap();
-        let payload_with_nonce = self.jwt_payload.with_nonce(&nonce.to_string());
+
+        // Create a new payload with the nonce
+        let jwt_payload = self.jwt_payload.new_with_nonce(&nonce.to_string());
 
         Self {
-            jwt_payload: payload_with_nonce,
+            jwt_payload,
             ..self
         }
     }
 
+    /// Converts the test case to a prover request input
     pub fn convert_to_prover_request(&self, jwk_keypair: &impl TestJWKKeyPair) -> RequestInput {
-        let _epk_blinder_hex_string = hex::encode(self.epk_blinder_fr.into_bigint().to_bytes_le());
-
         RequestInput {
             jwt_b64: jwk_keypair.sign(&self.jwt_payload),
             epk: self.epk.clone(),
@@ -252,18 +249,40 @@ impl<T: Serialize + WithNonce + Clone> ProofTestCase<T> {
     }
 }
 
-static LOCAL_SETUP_PROCURED: Lazy<bool> = Lazy::new(|| {
-    let mut repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let repo_root_found = repo_root.pop();
-    if repo_root_found {
-        Command::new("bash")
-            .arg("scripts/task.sh")
-            .arg("setup")
-            .arg("procure-testing-setup")
-            .current_dir(repo_root)
-            .status()
-            .is_ok()
-    } else {
-        false
+/// Generates a test ephemeral public key
+fn generate_test_ephemeral_pk() -> EphemeralPublicKey {
+    // Generate a test Ed25519 ephemeral keypair
+    let ed25519_private_key: Ed25519PrivateKey = EncodingType::Hex
+        .decode_key(
+            "zkid test ephemeral private key",
+            "0x76b8e0ada0f13d90405d6ae55386bd28bdd219b8a08ded1aa836efcc8b770dc7"
+                .as_bytes()
+                .to_vec(),
+        )
+        .unwrap();
+    let ed25519_public_key = ed25519_private_key.public_key();
+
+    // Return the ephemeral public key
+    EphemeralPublicKey::ed25519(ed25519_public_key)
+}
+
+/// Loads and returns the prover service config for local testing
+fn get_prover_service_config() -> ProverServiceConfig {
+    // Read the config file contents
+    let config_file_contents = utils::read_string_from_file_path(LOCAL_TESTING_CONFIG_FILE_NAME);
+
+    // Parse the config file contents into the config struct
+    match serde_yaml::from_str(&config_file_contents) {
+        Ok(prover_service_config) => {
+            info!(
+                "Loaded the prover service config: {:?}",
+                prover_service_config
+            );
+            prover_service_config
+        }
+        Err(error) => panic!(
+            "Failed to parse prover service config yaml file: {}! Error: {}",
+            LOCAL_TESTING_CONFIG_FILE_NAME, error
+        ),
     }
-});
+}
