@@ -25,6 +25,7 @@ include "../bigint/functions/all.circom";
 // a * b = r mod p
 // a * b - p * q - r for some q
 template FpMul(N, K) {
+    // TODO: Fix hardcoded scalar field size
     assert(N + N + log_ceil(K) + 2 <= 252);
     signal input a[K];
     signal input b[K];
