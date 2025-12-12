@@ -9,9 +9,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 #[test]
 fn test_validate_default_jwt() {
     // Create a default JWT payload
-    let jwt_payload = TestJWTPayload {
-        ..TestJWTPayload::default()
-    };
+    let jwt_payload = TestJWTPayload::default();
 
     // Verify the JWT signature
     test_jwt_signature_validation(jwt_payload, true);
@@ -20,9 +18,7 @@ fn test_validate_default_jwt() {
 #[test]
 fn test_validate_jwt_invalid_signature() {
     // Create a default JWT payload
-    let jwt_payload = TestJWTPayload {
-        ..TestJWTPayload::default()
-    };
+    let jwt_payload = TestJWTPayload::default();
 
     // Create a test case and convert it to a prover request input
     let testcase = ProofTestCase::default_with_payload(jwt_payload).compute_nonce();

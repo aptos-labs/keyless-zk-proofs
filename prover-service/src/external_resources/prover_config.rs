@@ -18,7 +18,7 @@ const MAIN_WASM_FILE_NAME: &str = "main.wasm";
 #[serde(default, deny_unknown_fields)]
 pub struct ProverServiceConfig {
     pub setup_dir: String,
-    pub resources_dir: String, // Directory with prover/verification key and witness gen binary
+    pub resources_dir: String,
     pub zkey_filename: String,
     pub verification_key_filename: String,
     pub witness_gen_binary_filename: String,
@@ -26,11 +26,9 @@ pub struct ProverServiceConfig {
     pub jwk_refresh_rate_secs: u64,
     pub port: u16,
     pub metrics_port: u16,
-    #[serde(default)]
     pub enable_test_provider: bool,
-    #[serde(default)]
     pub enable_federated_jwks: bool,
-    #[serde(default)]
+    pub disable_jwt_time_based_checks: bool,
     pub use_insecure_jwk_for_test: bool,
     pub max_committed_epk_bytes: usize,
 }
@@ -39,7 +37,7 @@ impl Default for ProverServiceConfig {
     fn default() -> Self {
         Self {
             setup_dir: "default".into(),                   // Default setup directory
-            resources_dir: "/resources/ceremonies".into(), // Default resources directory
+            resources_dir: "/resources/ceremonies".into(), // Default resources directory (with prover/verification key and witness gen binary)
             zkey_filename: "prover_key.zkey".into(),       // Default zkey filename
             verification_key_filename: "verification_key.json".into(), // Default verification key filename
             witness_gen_binary_filename: "main_c".into(), // Default witness generation binary filename
@@ -49,6 +47,7 @@ impl Default for ProverServiceConfig {
             metrics_port: 9100,                           // Run the metrics service on port 9100
             enable_test_provider: false, // Don't enable the test OIDC provider by default
             enable_federated_jwks: false, // Disable federated JWKs by default
+            disable_jwt_time_based_checks: false, // Enable JWT time-based checks by default
             use_insecure_jwk_for_test: false, // Don't use insecure JWK for testing by default
             max_committed_epk_bytes: 93, // 3 * BYTES_PACKED_PER_SCALAR (31) = 93
         }

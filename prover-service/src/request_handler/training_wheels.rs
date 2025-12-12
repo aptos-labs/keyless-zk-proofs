@@ -85,31 +85,32 @@ pub async fn preprocess_and_validate_request(
 ) -> anyhow::Result<VerifiedInput> {
     // Get the decoded JWT and the JWK
     let jwt = DecodedJWT::from_b64(&request_input.jwt_b64)?;
-    let jwk = get_jwk(
-        &prover_service_state.prover_service_config(),
-        &jwt,
-        jwk_cache,
-        federated_jwks,
-    )
-    .await?;
+    let prover_service_config = prover_service_state.prover_service_config();
+    let jwk = get_jwk(&prover_service_config, &jwt, jwk_cache, federated_jwks).await?;
 
     // Validate the JWT signature.
     // Keyless relation condition 10 captured: https://github.com/aptos-foundation/AIPs/blob/f133e29d999adf31c4f41ce36ae1a808339af71e/aips/aip-108.md?plain=1#L95
     validate_jwt_signature(jwk.as_ref(), &request_input.jwt_b64)?;
 
-    // Ensure the expiration date is within the allowed horizon.
-    // Keyless relation condition 8 captured: https://github.com/aptos-foundation/AIPs/blob/f133e29d999adf31c4f41ce36ae1a808339af71e/aips/aip-108.md?plain=1#L92
-    ensure!(
-        (request_input.exp_date_secs as u128)
-            < (jwt.payload.iat as u128) + (request_input.exp_horizon_secs as u128)
-    );
+    // Note: we allow JWT time-based checks to be disabled for testing purposes.
+    // This is currently relied on by the TS SDK tests (against the devnet prover service).
+    // TODO: we should really avoid this.
+    if !prover_service_config.disable_jwt_time_based_checks {
+        // Ensure the expiration date is within the allowed horizon.
+        // Keyless relation condition 8 captured: https://github.com/aptos-foundation/AIPs/blob/f133e29d999adf31c4f41ce36ae1a808339af71e/aips/aip-108.md?plain=1#L92
+        ensure!(
+            (request_input.exp_date_secs as u128)
+                < (jwt.payload.iat as u128) + (request_input.exp_horizon_secs as u128),
+            "jwt expiration date exceeds allowed horizon"
+        );
 
-    // Verify that iat is not in the future
-    let now_unix_secs = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
-    ensure!(
-        jwt.payload.iat <= now_unix_secs,
-        "jwt which was issued in the future"
-    );
+        // Verify that iat is not in the future
+        let now_unix_secs = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
+        ensure!(
+            jwt.payload.iat <= now_unix_secs,
+            "jwt was issued in the future"
+        );
+    }
 
     // Verify the computed nonce matches the one in the JWT.
     // Keyless relation condition 7 captured: https://github.com/aptos-foundation/AIPs/blob/f133e29d999adf31c4f41ce36ae1a808339af71e/aips/aip-108.md?plain=1#L90
