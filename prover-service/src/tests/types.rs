@@ -247,6 +247,11 @@ impl ProofTestCase {
             skip_aud_checks: self.skip_aud_checks,
         }
     }
+
+    /// Updates the prover service config
+    pub fn update_prover_service_config(&mut self, prover_service_config: ProverServiceConfig) {
+        self.prover_service_config = prover_service_config;
+    }
 }
 
 /// Generates a test ephemeral public key

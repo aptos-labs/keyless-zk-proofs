@@ -21,6 +21,7 @@ use rust_rapidsnark::FullProver;
 use serial_test::serial;
 use std::collections::HashMap;
 use std::sync::Arc;
+use std::time::SystemTime;
 
 #[tokio::test]
 #[serial]
@@ -154,8 +155,8 @@ async fn prove_request_with_wrong_uid_key() {
 #[tokio::test]
 #[serial]
 #[should_panic]
-async fn prove_request_with_invalid_exp_date() {
-    // Create a default JWT payload with an invalid exp date
+async fn prove_request_with_invalid_epk_exp_date() {
+    // Create a default JWT payload with an invalid epk exp date
     let jwt_payload = TestJWTPayload::default();
     let testcase = ProofTestCase {
         epk_expiry_horizon_secs: 100,
@@ -163,6 +164,64 @@ async fn prove_request_with_invalid_exp_date() {
         ..ProofTestCase::default_with_payload(jwt_payload)
     }
     .compute_nonce();
+
+    // Handle the prove request, and verify the proof
+    convert_prove_and_verify(&testcase).await.unwrap();
+}
+
+#[tokio::test]
+#[serial]
+#[should_panic]
+async fn prove_request_with_future_jwt_iat() {
+    // Create a JWT payload with a future issued at time
+    let duration_since_epoch = SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap();
+    let jwt_payload = TestJWTPayload {
+        iat: duration_since_epoch.as_secs() + 1000,
+        ..TestJWTPayload::default()
+    };
+    let testcase = ProofTestCase::default_with_payload(jwt_payload).compute_nonce();
+
+    // Handle the prove request, and verify the proof
+    convert_prove_and_verify(&testcase).await.unwrap();
+}
+
+#[tokio::test]
+#[serial]
+async fn prove_request_with_future_jwt_iat_check_disabled() {
+    // Create a JWT payload with a future issued at time
+    let duration_since_epoch = SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap();
+    let jwt_payload = TestJWTPayload {
+        iat: duration_since_epoch.as_secs() + 1000,
+        ..TestJWTPayload::default()
+    };
+    let mut testcase = ProofTestCase::default_with_payload(jwt_payload).compute_nonce();
+
+    // Disable time-based JWT checks in the prover service config
+    let mut prover_service_config = testcase.prover_service_config.clone();
+    prover_service_config.disable_jwt_time_based_checks = true;
+    testcase.update_prover_service_config(prover_service_config);
+
+    // Handle the prove request, and verify the proof
+    convert_prove_and_verify(&testcase).await.unwrap();
+}
+
+#[tokio::test]
+#[serial]
+#[should_panic]
+async fn prove_request_with_expired_jwt() {
+    // Create a JWT payload with an expired expiration time
+    let duration_since_epoch = SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap();
+    let jwt_payload = TestJWTPayload {
+        exp: duration_since_epoch.as_secs() - 1000,
+        ..TestJWTPayload::default()
+    };
+    let testcase = ProofTestCase::default_with_payload(jwt_payload).compute_nonce();
 
     // Handle the prove request, and verify the proof
     convert_prove_and_verify(&testcase).await.unwrap();
