@@ -117,7 +117,7 @@ template keyless(
     signal input b64u_jwt_payload_sha2_padded_len;
 
     // Checks that the base64url-encoded JWT payload & header are correctly concatenated:
-    //   i.e., that `b64u_jwt_no_sig_sha2_padded` is the concatenation of `b64u_jwt_header_w_dot` with` b64u_jwt_payload_sha2_padded`
+    //   i.e., that `b64u_jwt_no_sig_sha2_padded = b64u_jwt_header_w_dot || b64u_jwt_payload_sha2_padded`
     //
     // Notes:
     //   With --O2 via circom_tester, this takes 40,458 constraints, 40,159 vars
@@ -130,16 +130,16 @@ template keyless(
         b64u_jwt_payload_sha2_padded_len
     );
 
-    // TODO(Perf): Why not perform this check on `b64u_jwt_header_w_dot`, which is shorter & should save
-    //   some constraints? (Since the concatenation check makes it irrelevant where we check this.)
+    // Checks that the base64url-encoded JWT header with a dot actually has a dot
+    //   i.e., that `b64u_jwt_header_w_dot =  b64u_jwt_header || '.'`, for some `b64u_jwt_header`
     //
     // Note: We need this to ensure the circuit cannot be tricked in terms of where the base64url-encoded
     //   JWT payload starts. Even though the circuit does not care about what's in the header, it 
     //   needs to ensure it's looking at the right payload (e.g., if it misinterprets the header
     //   as part of the payload *and* the header is adversarially-controlled, the circuit could be
     //   tricked into parsing an `email` field maliciously placed in the header).
-    var dot = SelectArrayValue(MAX_B64U_JWT_NO_SIG_LEN)(
-        b64u_jwt_no_sig_sha2_padded,
+    var dot = SelectArrayValue(MAX_B64U_JWT_HEADER_W_DOT_LEN)(
+        b64u_jwt_header_w_dot,
         b64u_jwt_header_w_dot_len - 1
     );
 
