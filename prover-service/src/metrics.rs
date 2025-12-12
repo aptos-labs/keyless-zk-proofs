@@ -45,8 +45,8 @@ const INVALID_PATH: &str = "invalid-path";
 // Histogram for tracking time taken to fetch JWKs by issuer and result
 static JWK_FETCH_SECONDS: Lazy<HistogramVec> = Lazy::new(|| {
     register_histogram_vec!(
-        "keyless_pepper_service_jwk_fetch_seconds",
-        "Time taken to fetch keyless pepper service jwks",
+        "keyless_prover_service_jwk_fetch_seconds",
+        "Time taken to fetch keyless prover service jwks",
         &["issuer", "succeeded"],
         LATENCY_BUCKETS.clone()
     )
