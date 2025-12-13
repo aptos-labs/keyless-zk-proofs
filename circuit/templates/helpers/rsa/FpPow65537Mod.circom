@@ -9,6 +9,7 @@ template FpPow65537Mod(N, K) {
     signal input modulus[K];
     signal output out[K];
 
+    // This is because the exponent is 2^16 + 1
     component doublers[16];
     component adder = FpMul(N, K);
     for (var i = 0; i < 16; i++) {
