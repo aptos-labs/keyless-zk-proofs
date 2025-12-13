@@ -163,7 +163,7 @@ template keyless(
         str <== b64u_jwt_payload_sha2_padded,
         str_hash <== b64u_jwt_payload_sha2_padded_hash,
         substr <== b64u_jwt_payload,
-        substr_len <== b64u_jwt_payload_sha2_padded_len,
+        substr_len <== b64u_jwt_payload_sha2_padded_len, // TODO: How is this the right len?
         start_index <== 0
     );
 
@@ -228,13 +228,6 @@ template keyless(
         b64u_jwt_payload_sha2_padded_len
     );
 
-    // TODO(Perf): If we are hashing a (collision-resistant) base64url-encoding of the payload above for the
-    //   concatenation check, we could avoid this extra hashing here, perhaps?
-    signal jwt_payload_hash <== HashBytesToFieldWithLen(MAX_JWT_PAYLOAD_LEN)(
-        jwt_payload,
-        jwt_payload_len
-    );
-
     //
     // Computing hints for securing our JWT parsing
     //
@@ -257,14 +250,23 @@ template keyless(
     //
     // JWT field matching
     //
+    // For the Fiat-Shamir transform of AssertIsSubstring(jwt_payload, ...) calls, instead of hashing `jwt_payload` as:
+    //    H(jwt_payload)
+    // we hash its SHA2-padded, base64url-encoding as:
+    //    H(jwt_payload) =[bydef]= H(b64url_encode(sha2pad(jwt_payload))) =
+    //                   = b64u_jwt_payload_sha2_padded_hash
+    //
+    // Given this encoding is one-to-one, this will not allow for "grinding".
+    //  - base64url_decode(base64url_encode(m)) = m, \forall m
+    //  - sha2pad^{-1}(sha2pad(m)) = m, \forall |m| < 2^64 bits
 
     // Check aud field is in the JWT
     signal input aud_field[MAX_AUD_KV_PAIR_LEN]; // ASCII
     signal input aud_field_string_bodies[MAX_AUD_KV_PAIR_LEN]; // ASCII
     signal input aud_field_len; // ASCII
     signal input aud_index; // index of aud field in JWT payload
-    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_AUD_KV_PAIR_LEN)(jwt_payload, jwt_payload_hash, aud_field, aud_field_len, aud_index);
-    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_AUD_KV_PAIR_LEN)(string_bodies, jwt_payload_hash, aud_field_string_bodies, aud_field_len, aud_index);
+    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_AUD_KV_PAIR_LEN)(jwt_payload, b64u_jwt_payload_sha2_padded_hash, aud_field, aud_field_len, aud_index);
+    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_AUD_KV_PAIR_LEN)(string_bodies, b64u_jwt_payload_sha2_padded_hash, aud_field_string_bodies, aud_field_len, aud_index);
     EnforceNotNested(MAX_JWT_PAYLOAD_LEN)(aud_index, aud_field_len, unquoted_brackets_depth_map);
 
     // Perform necessary checks on aud field
@@ -309,8 +311,8 @@ template keyless(
     signal input uid_field_string_bodies[MAX_UID_KV_PAIR_LEN];
     signal input uid_field_len;
     signal input uid_index;
-    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_UID_KV_PAIR_LEN)(jwt_payload, jwt_payload_hash, uid_field, uid_field_len, uid_index);
-    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_UID_KV_PAIR_LEN)(string_bodies, jwt_payload_hash, uid_field_string_bodies, uid_field_len, uid_index);
+    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_UID_KV_PAIR_LEN)(jwt_payload, b64u_jwt_payload_sha2_padded_hash, uid_field, uid_field_len, uid_index);
+    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_UID_KV_PAIR_LEN)(string_bodies, b64u_jwt_payload_sha2_padded_hash, uid_field_string_bodies, uid_field_len, uid_index);
     EnforceNotNested(MAX_JWT_PAYLOAD_LEN)(uid_index, uid_field_len, unquoted_brackets_depth_map);
 
     // Perform necessary checks on user id field. Some fields this might be in practice are "sub" or "email"
@@ -330,7 +332,7 @@ template keyless(
     signal input use_extra_field;
     use_extra_field * (use_extra_field - 1) === 0; // Ensure 0 or 1
 
-    signal ef_passes <== IsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_EXTRA_FIELD_KV_PAIR_LEN)(jwt_payload, jwt_payload_hash, extra_field, extra_field_len, extra_index);
+    signal ef_passes <== IsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_EXTRA_FIELD_KV_PAIR_LEN)(jwt_payload, b64u_jwt_payload_sha2_padded_hash, extra_field, extra_field_len, extra_index);
     EnforceNotNested(MAX_JWT_PAYLOAD_LEN)(extra_index, extra_field_len, unquoted_brackets_depth_map);
 
     // Fail if use_extra_field = 1 and ef_passes = 0
@@ -363,7 +365,7 @@ template keyless(
     //     0        |     1     |   1
     //     0        |     0     |   1
     signal uid_is_email <== EmailVerifiedCheck(MAX_EMAIL_VERIFIED_NAME_LEN, MAX_EMAIL_VERIFIED_VALUE_LEN, MAX_UID_NAME_LEN)(ev_name, ev_value, ev_value_len, uid_name, uid_name_len);
-    signal ev_in_jwt <== IsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_EMAIL_VERIFIED_KV_PAIR_LEN)(jwt_payload, jwt_payload_hash, ev_field, ev_field_len, ev_index);
+    signal ev_in_jwt <== IsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_EMAIL_VERIFIED_KV_PAIR_LEN)(jwt_payload, b64u_jwt_payload_sha2_padded_hash, ev_field, ev_field_len, ev_index);
     signal not_ev_in_jwt <== NOT()(ev_in_jwt);
     signal ev_fail <== AND()(uid_is_email, not_ev_in_jwt);
     ev_fail === 0;
@@ -379,8 +381,8 @@ template keyless(
     signal input iss_field_string_bodies[MAX_ISS_KV_PAIR_LEN];
     signal input iss_field_len;
     signal input iss_index;
-    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_ISS_KV_PAIR_LEN)(jwt_payload, jwt_payload_hash, iss_field, iss_field_len, iss_index);
-    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_ISS_KV_PAIR_LEN)(string_bodies, jwt_payload_hash, iss_field_string_bodies, iss_field_len, iss_index);
+    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_ISS_KV_PAIR_LEN)(jwt_payload, b64u_jwt_payload_sha2_padded_hash, iss_field, iss_field_len, iss_index);
+    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_ISS_KV_PAIR_LEN)(string_bodies, b64u_jwt_payload_sha2_padded_hash, iss_field_string_bodies, iss_field_len, iss_index);
     EnforceNotNested(MAX_JWT_PAYLOAD_LEN)(iss_index, iss_field_len, unquoted_brackets_depth_map);
 
     // Perform necessary checks on iss field
@@ -403,7 +405,7 @@ template keyless(
     signal input iat_field[MAX_IAT_KV_PAIR_LEN];
     signal input iat_field_len;
     signal input iat_index;
-    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_IAT_KV_PAIR_LEN)(jwt_payload, jwt_payload_hash, iat_field, iat_field_len, iat_index);
+    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_IAT_KV_PAIR_LEN)(jwt_payload, b64u_jwt_payload_sha2_padded_hash, iat_field, iat_field_len, iat_index);
 
     // Perform necessary checks on iat field
     var IAT_NAME_LEN = 3; // iat
@@ -438,8 +440,8 @@ template keyless(
     signal input nonce_field_string_bodies[MAX_NONCE_KV_PAIR_LEN];
     signal input nonce_field_len;
     signal input nonce_index;
-    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_NONCE_KV_PAIR_LEN)(jwt_payload, jwt_payload_hash, nonce_field, nonce_field_len, nonce_index);
-    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_NONCE_KV_PAIR_LEN)(string_bodies, jwt_payload_hash, nonce_field_string_bodies, nonce_field_len, nonce_index);
+    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_NONCE_KV_PAIR_LEN)(jwt_payload, b64u_jwt_payload_sha2_padded_hash, nonce_field, nonce_field_len, nonce_index);
+    AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_NONCE_KV_PAIR_LEN)(string_bodies, b64u_jwt_payload_sha2_padded_hash, nonce_field_string_bodies, nonce_field_len, nonce_index);
     EnforceNotNested(MAX_JWT_PAYLOAD_LEN)(nonce_index, nonce_field_len, unquoted_brackets_depth_map);
 
     // Perform necessary checks on nonce field
