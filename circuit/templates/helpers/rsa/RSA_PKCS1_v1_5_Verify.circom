@@ -8,27 +8,23 @@ include "./FpPow65537Mod.circom";
 
 include "circomlib/circuits/bitify.circom";
 
-// Pkcs1v15 + Sha256
-// exp 65537
 template RSA_PKCS1_v1_5_Verify(LIMB_BIT_WIDTH, NUM_LIMBS) {
-    //signal input exp[NUM_LIMBS];
-    signal input sign[NUM_LIMBS];      // least-significant-limb first
+    signal input signature[NUM_LIMBS]; // least-significant-limb first
     signal input modulus[NUM_LIMBS];   // least-significant-limb first
+    signal input hash_limbs_le[4];     // least-significant-limb first
 
-    signal input hashed[4];     // least-significant-limb first
-
-    // sign ** exp mod modulus
+    // (signature ^ 65537) mod modulus
     component pm = FpPow65537Mod(LIMB_BIT_WIDTH, NUM_LIMBS);
     for (var i  = 0; i < NUM_LIMBS; i++) {
-        pm.base[i] <== sign[i];
+        pm.base[i] <== signature[i];
         //pm.exp[i] <== exp[i];
         pm.modulus[i] <== modulus[i];
     }
 
-    // 1. Check hashed data
+    // 1. Check hash_limbs_le data
     // 64 * 4 = 256 bit. the first 4 numbers
     for (var i = 0; i < 4; i++) {
-        hashed[i] === pm.out[i];
+        hash_limbs_le[i] === pm.out[i];
     }
     
     // 2. Check hash prefix and 1 byte 0x00
@@ -56,4 +52,3 @@ template RSA_PKCS1_v1_5_Verify(LIMB_BIT_WIDTH, NUM_LIMBS) {
     // 0b1111111111111111111111111111111111111111111111111
     pm.out[31] === 562949953421311;
 }
-

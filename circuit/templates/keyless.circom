@@ -39,9 +39,7 @@ include "./helpers/jwt/ParseJWTFieldWithQuotedValue.circom";
 include "./helpers/jwt/ParseJWTFieldWithUnquotedValue.circom";
 include "./helpers/jwt/StringBodies.circom";
 
-include "./helpers/packing/BigEndianBitsToScalars.circom";
-
-include "./helpers/rsa/RSA_PKCS1_v1_5_Verify.circom";
+include "./helpers/rsa/RSA_2048_e_65537_PKCS1_V1_5_Verify.circom";
 
 include "./helpers/sha/SHA2_256_PaddingVerify.circom";
 include "./helpers/sha/SHA2_256_Prepadded_Hash.circom";
@@ -537,29 +535,4 @@ template keyless(
     
     signal input public_inputs_hash;
     public_inputs_hash === computed_public_inputs_hash;
-}
-
-// Assumes the public key `e = 65537`
-// Assumes messages are 256-sized bit arrays
-template RSA_2048_e_65537_PKCS1_V1_5_Verify(SIGNATURE_LIMB_BIT_WIDTH, SIGNATURE_NUM_LIMBS) {
-    signal input signature[SIGNATURE_NUM_LIMBS];
-    signal input pubkey_modulus[SIGNATURE_NUM_LIMBS];
-    signal input message_bits[256];   // typicall, this is a hash of a larger message (in our case a SHA2-256 hash)
-
-    // Pack the 256-bit hashed message bits into 4 limbs
-    signal message_limbs[4] <== BigEndianBitsToScalars(256, SIGNATURE_LIMB_BIT_WIDTH)(message_bits);
-
-    // Note: pubkey_modulus has its AssertIs64BitLimbs() check done as part of Hash64BitLimbsToFieldWithLen
-    AssertIs64BitLimbs(SIGNATURE_NUM_LIMBS)(signature);
-    signal sig_ok <== BigLessThan(252, SIGNATURE_NUM_LIMBS)(signature, pubkey_modulus);
-    sig_ok === 1;
-
-    var message_limbs_le[4];
-    for (var i = 0; i < 4; i++) {
-        message_limbs_le[i] = message_limbs[3 - i];
-    }
-
-    RSA_PKCS1_v1_5_Verify(SIGNATURE_LIMB_BIT_WIDTH, SIGNATURE_NUM_LIMBS)(
-        signature, pubkey_modulus, message_limbs_le
-    );
 }
