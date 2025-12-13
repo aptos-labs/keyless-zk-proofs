@@ -61,8 +61,7 @@ template IsSubstring(MAX_STR_LEN, MAX_SUBSTR_LEN) {
 
     // Computes the Fiat-Shamir (FS) transform challenge.
     // `random_challenge = H(str_hash, substr_hash, substr_len, start_index)`
-    // TODO(Perf): Unnecessary to hash substr_len here, since substr_hash already contains it.
-    signal random_challenge <== Poseidon(4)([str_hash, substr_hash, substr_len, start_index]);
+    signal random_challenge <== Poseidon(3)([str_hash, substr_hash, start_index]);
 
     // \alpha^0, \alpha^1, \ldots, \alpha^N (where N = MAX_STR_LEN)
     signal challenge_powers[MAX_STR_LEN];
