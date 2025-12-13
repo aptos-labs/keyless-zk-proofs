@@ -82,3 +82,6 @@ public outputs: 0
 wires: 1343588
 labels: 6286968
 ```
+
+ > [!NOTE]
+ > We just care about "non-linear constraints" (i.e., R1CS constraints) and "wires" (i.e., R1CS variables).
