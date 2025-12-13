@@ -1,7 +1,5 @@
 pragma circom 2.2.2;
 
-include "../hashtofield/HashBytesToFieldWithLen.circom";
-
 include "../arrays/RightArraySelector.circom";
 include "../arrays/SelectArrayValue.circom";
 
@@ -19,14 +17,14 @@ include "circomlib/circuits/poseidon.circom";
 // - full_string = left || right where || is concatenation
 template AssertIsConcatenation(MAX_FULL_STR_LEN, MAX_LEFT_STR_LEN, MAX_RIGHT_STR_LEN) {
     signal input full_string[MAX_FULL_STR_LEN];
+    signal input full_hash;
     signal input left[MAX_LEFT_STR_LEN];
-    signal input right[MAX_RIGHT_STR_LEN];
     signal input left_len;
+    signal input left_hash;
+    signal input right[MAX_RIGHT_STR_LEN];
     signal input right_len;
+    signal input right_hash;
     
-    signal left_hash <== HashBytesToFieldWithLen(MAX_LEFT_STR_LEN)(left, left_len); 
-    signal right_hash <== HashBytesToFieldWithLen(MAX_RIGHT_STR_LEN)(right, right_len);
-    signal full_hash <== HashBytesToFieldWithLen(MAX_FULL_STR_LEN)(full_string, left_len+right_len);
     signal random_challenge <== Poseidon(4)([left_hash, right_hash, full_hash, left_len]);
 
     // Enforce that all values to the right of `left_len` in `left` are 0-padding. Otherwise an attacker could place the leftmost part of `right` at the end of `left` and still have the polynomial check pass
