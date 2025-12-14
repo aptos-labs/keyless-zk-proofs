@@ -85,9 +85,6 @@ template keyless(
     // Global variables
     //
 
-    // RSA-2048 signatures and pubkeys are stored as 32 limbs of 64 bits (8 bytes) each
-    var SIGNATURE_NUM_LIMBS = 32;
-
     // The maximum length of a base64url-decoded JWT payload.
     // Note: Recall that base64url encoding adds about 33% overhead.
     var MAX_JWT_PAYLOAD_LEN = (3 * MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN) \ 4;
@@ -205,12 +202,13 @@ template keyless(
     // JWT RSA signature verification
     //
 
-    // An RSA signature will be represented as a size-32 array of 64-bit limbs.
+    // RSA-2048 signatures and pubkeys are stored as 32 limbs of 64 bits (8 bytes) each
+    var SIGNATURE_NUM_LIMBS = 32;
+
     signal input signature[SIGNATURE_NUM_LIMBS];
     signal input pubkey_modulus[SIGNATURE_NUM_LIMBS];
 
-    var SIGNATURE_LIMB_BIT_WIDTH = 64;
-    RSA_2048_e_65537_PKCS1_V1_5_Verify(SIGNATURE_LIMB_BIT_WIDTH, SIGNATURE_NUM_LIMBS)(
+    RSA_2048_e_65537_PKCS1_V1_5_Verify()(
         signature, pubkey_modulus, jwt_hash
     );
 

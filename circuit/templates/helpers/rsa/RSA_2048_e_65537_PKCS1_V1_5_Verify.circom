@@ -6,10 +6,13 @@ include "../bigint/BigLessThan.circom";
 
 include "FpPow65537Mod.circom";
 
-// Assumes the public key `e = 65537`
-// Assumes messages are 256-sized bit arrays
-// TODO: This template is a mess: it does not actually support different limb widths than 64-bits, even though it takes the parameters.
-template RSA_2048_e_65537_PKCS1_V1_5_Verify(SIGNATURE_LIMB_BIT_WIDTH, SIGNATURE_NUM_LIMBS) {
+// Assumes the public key `e = 65537`.
+// Assumes hashed messages are 256-bits arrays.
+// Note: This template only supports 64-bit limbs.
+template RSA_2048_e_65537_PKCS1_V1_5_Verify() {
+    var SIGNATURE_LIMB_BIT_WIDTH = 64;
+    var SIGNATURE_NUM_LIMBS = 32;
+
     signal input signature[SIGNATURE_NUM_LIMBS];
     signal input modulus[SIGNATURE_NUM_LIMBS];
     signal input hash_bits_be[256];
