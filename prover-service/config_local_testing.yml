@@ -8,4 +8,3 @@ jwk_issuers:
     issuer_jwk_url: "https://github.com/aptos-labs/aptos-core/raw/main/types/src/jwks/rsa/secure_test_jwk.json"
 enable_test_provider: true
 enable_federated_jwks: true
-use_insecure_jwk_for_test: true
