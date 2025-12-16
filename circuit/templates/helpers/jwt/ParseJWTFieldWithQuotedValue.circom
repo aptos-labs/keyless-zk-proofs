@@ -22,9 +22,9 @@ include "circomlib/circuits/gates.circom";
 // checks enforced by this template will be skipped, and it will function as
 // a no-op. If it is set to 0, failing one check will fail proof generation
 template ParseJWTFieldWithQuotedValue(MAX_KV_PAIR_LEN, MAX_NAME_LEN, MAX_VALUE_LEN) {
-    signal input field[MAX_KV_PAIR_LEN]; // ASCII
-    signal input name[MAX_NAME_LEN]; // ASCII
-    signal input value[MAX_VALUE_LEN]; // ASCII
+    signal input {maxbits} field[MAX_KV_PAIR_LEN]; // ASCII
+    signal input {maxbits} name[MAX_NAME_LEN]; // ASCII
+    signal input {maxbits} value[MAX_VALUE_LEN]; // ASCII
     signal input field_string_bodies[MAX_KV_PAIR_LEN];
     signal input field_len;
     signal input name_len;

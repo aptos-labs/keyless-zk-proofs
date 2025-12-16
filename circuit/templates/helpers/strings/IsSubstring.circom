@@ -40,11 +40,14 @@ template IsSubstring(MAX_STR_LEN, MAX_SUBSTR_LEN) {
     // length
     assert(MAX_SUBSTR_LEN <= MAX_STR_LEN);
 
-    signal input str[MAX_STR_LEN];
+    signal input {maxbits} str[MAX_STR_LEN];
     signal input str_hash;
 
-    signal input substr[MAX_SUBSTR_LEN];
+    signal input {maxbits} substr[MAX_SUBSTR_LEN];
     signal input substr_len;
+
+    assert(str.maxbits <= 8);
+    assert(substr.maxbits <= 8);
 
     // The index of `substr` in `str`:
     //
@@ -126,9 +129,9 @@ template IsSubstring(MAX_STR_LEN, MAX_SUBSTR_LEN) {
 // Enforces that:
 // - `str[start_index:substr_len]` = `substr[0:substr_len]`
 template AssertIsSubstring(MAX_STR_LEN, MAX_SUBSTR_LEN) {
-    signal input str[MAX_STR_LEN];
+    signal input {maxbits} str[MAX_STR_LEN];
     signal input str_hash;
-    signal input substr[MAX_SUBSTR_LEN];
+    signal input {maxbits} substr[MAX_SUBSTR_LEN];
     signal input substr_len;
     signal input start_index;
 

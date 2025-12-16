@@ -14,19 +14,13 @@ include "HashElemsToField.circom";
  * We hash the length `len` of the input as well to prevent collisions.
  *
  * Currently, does not work for inputs larger than $64 \times 31 = 1984$ bytes.
- * TODO(Comment): Why?
- *
- * TODO(Buses): If `in` is `Bytes(MAX_LEN)` bus, then we can remove the `AssertIsBytes`
- * constraint here, since it may be unnecessarily repeated if this gets called for the
- * same byte sub-sequence repeatedly.
+ * because `HashElemsToField` only handles <= 64 field elements (but can be extended).
  *
  * Parameters:
- *   NUM_BYTES       the max number of bytes this can handle; is > 0 and <= 1984 (64 * 31)
+ *   NUM_BYTES      the max number of bytes this can handle; is > 0 and <= 1984 (64 * 31)
  *
  * Input signals:
- *   in[NUM_BYTES]  array to be hashed, although only in[0], in[1], ..., in[len-1];
- *                  constrained to ensure elements are actually bytes
- *                  are actually hashed
+ *   in[NUM_BYTES]  array to be hashed, but only in[0], in[1], ..., in[len-1] prefix is actually hashed
  *   len            the number of bytes that will be actually hashed;
  *                  bytes `in[len], in[len+1]..., in[NUM_BYTES-1]` are ignored
  *
@@ -35,15 +29,15 @@ include "HashElemsToField.circom";
  *
  * Notes:
  *   There is no way to meaningfully ensure that `len` is the actual length of the bytes in `in`.
- *   TODO(Buses): Some type-safety via a `Bytes(MAX_LEN)` bus may be useful here?
  */
 template HashBytesToFieldWithLen(NUM_BYTES) {
     assert(NUM_BYTES > 0);
-    signal input in[NUM_BYTES];
+    assert(NUM_BYTES <= 1984);
+    signal input {maxbits} in[NUM_BYTES];
     signal input len;
     signal output hash;
 
-    AssertIsBytes(NUM_BYTES)(in);
+    assert(in.maxbits <= 8);
 
     var NUM_ELEMS = NUM_BYTES % 31 == 0 ? NUM_BYTES\31 : NUM_BYTES\31 + 1;
 
@@ -54,14 +48,13 @@ template HashBytesToFieldWithLen(NUM_BYTES) {
         8           // bitsPerChunk
     )(in);
 
-    // TODO(Cleanup): Can't we use a var here? We are simply re-assigning signals, it seems.
-    signal input_with_len[NUM_ELEMS + 1];
+    var elems[NUM_ELEMS + 1];
     for (var i = 0; i < NUM_ELEMS; i++) {
-        input_with_len[i] <== input_packed[i];
+        elems[i] = input_packed[i];
     }
-    input_with_len[NUM_ELEMS] <== len;
+    elems[NUM_ELEMS] = len;
 
-    PoseidonBN254Hash() poseidonHash <== HashElemsToField(NUM_ELEMS + 1)(input_with_len);
+    PoseidonBN254Hash() poseidonHash <== HashElemsToField(NUM_ELEMS + 1)(elems);
 
     hash <== poseidonHash.value;
 }

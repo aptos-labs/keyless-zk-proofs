@@ -46,6 +46,7 @@ include "./helpers/sha/SHA2_256_Prepadded_Hash.circom";
 
 include "./helpers/strings/AsciiDigitsToScalar.circom";
 
+include "./stdlib/circuits/BinaryToMaxBitsArray.circom";
 include "./stdlib/circuits/ElementwiseMul.circom";
 include "./stdlib/circuits/InvertBinaryArray.circom";
 
@@ -55,25 +56,34 @@ template keyless(
     MAX_B64U_JWT_NO_SIG_LEN,               // ...full base64url JWT without the signature, but with SHA2 padding
     MAX_B64U_JWT_HEADER_W_DOT_LEN,         // ...full base64url JWT header with a dot at the end
     MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN,  // ...full base64url JWT payload with SHA2 padding
+    //
     MAX_AUD_KV_PAIR_LEN,                   // ...ASCII aud field
     MAX_AUD_NAME_LEN,                      // ...ASCII aud name
     MAX_AUD_VALUE_LEN,                     // ...ASCII aud value
+    //
     MAX_ISS_KV_PAIR_LEN,                   // ...ASCII iss field
     MAX_ISS_NAME_LEN,                      // ...ASCII iss name
     MAX_ISS_VALUE_LEN,                     // ...ASCII iss value
+    //
     MAX_IAT_KV_PAIR_LEN,                   // ...ASCII iat field
     MAX_IAT_NAME_LEN,                      // ...ASCII iat name
     MAX_IAT_VALUE_LEN,                     // ...ASCII iat value
+    //
     MAX_NONCE_KV_PAIR_LEN,                 // ...ASCII nonce field
     MAX_NONCE_NAME_LEN,                    // ...ASCII nonce name
     MAX_NONCE_VALUE_LEN,                   // ...ASCII nonce value
+    //
     MAX_EMAIL_VERIFIED_KV_PAIR_LEN,        // ...ASCII email verified field
     MAX_EMAIL_VERIFIED_NAME_LEN,           // ...ASCII email verified name
     MAX_EMAIL_VERIFIED_VALUE_LEN,          // ...ASCII email verified value
+    //
     MAX_UID_KV_PAIR_LEN,                   // ...ASCII uid field
     MAX_UID_NAME_LEN,                      // ...ASCII uid name
     MAX_UID_VALUE_LEN,                     // ...ASCII uid value
-    MAX_EXTRA_FIELD_KV_PAIR_LEN            // ...ASCII extra field
+    //
+    MAX_EXTRA_FIELD_KV_PAIR_LEN,            // ...ASCII extra field
+    //
+    SIGNATURE_NUM_LIMBS
 ) {
     // Several templates (e.g., Poseidon-BN254 templates, LessThan) assume the
     // BN254 curve is used, whose scalar field can represent any 253-bit number
@@ -97,19 +107,19 @@ template keyless(
     //   i.e., SHA2Pad( base64Url(JWT header) + "." + base64Url(JWT payload) )
     // TODO: Why does this need to be an input signal?
     //   Can't it be an intermediate signal produced as an output from some kind of `Concatenate` template?
-    signal input b64u_jwt_no_sig_sha2_padded[MAX_B64U_JWT_NO_SIG_LEN]; // base64url format
+    signal input {maxbits} b64u_jwt_no_sig_sha2_padded[MAX_B64U_JWT_NO_SIG_LEN]; // base64url format
 
     // base64url-encoded JWT header + the ASCII dot following it
     // TODO: We need to check 0-padding for the last `MAX_B64U_JWT_HEADER_W_DOT_LEN - b64u_jwt_header_w_dot_len` bytes
     //   But right now this is done implicitly in HashBytesToFieldWithLen (a bit dangerous)
     // TODO: Can we leverage tags / buses here to propagate information about having checked the padding?
-    signal input b64u_jwt_header_w_dot[MAX_B64U_JWT_HEADER_W_DOT_LEN];
+    signal input {maxbits} b64u_jwt_header_w_dot[MAX_B64U_JWT_HEADER_W_DOT_LEN];
     signal input b64u_jwt_header_w_dot_len;
 
     // base64url-encoded JWT payload with SHA2 padding
     // TODO: We need to check 0-padding for the last `MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN - b64u_jwt_payload_sha2_padded_len` bytes?
     //   But right now this is done implicitly in HashBytesToFieldWithLen (a bit dangerous)
-    signal input b64u_jwt_payload_sha2_padded[MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN];
+    signal input {maxbits} b64u_jwt_payload_sha2_padded[MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN];
     signal input b64u_jwt_payload_sha2_padded_len;
 
     // Checks that the base64url-encoded JWT payload & header are correctly concatenated:
@@ -151,7 +161,7 @@ template keyless(
     dot === 46; // '.'
 
     // Removes the padding from the base64url-encoded JWT payload
-    signal input b64u_jwt_payload[MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN];
+    signal input {maxbits} b64u_jwt_payload[MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN];
     log("b64u_jwt_payload: ");
 
     AssertIsSubstring(MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN, MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN)(
@@ -171,14 +181,14 @@ template keyless(
     // The length of `b64u_jwt_no_sig_sha2_padded` in bits, denoted by `L` and
     //   encoded as a byte array of size 8.
     // (=> max length in bits must be expressible in 8*8 = 64 bits)
-    signal input sha2_num_bits[8];
+    signal input {maxbits} sha2_num_bits[8];
 
     // SHA2-256 padding: up to 512 bits as per https://www.rfc-editor.org/rfc/rfc4634.html#section-4.1:
     //   i.e., a 1-bit followed by `K` 0 bits, where `K` is the smallest
     //   integer >= 0 s.t. `L + 1 + K = 448 (mod 512)`
     // Note: The padding is stored as a byte array of size 8.
     // Note: By "padding" here we just mean the "10000..." bits *without* the length L appended to them
-    signal input sha2_padding[64];
+    signal input {maxbits} sha2_padding[64];
 
     SHA2_256_PaddingVerify(MAX_B64U_JWT_NO_SIG_LEN)(
         b64u_jwt_no_sig_sha2_padded,
@@ -202,11 +212,11 @@ template keyless(
     // JWT RSA signature verification
     //
 
-    // RSA-2048 signatures and pubkeys are stored as 32 limbs of 64 bits (8 bytes) each
-    var SIGNATURE_NUM_LIMBS = 32;
+    // RSA-2048 signatures and pubkeys must be given as 32 limbs of 64 bits (8 bytes) each
+    assert(SIGNATURE_NUM_LIMBS == 32);
 
     signal input signature[SIGNATURE_NUM_LIMBS];
-    signal input pubkey_modulus[SIGNATURE_NUM_LIMBS];
+    signal input {maxbits} pubkey_modulus[SIGNATURE_NUM_LIMBS];
 
     RSA_2048_e_65537_PKCS1_V1_5_Verify()(
         signature, pubkey_modulus, jwt_hash
@@ -216,9 +226,10 @@ template keyless(
     // Decoding the base64url-encoded JWT
     //
 
-    signal jwt_payload[MAX_JWT_PAYLOAD_LEN] <== Base64UrlDecode(MAX_JWT_PAYLOAD_LEN)(
+    signal {maxbits} jwt_payload[MAX_JWT_PAYLOAD_LEN] <== Base64UrlDecode(MAX_JWT_PAYLOAD_LEN)(
         b64u_jwt_payload
     );
+    assert(jwt_payload.maxbits <= 8);
 
     signal jwt_payload_len <== Base64UrlDecodedLength(MAX_B64U_JWT_PAYLOAD_SHA2_PADDED_LEN)(
         b64u_jwt_payload_sha2_padded_len
@@ -230,7 +241,9 @@ template keyless(
 
     // Contains 1s between unescaped quotes, and 0s everywhere else. Used to prevent a fake field inside quotes from
     // being accepted as valid
-    signal string_bodies[MAX_JWT_PAYLOAD_LEN] <== StringBodies(MAX_JWT_PAYLOAD_LEN)(jwt_payload);
+    signal string_bodies_binary[MAX_JWT_PAYLOAD_LEN] <== StringBodies(MAX_JWT_PAYLOAD_LEN)(jwt_payload);
+    signal {maxbits} string_bodies[MAX_JWT_PAYLOAD_LEN] <== BinaryToMaxBitsArray(MAX_JWT_PAYLOAD_LEN)(string_bodies_binary);
+    assert(string_bodies.maxbits == 1);
 
     // To prevent attacks involving fields inside nested brackets, we perform the following steps:
     // 1. Take the inverse of the string bodies array, turning each `1` into `0`, and each `0` into `1`
@@ -238,7 +251,7 @@ template keyless(
     // 3. Use the array from 1 to eliminate quoted brackets in 2 with element-wise multiplication
     // 4. Use the array from 3 to make an array with 1+ inside brackets and 0 everywhere else, not including the outermost brackets of the JWT payload
     // 5. Use the array from 4 to check there are no characters of a given field (such as aud) inside of nested brackets. This is done per field
-    signal inverted_string_bodies[MAX_JWT_PAYLOAD_LEN] <== InvertBinaryArray(MAX_JWT_PAYLOAD_LEN)(string_bodies);
+    signal inverted_string_bodies[MAX_JWT_PAYLOAD_LEN] <== InvertBinaryArray(MAX_JWT_PAYLOAD_LEN)(string_bodies_binary);
     signal brackets_map[MAX_JWT_PAYLOAD_LEN] <== BracketsMap(MAX_JWT_PAYLOAD_LEN)(jwt_payload);
     signal unquoted_brackets_map[MAX_JWT_PAYLOAD_LEN] <== ElementwiseMul(MAX_JWT_PAYLOAD_LEN)(inverted_string_bodies, brackets_map);
     signal unquoted_brackets_depth_map[MAX_JWT_PAYLOAD_LEN] <== BracketsDepthMap(MAX_JWT_PAYLOAD_LEN)(unquoted_brackets_map);
@@ -257,8 +270,8 @@ template keyless(
     //  - sha2pad^{-1}(sha2pad(m)) = m, \forall |m| < 2^64 bits
 
     // Check aud field is in the JWT
-    signal input aud_field[MAX_AUD_KV_PAIR_LEN]; // ASCII
-    signal input aud_field_string_bodies[MAX_AUD_KV_PAIR_LEN]; // ASCII
+    signal input {maxbits} aud_field[MAX_AUD_KV_PAIR_LEN]; // ASCII
+    signal input {maxbits} aud_field_string_bodies[MAX_AUD_KV_PAIR_LEN]; // ASCII
     signal input aud_field_len; // ASCII
     signal input aud_index; // index of aud field in JWT payload
     AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_AUD_KV_PAIR_LEN)(jwt_payload, b64u_jwt_payload_sha2_padded_hash, aud_field, aud_field_len, aud_index);
@@ -269,13 +282,13 @@ template keyless(
     var AUD_NAME_LEN = 3;
     signal input aud_value_index;
     signal input aud_colon_index;
-    signal input aud_name[MAX_AUD_NAME_LEN];
+    signal input {maxbits} aud_name[MAX_AUD_NAME_LEN];
     signal input use_aud_override;
     use_aud_override * (1 - use_aud_override) === 0;
 
-    signal aud_value[MAX_AUD_VALUE_LEN];
-    signal input private_aud_value[MAX_AUD_VALUE_LEN];
-    signal input override_aud_value[MAX_AUD_VALUE_LEN];
+    signal {maxbits} aud_value[MAX_AUD_VALUE_LEN];
+    signal input {maxbits} private_aud_value[MAX_AUD_VALUE_LEN];
+    signal input {maxbits} override_aud_value[MAX_AUD_VALUE_LEN];
     signal input private_aud_value_len;
     signal input override_aud_value_len;
     signal input skip_aud_checks;
@@ -286,6 +299,9 @@ template keyless(
     skip_aud_checks_and_use_aud_override === 0;
 
     skip_aud_checks * (skip_aud_checks - 1) === 0; // Ensure equal to 0 or 1
+    assert(private_aud_value.maxbits <= 8);
+    assert(override_aud_value.maxbits <= 8);
+    aud_value.maxbits = 8;
     for (var i = 0; i < MAX_AUD_VALUE_LEN; i++) {
         aud_value[i] <== (override_aud_value[i] - private_aud_value[i]) * use_aud_override + private_aud_value[i];
     }
@@ -303,8 +319,8 @@ template keyless(
     }
 
     // Check user id field is in the JWT
-    signal input uid_field[MAX_UID_KV_PAIR_LEN];
-    signal input uid_field_string_bodies[MAX_UID_KV_PAIR_LEN];
+    signal input {maxbits} uid_field[MAX_UID_KV_PAIR_LEN];
+    signal input {maxbits} uid_field_string_bodies[MAX_UID_KV_PAIR_LEN];
     signal input uid_field_len;
     signal input uid_index;
     AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_UID_KV_PAIR_LEN)(jwt_payload, b64u_jwt_payload_sha2_padded_hash, uid_field, uid_field_len, uid_index);
@@ -316,13 +332,13 @@ template keyless(
     signal input uid_value_index;
     signal input uid_value_len;
     signal input uid_colon_index;
-    signal input uid_name[MAX_UID_NAME_LEN];
-    signal input uid_value[MAX_UID_VALUE_LEN];
+    signal input {maxbits} uid_name[MAX_UID_NAME_LEN];
+    signal input {maxbits} uid_value[MAX_UID_VALUE_LEN];
 
     ParseJWTFieldWithQuotedValue(MAX_UID_KV_PAIR_LEN, MAX_UID_NAME_LEN, MAX_UID_VALUE_LEN)(uid_field, uid_name, uid_value, uid_field_string_bodies, uid_field_len, uid_name_len, uid_value_index, uid_value_len, uid_colon_index, 0);
 
     // Check extra field is in the JWT
-    signal input extra_field[MAX_EXTRA_FIELD_KV_PAIR_LEN];
+    signal input {maxbits} extra_field[MAX_EXTRA_FIELD_KV_PAIR_LEN];
     signal input extra_field_len;
     signal input extra_index;
     signal input use_extra_field;
@@ -341,7 +357,7 @@ template keyless(
     ef_start_char === 0;
 
     // Check email verified field
-    signal input ev_field[MAX_EMAIL_VERIFIED_KV_PAIR_LEN];
+    signal input {maxbits} ev_field[MAX_EMAIL_VERIFIED_KV_PAIR_LEN];
     signal input ev_field_len;
     signal input ev_index;
 
@@ -349,8 +365,8 @@ template keyless(
     signal input ev_value_index;
     signal input ev_value_len;
     signal input ev_colon_index;
-    signal input ev_name[MAX_EMAIL_VERIFIED_NAME_LEN];
-    signal input ev_value[MAX_EMAIL_VERIFIED_VALUE_LEN];
+    signal input {maxbits} ev_name[MAX_EMAIL_VERIFIED_NAME_LEN];
+    signal input {maxbits} ev_value[MAX_EMAIL_VERIFIED_VALUE_LEN];
 
     // Boolean truth table for checking whether we should fail on the results of 'EmailVerifiedCheck'
     // and `IsSubstring`. We must fail if the uid name is 'email', and the provided
@@ -373,8 +389,8 @@ template keyless(
 
     // Check iss field is in the JWT
     // Note that because `iss_field` is a public input, we assume the verifier will perform correctness checks on it outside of the circuit. 
-    signal input iss_field[MAX_ISS_KV_PAIR_LEN];
-    signal input iss_field_string_bodies[MAX_ISS_KV_PAIR_LEN];
+    signal input {maxbits} iss_field[MAX_ISS_KV_PAIR_LEN];
+    signal input {maxbits} iss_field_string_bodies[MAX_ISS_KV_PAIR_LEN];
     signal input iss_field_len;
     signal input iss_index;
     AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_ISS_KV_PAIR_LEN)(jwt_payload, b64u_jwt_payload_sha2_padded_hash, iss_field, iss_field_len, iss_index);
@@ -386,8 +402,8 @@ template keyless(
     signal input iss_value_index;
     signal input iss_value_len;
     signal input iss_colon_index;
-    signal input iss_name[MAX_ISS_NAME_LEN];
-    signal input iss_value[MAX_ISS_VALUE_LEN];
+    signal input {maxbits} iss_name[MAX_ISS_NAME_LEN];
+    signal input {maxbits} iss_value[MAX_ISS_VALUE_LEN];
 
     ParseJWTFieldWithQuotedValue(MAX_ISS_KV_PAIR_LEN, MAX_ISS_NAME_LEN, MAX_ISS_VALUE_LEN)(iss_field, iss_name, iss_value, iss_field_string_bodies, iss_field_len, ISS_NAME_LEN, iss_value_index, iss_value_len, iss_colon_index, 0);
 
@@ -398,7 +414,7 @@ template keyless(
     }
 
     // Check iat field is in the JWT
-    signal input iat_field[MAX_IAT_KV_PAIR_LEN];
+    signal input {maxbits} iat_field[MAX_IAT_KV_PAIR_LEN];
     signal input iat_field_len;
     signal input iat_index;
     AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_IAT_KV_PAIR_LEN)(jwt_payload, b64u_jwt_payload_sha2_padded_hash, iat_field, iat_field_len, iat_index);
@@ -408,8 +424,8 @@ template keyless(
     signal input iat_value_index;
     signal input iat_value_len;
     signal input iat_colon_index;
-    signal input iat_name[MAX_IAT_NAME_LEN];
-    signal input iat_value[MAX_IAT_VALUE_LEN];
+    signal input {maxbits} iat_name[MAX_IAT_NAME_LEN];
+    signal input {maxbits} iat_value[MAX_IAT_VALUE_LEN];
 
     ParseJWTFieldWithUnquotedValue(MAX_IAT_KV_PAIR_LEN, MAX_IAT_NAME_LEN, MAX_IAT_VALUE_LEN)(iat_field, iat_name, iat_value, iat_field_len, IAT_NAME_LEN, iat_value_index, iat_value_len, iat_colon_index, 0);
     EnforceNotNested(MAX_JWT_PAYLOAD_LEN)(iss_index, iss_field_len, unquoted_brackets_depth_map);
@@ -432,8 +448,8 @@ template keyless(
     jwt_not_expired === 1;
 
     // Check nonce field is in the JWT
-    signal input nonce_field[MAX_NONCE_KV_PAIR_LEN];
-    signal input nonce_field_string_bodies[MAX_NONCE_KV_PAIR_LEN];
+    signal input {maxbits} nonce_field[MAX_NONCE_KV_PAIR_LEN];
+    signal input {maxbits} nonce_field_string_bodies[MAX_NONCE_KV_PAIR_LEN];
     signal input nonce_field_len;
     signal input nonce_index;
     AssertIsSubstring(MAX_JWT_PAYLOAD_LEN, MAX_NONCE_KV_PAIR_LEN)(jwt_payload, b64u_jwt_payload_sha2_padded_hash, nonce_field, nonce_field_len, nonce_index);
@@ -445,8 +461,8 @@ template keyless(
     signal input nonce_value_index;
     signal input nonce_value_len;
     signal input nonce_colon_index;
-    signal input nonce_name[MAX_NONCE_NAME_LEN];
-    signal input nonce_value[MAX_NONCE_VALUE_LEN];
+    signal input {maxbits} nonce_name[MAX_NONCE_NAME_LEN];
+    signal input {maxbits} nonce_value[MAX_NONCE_VALUE_LEN];
 
     ParseJWTFieldWithQuotedValue(MAX_NONCE_KV_PAIR_LEN, MAX_NONCE_NAME_LEN, MAX_NONCE_VALUE_LEN)(nonce_field, nonce_name, nonce_value, nonce_field_string_bodies, nonce_field_len, NONCE_NAME_LEN, nonce_value_index, nonce_value_len, nonce_colon_index, 0);
 
@@ -478,13 +494,15 @@ template keyless(
     //
 
     signal input pepper;
-    signal hashable_private_aud_value[MAX_AUD_VALUE_LEN];
+    signal {maxbits} hashable_private_aud_value[MAX_AUD_VALUE_LEN];
+    hashable_private_aud_value.maxbits = 8;
     for (var i = 0; i < MAX_AUD_VALUE_LEN; i++) {
         hashable_private_aud_value[i] <== private_aud_value[i] * perform_aud_checks;
     }
     signal private_aud_val_hashed <== HashBytesToFieldWithLen(MAX_AUD_VALUE_LEN)(hashable_private_aud_value, private_aud_value_len);
     signal uid_value_hashed <== HashBytesToFieldWithLen(MAX_UID_VALUE_LEN)(uid_value, uid_value_len);
     signal uid_name_hashed <== HashBytesToFieldWithLen(MAX_UID_NAME_LEN)(uid_name, uid_name_len);
+
     signal idc <== Poseidon(4)([
         pepper,
         private_aud_val_hashed,
@@ -501,13 +519,8 @@ template keyless(
     // Check public inputs are correct
     //
 
-    AssertIs64BitLimbs(SIGNATURE_NUM_LIMBS)(pubkey_modulus);
-    signal {maxbits} pubkey_modulus_tagged[SIGNATURE_NUM_LIMBS];
-    pubkey_modulus_tagged.maxbits = 64;
-    pubkey_modulus_tagged <== pubkey_modulus;
-
     signal override_aud_val_hashed <== HashBytesToFieldWithLen(MAX_AUD_VALUE_LEN)(override_aud_value, override_aud_value_len);
-    signal hashed_pubkey_modulus <== Hash64BitLimbsToFieldWithLen(SIGNATURE_NUM_LIMBS)(pubkey_modulus_tagged, 256);
+    signal hashed_pubkey_modulus <== Hash64BitLimbsToFieldWithLen(SIGNATURE_NUM_LIMBS)(pubkey_modulus, 256);
     signal hashed_iss_value <== HashBytesToFieldWithLen(MAX_ISS_VALUE_LEN)(iss_value, iss_value_len);
     signal hashed_extra_field <== HashBytesToFieldWithLen(MAX_EXTRA_FIELD_KV_PAIR_LEN)(extra_field, extra_field_len);
     signal computed_public_inputs_hash <== Poseidon(14)([

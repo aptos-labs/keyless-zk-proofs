@@ -34,7 +34,8 @@ template Base64UrlDecode(N) {
     // (We implement this as: \floor{(4*N + 2) / 3}.)
     var M = (4*N + 2) \ 3;
     signal input in[M];
-    signal output out[N];
+    signal output {maxbits} out[N];
+    out.maxbits = 8;
 
     component bits_in[M \ 4][4];
     component bits_out[M \ 4][3];

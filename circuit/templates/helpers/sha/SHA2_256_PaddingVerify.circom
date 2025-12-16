@@ -9,15 +9,19 @@ include "circomlib/circuits/bitify.circom";
 
 // Verifies SHA2_256 input padding according to https://www.rfc-editor.org/rfc/rfc4634.html#section-4.1
 template SHA2_256_PaddingVerify(MAX_INPUT_LEN) {
-    signal input in[MAX_INPUT_LEN]; // byte array
+    signal input {maxbits} in[MAX_INPUT_LEN]; // byte array
     signal input num_blocks; // Number of 512-bit blocks in `in` including sha padding
     signal input padding_start; // equivalent to L/8, where L is the length of the unpadded message in bits as specified in RFC4634
-    signal input L_byte_encoded[8]; // 64-bit encoding of L
-    signal input padding_without_len[64]; // padding_without_len[0] = 1, followed by K 0s. Length K+1, max length 512 bits. Does not include the 64-bit encoding of L
+    signal input {maxbits} L_byte_encoded[8]; // byte-array; 64-bit encoding of L
+    signal input {maxbits} padding_without_len[64]; // byte-array; padding_without_len[0] = 1, followed by K 0s. Length K+1, max length 512 bits. Does not include the 64-bit encoding of L
 
     var len_bits = num_blocks * 512;
     var padding_start_bits = padding_start * 8;
     var K = len_bits - padding_start_bits - 1 - 64; 
+
+    assert(in.maxbits == 8);
+    assert(L_byte_encoded.maxbits == 8);
+    assert(padding_without_len.maxbits == 8);
 
     // Ensure K is 9-bits (i.e., < 2^9 = 512)
     _ <== Num2Bits(9)(K);

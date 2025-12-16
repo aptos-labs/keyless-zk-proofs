@@ -23,9 +23,9 @@ include "circomlib/circuits/gates.circom";
 // Note that this template is NOT secure on its own, but must be called from
 // `ParseJWTFieldWithQuotedValue` or `ParseJWTFieldWithUnquotedValue`
 template ParseJWTFieldSharedLogic(MAX_KV_PAIR_LEN, MAX_NAME_LEN, MAX_VALUE_LEN) {
-    signal input field[MAX_KV_PAIR_LEN]; // ASCII
-    signal input name[MAX_NAME_LEN]; // ASCII
-    signal input value[MAX_VALUE_LEN]; // ASCII
+    signal input {maxbits} field[MAX_KV_PAIR_LEN]; // ASCII
+    signal input {maxbits} name[MAX_NAME_LEN]; // ASCII
+    signal input {maxbits} value[MAX_VALUE_LEN]; // ASCII
     signal input field_len;
     signal input name_len;
     signal input value_index; // index of value within `field`

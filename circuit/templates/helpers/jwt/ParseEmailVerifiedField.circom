@@ -24,9 +24,9 @@ include "circomlib/circuits/gates.circom";
 // This template exists specifically for the email_verified JWT field, as some providers
 // do not follow the OIDC spec and instead enclose the value of this field in quotes
 template ParseEmailVerifiedField(MAX_KV_PAIR_LEN, MAX_NAME_LEN, MAX_VALUE_LEN) {
-    signal input field[MAX_KV_PAIR_LEN]; // ASCII
-    signal input name[MAX_NAME_LEN];
-    signal input value[MAX_VALUE_LEN];
+    signal input {maxbits} field[MAX_KV_PAIR_LEN]; // ASCII
+    signal input {maxbits} name[MAX_NAME_LEN];
+    signal input {maxbits} value[MAX_VALUE_LEN];
     signal input field_len; // ASCII
     signal input name_len;
     signal input value_index; // index of value within `field`
