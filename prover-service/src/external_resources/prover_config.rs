@@ -29,7 +29,6 @@ pub struct ProverServiceConfig {
     pub enable_test_provider: bool,
     pub enable_federated_jwks: bool,
     pub disable_jwt_time_based_checks: bool,
-    pub use_insecure_jwk_for_test: bool,
     pub max_committed_epk_bytes: usize,
 }
 
@@ -48,7 +47,6 @@ impl Default for ProverServiceConfig {
             enable_test_provider: false, // Don't enable the test OIDC provider by default
             enable_federated_jwks: false, // Disable federated JWKs by default
             disable_jwt_time_based_checks: false, // Enable JWT time-based checks by default
-            use_insecure_jwk_for_test: false, // Don't use insecure JWK for testing by default
             max_committed_epk_bytes: 93, // 3 * BYTES_PACKED_PER_SCALAR (31) = 93
         }
     }
