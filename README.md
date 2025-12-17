@@ -1,4 +1,4 @@
-# Keyless ZK circuit and ZK proving service
+# Keyless ZK Circuit and ZK Proving Service
 
 This repo contains:
 1. The `circom` implementation of the Aptos Keyless ZK relation from AIP-61 in `circuit/templates/`.
@@ -29,17 +29,37 @@ command:
 For more information on the actions defined for this repo, see [the scripts
 README](./scripts/README.md).
 
-## Run prover service locally
+## Testing the prover service and circuit
 
-### Get it running
-Ensure you have done [dev environment setup](#development-environment-setup),
+The prover service already contains unit tests that verify prover request handling
+and proof generation. Internally, these tests procure an untrusted setup corresponding
+to the current circuit in this repository. For example, the unit tests will invoke the
+following command before running the tests:
+```
+./scripts/task.sh setup procure-testing-setup
+```
+
+### Caching the testing setup
+
+To avoid procuring the testing setup every time the tests are run, the setup will be cached
+locally, and (optionally) uploaded to Google cloud via the gcloud CLI.
+
+To clear the local testing setup cache, remove the setups in the local testing directory, e.g.,
+```
+~/.local/share/aptos-keyless
+```
+
+## Running the prover service locally
+
+### Start the prover service
+Ensure you have already completed the [development environment setup](#development-environment-setup) step,
 and run the following command from a new terminal (with the working directory being the repo root):
 ```
 ./scripts/run_prover_service.sh
 ```
 
-### Interact with the local prover service
-Login to [Aptos Connect](https://aptosconnect.app/), and find a real prover request payload as outlined below:
+### Interact with the prover service
+Next, login to [Aptos Connect](https://aptosconnect.app/), and find a real prover request payload as outlined below:
 1. Open browser developer tools (F12).
 2. Navigate to Network Tab.
 3. Select a request with name `prove`.
