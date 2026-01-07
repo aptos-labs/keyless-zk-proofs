@@ -2,6 +2,7 @@
 
 use crate::external_resources::prover_config::ProverServiceConfig;
 use crate::request_handler::handler::is_known_path;
+use crate::request_handler::types::VerifiedInput;
 use aptos_logger::{error, info, warn};
 use aptos_metrics_core::{
     exponential_buckets, register_histogram_vec, register_int_counter_vec, Encoder, HistogramVec,
@@ -16,8 +17,6 @@ use std::convert::Infallible;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
-
-// TODO: sanity check and expand these metrics!
 
 // Constants for the metrics endpoint and response type
 const METRICS_ENDPOINT: &str = "/metrics";
@@ -39,6 +38,16 @@ pub const PROVER_RESPONSE_GENERATION_LABEL: &str = "prover_response_generation";
 pub const VALIDATE_PROVE_REQUEST_LABEL: &str = "validate_prove_request";
 pub const WITNESS_GENERATION_LABEL: &str = "witness_generation";
 
+// Useful metric labels for JWT attribute sizes
+const JWT_HEADER_SIZE: &str = "jwt_header_size";
+const JWT_PAYLOAD_SIZE: &str = "jwt_payload_size";
+const JWT_SIGNATURE_SIZE: &str = "jwt_signature_size";
+const JWT_ISS_SIZE: &str = "jwt_iss_size";
+const JWT_NONCE_SIZE: &str = "jwt_nonce_size";
+const JWT_SUB_SIZE: &str = "jwt_sub_size";
+const JWT_EMAIL_SIZE: &str = "jwt_email_size";
+const JWT_AUD_SIZE: &str = "jwt_aud_size";
+
 // Invalid request path label
 const INVALID_PATH: &str = "invalid-path";
 
@@ -57,6 +66,14 @@ static JWK_FETCH_SECONDS: Lazy<HistogramVec> = Lazy::new(|| {
 static LATENCY_BUCKETS: Lazy<Vec<f64>> = Lazy::new(|| {
     exponential_buckets(
         /*start=*/ 1e-6, /*factor=*/ 2.0, /*count=*/ 24,
+    )
+    .unwrap()
+});
+
+// Buckets for tracking sizes (1 byte to 256 KB)
+static SIZE_BUCKETS: Lazy<Vec<f64>> = Lazy::new(|| {
+    exponential_buckets(
+        /*start=*/ 1.0, /*factor=*/ 2.0, /*count=*/ 19,
     )
     .unwrap()
 });
@@ -89,6 +106,17 @@ static REQUEST_HANDLING_SECONDS: Lazy<HistogramVec> = Lazy::new(|| {
         "Seconds taken to process prover requests by scheme and result.",
         &["request_endpoint", "request_method", "response_code"],
         LATENCY_BUCKETS.clone()
+    )
+    .unwrap()
+});
+
+// Histogram for tracking the attribute sizes of JWT requests
+static REQUEST_JWT_ATTRIBUTE_SIZES: Lazy<HistogramVec> = Lazy::new(|| {
+    register_histogram_vec!(
+        "keyless_prover_service_request_jwt_attribute_sizes",
+        "Sizes of request JWT attributes",
+        &["attribute"],
+        SIZE_BUCKETS.clone()
     )
     .unwrap()
 });
@@ -226,4 +254,32 @@ pub fn update_request_handling_metrics(
             &response_code.to_string(),
         ])
         .observe(elapsed.as_secs_f64());
+}
+
+/// Updates the JWT attribute size metrics for the given attribute and size
+fn update_jwt_attribute_size_metrics(attribute: &str, size_bytes: usize) {
+    REQUEST_JWT_ATTRIBUTE_SIZES
+        .with_label_values(&[attribute])
+        .observe(size_bytes as f64);
+}
+
+/// Updates the JWT attribute metrics based on the verified input
+pub fn update_jwt_attribute_metrics(verified_input: &VerifiedInput) {
+    // Update the JWT parts metrics
+    let jwt_parts = &verified_input.jwt_parts;
+    update_jwt_attribute_size_metrics(JWT_HEADER_SIZE, jwt_parts.header_undecoded().len());
+    update_jwt_attribute_size_metrics(JWT_PAYLOAD_SIZE, jwt_parts.payload_undecoded().len());
+    update_jwt_attribute_size_metrics(JWT_SIGNATURE_SIZE, jwt_parts.signature_undecoded().len());
+
+    // Update the JWT field metrics
+    let jwt_payload = &verified_input.jwt.payload;
+    update_jwt_attribute_size_metrics(JWT_ISS_SIZE, jwt_payload.iss.len());
+    update_jwt_attribute_size_metrics(JWT_NONCE_SIZE, jwt_payload.nonce.len());
+    if let Some(sub) = &jwt_payload.sub {
+        update_jwt_attribute_size_metrics(JWT_SUB_SIZE, sub.len());
+    }
+    if let Some(email) = &jwt_payload.email {
+        update_jwt_attribute_size_metrics(JWT_EMAIL_SIZE, email.len());
+    }
+    update_jwt_attribute_size_metrics(JWT_AUD_SIZE, jwt_payload.aud.len());
 }

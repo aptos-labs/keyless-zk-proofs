@@ -47,7 +47,12 @@ pub async fn hande_prove_request(
     // Validate the input request
     let verified_input =
         match validate_prove_request_input(&prover_service_state, &prove_request_input).await {
-            Ok(verified_input) => verified_input,
+            Ok(verified_input) => {
+                // Update the JWT attribute metrics
+                metrics::update_jwt_attribute_metrics(&verified_input);
+
+                verified_input
+            }
             Err(error) => {
                 let error_string =
                     format!("Failed to validate prove request input! Error: {}", error);
