@@ -129,6 +129,10 @@ impl JwtParts {
         String::from(&self.payload)
     }
 
+    pub fn header_undecoded(&self) -> String {
+        String::from(&self.header)
+    }
+
     pub fn header_undecoded_with_dot(&self) -> String {
         String::from(&self.header) + "."
     }
@@ -149,6 +153,10 @@ impl JwtParts {
 
     pub fn signature(&self) -> Result<RsaSignature> {
         RsaSignature::from_b64(&self.signature)
+    }
+
+    pub fn signature_undecoded(&self) -> String {
+        String::from(&self.signature)
     }
 }
 
