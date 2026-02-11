@@ -44,7 +44,7 @@ hex = { version = "0.4.3", features = ["serde"] }
 http = "1.0.0"
 hyper = { version = "0.14.18", features = ["full"] }
 itertools = "0.13"
-jsonwebtoken = "8.1"
+jsonwebtoken = "10.3"
 maplit2 = "1.0.5"
 num-bigint = "0.4.4"
 num-traits = "0.2.17"
