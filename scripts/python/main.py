@@ -44,7 +44,6 @@ def setup_dev_environment():
     prover_service.install_deps()
     prover_service.add_envvars_to_profile()
     circuit.install_deps()
-    setups.procure_testing_setup(ignore_cache=False)
 
 
 

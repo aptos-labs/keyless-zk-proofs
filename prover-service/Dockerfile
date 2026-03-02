@@ -16,12 +16,10 @@ RUN /root/.cargo/bin/cargo build --release -p prover-service \
 
 # Download trusted setup and witness gen binaries
 ENV RESOURCES_DIR=/resources
-RUN ./scripts/task.sh setup download-ceremonies-for-releases --witness-gen-type c circuit-v1.0.1 circuit-v1.0.1
-
+RUN ./scripts/task.sh setup download-ceremonies-for-releases --witness-gen-type c circuit-v1.0.1
 
 # The image that is actually deployed
 FROM debian:bookworm
- 
 
 # need libyaml, gmp, and openssl dylibs to run prover service
 RUN apt-get update \
@@ -35,9 +33,6 @@ COPY --link --from=build_prover_service ./rust-rapidsnark/rapidsnark/build/subpr
 COPY --link --from=build_prover_service ./resources ./resources
 # copy prover service config file
 COPY --link ./prover-service/config.yml ./config.yml
-
-ARG GIT_COMMIT
-ENV GIT_COMMIT=$GIT_COMMIT
 
 EXPOSE 8080
 

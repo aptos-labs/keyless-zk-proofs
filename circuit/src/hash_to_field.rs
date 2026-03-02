@@ -1,5 +1,4 @@
-// Copyright © Aptos Foundation
-// SPDX-License-Identifier: Apache-2.0
+// Copyright (c) Aptos Foundation
 
 use crate::TestCircuitHandle;
 use aptos_crypto::{
@@ -10,7 +9,7 @@ use aptos_crypto::{
     test_utils::random_bytes,
 };
 use aptos_keyless_common::input_processing::{
-    circuit_input_signals::CircuitInputSignals, config::CircuitConfig,
+    circuit_config::CircuitConfig, circuit_input_signals::CircuitInputSignals,
 };
 use ark_bn254::Fr;
 use ark_ff::Field;

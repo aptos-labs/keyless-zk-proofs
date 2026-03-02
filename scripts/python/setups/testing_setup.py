@@ -89,14 +89,12 @@ class TestingSetup(setups.Setup):
             shutil.move("main_c_cpp/main_c.dat", self.path())
 
 
-    def c_witness_gen_from_scratch():
+    def c_witness_gen_from_scratch(self):
         eprint("Setup doesn't contain c witness gen binaries, and you are on x86-64. Going to compile them now.")
-        with tempfile.TemporaryDirectory() as temp_dir:
-            with contextlib.chdir(temp_dir):
-                self.compile_circuit()
-                self.compile_c_witness_gen_binaries()
-                shutil.move("main_c_cpp/main_c", self.path())
-                shutil.move("main_c_cpp/main_c.dat", self.path())
+        self.compile_circuit()
+        self.compile_c_witness_gen_binaries()
+        shutil.move("main_c_cpp/main_c", self.path())
+        shutil.move("main_c_cpp/main_c.dat", self.path())
 
 
     def procure(self, ignore_cache=False):
@@ -113,16 +111,13 @@ class TestingSetup(setups.Setup):
                 utils.delete_contents_of_dir(TESTING_SETUPS_DIR)
                 require_ptau_file()
                 self.mkdir()
-
-                with tempfile.TemporaryDirectory() as temp_dir:
-                    with contextlib.chdir(temp_dir):
-                        self.compile_circuit()
-                        self.run_setup()
-                        if platform.machine() == 'x86_64':
-                            self.compile_c_witness_gen_binaries()
-                        else:
-                             eprint("Not on x86_64, so skipping generating c witness gen binaries.")
-                        self.install_artifacts()
+                self.compile_circuit()
+                self.run_setup()
+                if platform.machine() == 'x86_64':
+                    self.compile_c_witness_gen_binaries()
+                else:
+                     eprint("Not on x86_64, so skipping generating c witness gen binaries.")
+                self.install_artifacts()
 
 
         

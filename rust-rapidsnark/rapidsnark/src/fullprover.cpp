@@ -69,6 +69,7 @@ void log(std::string level, std::string msg)
 
     std::cout << "{\"timestamp\":\"" << getFormattedTimestamp()
               << "\",\"level\":\"" << level << "\",\"message\":\"" << msg
+              << "\",\"native_code\":\"1\""
               << "\",\"target\":\"prover_service::rapidsnark\"}" << std::endl;
 }
 

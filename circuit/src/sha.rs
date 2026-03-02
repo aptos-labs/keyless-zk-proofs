@@ -1,9 +1,8 @@
-// Copyright © Aptos Foundation
-// SPDX-License-Identifier: Apache-2.0
+// Copyright (c) Aptos Foundation
 
 use crate::TestCircuitHandle;
 use aptos_keyless_common::input_processing::{
-    circuit_input_signals::CircuitInputSignals, config::CircuitConfig, sha,
+    circuit_config::CircuitConfig, circuit_input_signals::CircuitInputSignals, sha,
 };
 use rand_chacha::{
     rand_core::{RngCore as _, SeedableRng as _},

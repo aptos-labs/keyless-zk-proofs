@@ -8,12 +8,13 @@ import zipfile
 CEREMONIES_DIR = utils.resources_dir_root() / "ceremonies"
 
 class CeremonySetup(setups.Setup): 
-    def __init__(self, release_name):
+    def __init__(self, release_name, repo="keyless-zk-proofs", auth_token=None):
         super().__init__(CEREMONIES_DIR / release_name)
         self.release_name = release_name
+        self.repo = repo
+        self.auth_token = auth_token
 
-
-    def download(self, witness_gen_type, auth_token):
+    def download(self, witness_gen_type):
         self.mkdir()
 
         assets = [
@@ -31,7 +32,7 @@ class CeremonySetup(setups.Setup):
                     "wgen_js.zip"
                     ]
 
-        releases = Releases(auth_token)
+        releases = Releases(self.repo, self.auth_token)
         releases.download_and_install_release(self.release_name, self.path(), assets)
 
         shutil.move(self.path() / "circuit_config.yaml", self.path() / "circuit_config.yml")
