@@ -1,0 +1,5 @@
+resources_dir: "/resources/ceremonies"
+jwk_issuers:
+  - issuer_name: "https://accounts.google.com"
+    issuer_jwk_url: "https://www.googleapis.com/oauth2/v3/certs"
+port: 8080

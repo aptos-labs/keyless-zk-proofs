@@ -1,0 +1,33 @@
+has_input_skip_aud_checks: false
+max_lengths:
+  jwt: 1536
+  jwt_header_with_separator: 300
+  jwt_payload: 1472
+  jwt_payload_without_sha_padding: 1472
+  jwt_len_bit_encoded: 8
+  padding_without_len: 64
+  temp_pubkey: 3
+  iss_field: 140
+  iss_field_string_bodies: 140
+  iss_name: 40
+  iss_value: 120
+  extra_field: 350
+  ev_field: 30
+  ev_name: 20
+  ev_value: 10
+  nonce_field: 105
+  nonce_field_string_bodies: 105
+  nonce_name: 10
+  nonce_value: 100
+  aud_field: 140
+  aud_field_string_bodies: 140
+  aud_name: 40
+  private_aud_value: 120
+  override_aud_value: 120
+  iat_field: 50
+  iat_name: 10
+  iat_value: 45
+  uid_field: 350
+  uid_field_string_bodies: 350
+  uid_name: 30
+  uid_value: 330

@@ -1,0 +1,6 @@
+
+[wrap-file]
+directory = scope_guard-0.9.1
+source_url = https://github.com/Neargye/scope_guard/archive/refs/tags/v0.9.1.tar.gz
+source_filename = v0.9.1.tar.gz
+source_hash = c0a8e465d4ac239b602a24713d83fb315769145ae59312c8329f4ee39477cc05

@@ -13,22 +13,9 @@ repository = { workspace = true }
 rust-version = { workspace = true }
 
 [dependencies]
-anyhow = { workspace = true }
-aptos-types = { workspace = true }
-ark-bn254 = { workspace = true }
-ark-ff = { workspace = true }
-ark-serialize = { workspace = true }
-base64 = { workspace = true }
+aptos-keyless-common = { workspace = true }
 clap = { workspace = true }
-hex = { workspace = true }
-num-bigint = { workspace = true }
-num-traits = {  workspace = true }
-once_cell = { workspace = true }
-serde = { workspace = true }
 serde_json = { workspace = true }
-strum = { workspace =  true }
 strum_macros = { workspace = true }
-tempfile = { workspace = true }
-tracing = { workspace = true }
 ureq = { workspace = true }
 url = { workspace = true }
