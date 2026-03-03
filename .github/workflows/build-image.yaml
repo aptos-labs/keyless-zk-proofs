@@ -5,9 +5,11 @@ on:
     branches:
       - main
       - docker
+      - 'dual-release-v*'
   pull_request:
     branches:
       - main
+      - 'dual-release-v*'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -23,11 +25,22 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
-      # - name: Set up Depot CLI
-      #   uses: depot/setup-action@v1
+      - name: Compute image tags
+        id: meta
+        run: |
+          REF_NAME="${{ github.ref_name }}"
+          SHA="${{ github.sha }}"
+          R="us-docker.pkg.dev/aptos-registry/docker/prover-service"
+          # Sanitize ref name for use in Docker tags (replace / with -)
+          TAG_SAFE_REF=$(echo "$REF_NAME" | tr '/' '-')
+          {
+            echo "tags<<ENDOFTAGS"
+            echo "${R}:${TAG_SAFE_REF}-latest"
+            echo "${R}:${SHA}"
+            if [ "$REF_NAME" = "main" ]; then echo "${R}:latest"; fi
+            echo "ENDOFTAGS"
+          } >> "$GITHUB_OUTPUT"
 
       - id: auth
         name: "Authenticate to Google Cloud"
@@ -49,10 +62,8 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./prover/Dockerfile
+          file: ./prover-service/Dockerfile
           push: true
-          tags: |
-            us-docker.pkg.dev/aptos-registry/docker/prover-service:latest
-            us-docker.pkg.dev/aptos-registry/docker/prover-service:${{ github.sha }}
+          tags: ${{ steps.meta.outputs.tags }}
           build-args: |
             GIT_COMMIT=${{ github.sha }}

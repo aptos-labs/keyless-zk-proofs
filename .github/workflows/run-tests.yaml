@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - 'dual-release-v*'
   pull_request:
 
 concurrency:
@@ -18,9 +19,7 @@ jobs:
       CARGO_TERM_COLOR: always
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: 'recursive'
-      - run: sudo apt-get update -y && sudo apt-get install -y gcc clang cmake make libyaml-dev nasm libgmp-dev libomp-dev
+      - run: ./scripts/task.sh prover-service install-deps
       - run: cargo fmt --check && cargo xclippy
   rust:
     name: Run cargo test
@@ -29,9 +28,7 @@ jobs:
       CARGO_TERM_COLOR: always
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: 'recursive'
-      - run: bash ./dev_setup.sh
-      - run: chmod -R 777 ~/.local/share/aptos-prover-service
-      - run: sudo apt-get update -y && sudo apt-get install -y gcc clang cmake make libyaml-dev nasm libgmp-dev libomp-dev
-      - run: LD_LIBRARY_PATH=$(pwd)/prover/rust-rapidsnark/rapidsnark/package/lib cargo test
+      - run: ./scripts/task.sh prover-service install-deps
+      - run: ./scripts/task.sh circuit install-deps
+      - run: ./scripts/task.sh setup procure-testing-setup
+      - run: LD_LIBRARY_PATH=$(pwd)/rust-rapidsnark/rapidsnark/build/subprojects/oneTBB-2022.0.0 cargo test -p prover-service
