@@ -12,23 +12,40 @@ use crate::metrics::{
 use crate::request_handler::types::{ProverServiceResponse, RequestInput, VerifiedInput};
 use crate::request_handler::{handler, training_wheels, types};
 use crate::{metrics, request_handler::prover_state::ProverServiceState, utils};
+use aptos_crypto::hash::CryptoHash;
 use aptos_keyless_common::input_processing::circuit_input_signals::CircuitInputSignals;
 use aptos_keyless_common::input_processing::encoding::Padded;
+use aptos_keyless_common::logging;
 use aptos_keyless_common::types::PoseidonHash;
 use aptos_logger::{error, warn};
 use aptos_types::keyless::Groth16Proof;
 use aptos_types::transaction::authenticator::EphemeralSignature;
 use ark_ff::PrimeField;
 use hyper::{Body, Request, Response, StatusCode};
+use maplit2::hashmap;
 use std::convert::Infallible;
 use std::fs;
 use std::process::Command;
 use std::sync::Arc;
 use std::time::Instant;
 use tempfile::NamedTempFile;
+use uuid::Uuid;
 
 /// Handles a prove request
 pub async fn hande_prove_request(
+    origin: String,
+    request: Request<Body>,
+    prover_service_state: Arc<ProverServiceState>,
+) -> Result<Response<Body>, Infallible> {
+    logging::run_with_empty_logger_context(hande_prove_request_inner(
+        origin,
+        request,
+        prover_service_state,
+    ))
+    .await
+}
+
+async fn hande_prove_request_inner(
     origin: String,
     request: Request<Body>,
     prover_service_state: Arc<ProverServiceState>,
@@ -43,6 +60,14 @@ pub async fn hande_prove_request(
             return handler::generate_bad_request_response(origin, error_string);
         }
     };
+
+    let _span = logging::new_span_extra_attrs(
+        "HandleRequest",
+        hashmap! {
+            "session_id" => Uuid::new_v4().to_string()[0..8].to_string(),
+            "req_hash" => CryptoHash::hash(&prove_request_input).to_hex(),
+        },
+    );
 
     // Validate the input request
     let verified_input =
@@ -221,6 +246,8 @@ async fn generate_groth16_proof(
     witness_file: NamedTempFile,
     public_inputs_hash: PoseidonHash,
 ) -> Result<Groth16Proof, ProverServiceError> {
+    let _span = logging::new_span("GenerateProof");
+
     // Start the proof generation timer
     let proof_generation_timer = Instant::now();
 
@@ -285,10 +312,13 @@ async fn generate_groth16_proof(
     };
 
     // Prepare the groth16 verification key
-    let verification_key_file_path = prover_service_state
-        .prover_service_config()
-        .verification_key_file_path();
-    let groth16_prepare_verifying_key = types::prepared_vk(&verification_key_file_path)?;
+    let groth16_prepare_verifying_key = {
+        let _span = logging::new_span("PrepareVK");
+        let verification_key_file_path = prover_service_state
+            .prover_service_config()
+            .verification_key_file_path();
+        types::prepared_vk(&verification_key_file_path)?
+    };
 
     // Update the proof deserialization metrics
     metrics::update_prove_request_breakdown_metrics(
