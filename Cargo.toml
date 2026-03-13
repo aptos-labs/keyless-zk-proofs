@@ -1,7 +1,14 @@
 [workspace]
 resolver = "2"
 
-members = ["circuit", "keyless-common", "prover-service", "release-helper", "rust-rapidsnark", "vk-diff"]
+members = [
+    "circuit",
+    "keyless-common",
+    "prover-service",
+    "release-helper",
+    "rust-rapidsnark",
+    "vk-diff",
+]
 
 [workspace.package]
 authors = ["Aptos Labs <opensource@aptoslabs.com>"]
@@ -22,7 +29,7 @@ aptos-keyless-common = { path = "keyless-common" }
 aptos-logger = { git = "https://github.com/aptos-labs/aptos-core", rev = "0ce3ac3a3e51c57b7e02ca8ed9010f6eda67d627" }
 aptos-metrics-core = { git = "https://github.com/aptos-labs/aptos-core", rev = "0ce3ac3a3e51c57b7e02ca8ed9010f6eda67d627" }
 aptos-time-service = { git = "https://github.com/aptos-labs/aptos-core", rev = "0ce3ac3a3e51c57b7e02ca8ed9010f6eda67d627", features = [
-  "async",
+    "async",
 ] }
 aptos-types = { git = "https://github.com/aptos-labs/aptos-core", branch = "main" } # TODO: pin to a specific rev
 ark-bn254 = "0.4.0"
@@ -35,10 +42,10 @@ bcs = { git = "https://github.com/aptos-labs/bcs.git", rev = "d31fab9d81748e2594
 bindgen = "0.69.2"
 chrono = "0.4.41"
 clap = { version = "4.5.51", features = [
-  "derive",
-  "env",
-  "unstable-styles",
-  "wrap_help",
+    "derive",
+    "env",
+    "unstable-styles",
+    "wrap_help",
 ] }
 hex = { version = "0.4.3", features = ["serde"] }
 http = "1.0.0"
@@ -68,8 +75,8 @@ tokio = { version = "1.35.1", features = ["full"] }
 tower = "0.4.13"
 tower-http = { version = "0.5.1", features = ["cors"] }
 ureq = { version = "1.5.4", features = [
-  "json",
-  "native-tls",
+    "json",
+    "native-tls",
 ], default-features = false }
 url = { version = "2.5.4" }
 uuid = { version = "1.17.0", features = ["v4"] }
