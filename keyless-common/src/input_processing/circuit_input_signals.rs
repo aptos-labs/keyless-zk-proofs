@@ -1,7 +1,8 @@
 // Copyright (c) Aptos Foundation
 
 use super::circuit_config::CircuitConfig;
-use crate::input_processing::encoding::{Padded, Unpadded};
+pub use crate::input_processing::encoding::Padded;
+use crate::input_processing::encoding::Unpadded;
 use anyhow::{anyhow, bail, Result};
 use ark_bn254::Fr;
 use serde_json::Value;
