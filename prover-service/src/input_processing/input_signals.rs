@@ -48,16 +48,19 @@ pub fn derive_circuit_input_signals(
             &UnsignedJwtPartsWithPadding::from_b64_bytes_with_padding(&unsigned_jwt_with_padding)
                 .payload_with_padding()?,
         )
-        .str_input("jwt_payload_without_sha_padding", &jwt_parts.payload_undecoded())
+        .str_input(
+            "jwt_payload_without_sha_padding",
+            &jwt_parts.payload_undecoded(),
+        )
         .usize_input(
             "header_len_with_separator",
             jwt_parts.header_undecoded_with_dot().len(),
         )
+        .usize_input("b64_payload_len", jwt_parts.payload_undecoded().len())
         .usize_input(
-            "b64_payload_len",
-            jwt_parts.payload_undecoded().len(),
+            "jwt_num_sha2_blocks",
+            unsigned_jwt_with_padding.len() * 8 / 512,
         )
-        .usize_input("jwt_num_sha2_blocks", unsigned_jwt_with_padding.len() * 8 / 512)
         .bytes_input(
             "jwt_len_bit_encoded",
             &jwt_bit_len_binary(jwt_parts.unsigned_undecoded().as_bytes()).as_bytes()?,

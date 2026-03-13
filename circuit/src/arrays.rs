@@ -609,7 +609,6 @@ fn check_substr_inclusion_poly_same_test() {
     assert!(result.is_ok());
 }
 
-
 #[test]
 fn check_substr_inclusion_poly_out_of_bounds_test() {
     let circuit_handle =
@@ -836,7 +835,6 @@ fn check_substr_inclusion_poly_same_boolean_test() {
     let result = circuit_handle.gen_witness(circuit_input_signals);
     assert!(result.is_ok());
 }
-
 
 #[test]
 fn check_substr_inclusion_poly_boolean_out_of_bounds_test() {
