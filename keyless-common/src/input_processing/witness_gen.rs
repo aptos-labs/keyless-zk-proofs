@@ -4,7 +4,6 @@
 use anyhow::{anyhow, bail, Result};
 use std::{fs, process::Command};
 use tempfile::NamedTempFile;
-use tracing::info_span;
 
 pub trait PathStr {
     fn path_str(&self) -> Result<&str>;
@@ -23,8 +22,6 @@ pub fn witness_gen(
     witness_gen_wasm_path: &str,
     body: &str,
 ) -> Result<NamedTempFile> {
-    let span = info_span!("Generating witness");
-    let _enter = span.enter();
     let input_file = NamedTempFile::new()?;
     let witness_file = NamedTempFile::new()?;
     fs::write(input_file.path(), body.as_bytes())?;
