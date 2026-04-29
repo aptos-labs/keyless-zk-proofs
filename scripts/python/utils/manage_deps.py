@@ -92,7 +92,7 @@ def run_platform_package_manager_command(package):
         elif package_manager == "pacman":
             utils.run_shell_command("pacman -S --needed --noconfirm " + package, as_root=True)
         elif package_manager == "apt-get":
-            utils.run_shell_command("apt-get update", as_root=True)
+            utils.run_shell_command("apt-get update -y || true", as_root=True)
             utils.run_shell_command("apt-get install -y " + package, as_root=True)
     except Exception as e:
         eprint("Installing " + package + " failed. Exception: ")
