@@ -1,11 +1,13 @@
 // Copyright (c) Aptos Foundation
 
+use crate::error::ProverServiceError;
 use crate::external_resources::jwk_types::JWKCache;
 use crate::external_resources::prover_config::ProverServiceConfig;
 use crate::request_handler::deployment_information::DeploymentInformation;
 use crate::request_handler::prover_handler;
 use crate::request_handler::prover_state::ProverServiceState;
 use aptos_logger::error;
+use hyper::body::HttpBody;
 use hyper::header::{ACCESS_CONTROL_ALLOW_CREDENTIALS, ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_TYPE};
 use hyper::http::response;
 use hyper::{
@@ -159,6 +161,14 @@ fn generate_method_not_allowed_response(origin: String) -> Result<Response<Body>
     )
 }
 
+/// Generates a 413 response for requests with oversized bodies
+pub fn generate_payload_too_large_response(
+    origin: String,
+    error_string: String,
+) -> Result<Response<Body>, Infallible> {
+    generate_text_response(origin, StatusCode::PAYLOAD_TOO_LARGE, error_string)
+}
+
 /// Generates a 404 response for invalid paths
 fn generate_not_found_response(
     origin: String,
@@ -266,4 +276,50 @@ pub async fn handle_request(
 /// Returns true if the given URI path is a known path/endpoint
 pub fn is_known_path(uri_path: &str) -> bool {
     ALL_PATHS.contains(&uri_path)
+}
+
+/// Reads the given request body into memory, but only up to the specified
+/// maximum size. The limit is first checked against the declared body length
+/// (when the client sends one), and then enforced again as each chunk arrives,
+/// so that a chunked body of unknown length can never buffer more than the
+/// limit. This prevents unauthenticated clients from exhausting service memory.
+pub async fn read_request_body_with_limit(
+    mut request_body: Body,
+    max_body_size_bytes: usize,
+) -> Result<Vec<u8>, ProverServiceError> {
+    // If the client declared a body length, reject oversized bodies before reading them
+    if let Some(declared_body_size_bytes) = request_body.size_hint().upper() {
+        if declared_body_size_bytes > max_body_size_bytes as u64 {
+            return Err(ProverServiceError::PayloadTooLarge(format!(
+                "The request body length ({} bytes) exceeds the maximum allowed size ({} bytes)!",
+                declared_body_size_bytes, max_body_size_bytes
+            )));
+        }
+    }
+
+    // Read the body chunk-by-chunk, and stop as soon as the limit is exceeded.
+    // Note: the buffer is grown on demand, i.e., it is never pre-allocated
+    // using the (untrusted) body length declared by the client.
+    let mut body_bytes: Vec<u8> = Vec::new();
+    while let Some(chunk) = request_body.data().await {
+        // Get the next chunk of body bytes
+        let chunk = chunk.map_err(|error| {
+            ProverServiceError::BadRequest(format!(
+                "Failed to read request body bytes! Error: {}",
+                error
+            ))
+        })?;
+
+        // Verify that the chunk doesn't push the body beyond the maximum allowed size
+        if body_bytes.len().saturating_add(chunk.len()) > max_body_size_bytes {
+            return Err(ProverServiceError::PayloadTooLarge(format!(
+                "The request body exceeds the maximum allowed size ({} bytes)!",
+                max_body_size_bytes
+            )));
+        }
+
+        body_bytes.extend_from_slice(&chunk);
+    }
+
+    Ok(body_bytes)
 }

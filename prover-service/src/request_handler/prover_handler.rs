@@ -51,15 +51,25 @@ async fn hande_prove_request_inner(
     prover_service_state: Arc<ProverServiceState>,
 ) -> Result<Response<Body>, Infallible> {
     // Extract the prove request input
-    let prove_request_input = match extract_prove_request_input(request).await {
-        Ok(prove_request_input) => prove_request_input,
-        Err(error) => {
-            let error_string = format!("Failed to extract prove request input! Error: {}", error);
-            warn!("{}", error_string);
+    let max_request_body_size_bytes = prover_service_state
+        .prover_service_config()
+        .max_request_body_size_bytes;
+    let prove_request_input =
+        match extract_prove_request_input(request, max_request_body_size_bytes).await {
+            Ok(prove_request_input) => prove_request_input,
+            Err(error) => {
+                let error_string =
+                    format!("Failed to extract prove request input! Error: {}", error);
+                warn!("{}", error_string);
 
-            return handler::generate_bad_request_response(origin, error_string);
-        }
-    };
+                return match error {
+                    ProverServiceError::PayloadTooLarge(_) => {
+                        handler::generate_payload_too_large_response(origin, error_string)
+                    }
+                    _ => handler::generate_bad_request_response(origin, error_string),
+                };
+            }
+        };
 
     let _span = logging::new_span_extra_attrs(
         "HandleRequest",
@@ -154,21 +164,15 @@ async fn hande_prove_request_inner(
 /// Extracts the request input from the given HTTP request
 async fn extract_prove_request_input(
     request: Request<Body>,
+    max_request_body_size_bytes: usize,
 ) -> Result<RequestInput, ProverServiceError> {
     // Start the deserialization timer
     let deserialization_timer = Instant::now();
 
-    // Get the request body bytes
+    // Get the request body bytes (bounded by the maximum allowed body size)
     let request_body = request.into_body();
-    let request_bytes = match hyper::body::to_bytes(request_body).await {
-        Ok(request_bytes) => request_bytes,
-        Err(error) => {
-            return Err(ProverServiceError::BadRequest(format!(
-                "Failed to read request body bytes! Error: {}",
-                error
-            )));
-        }
-    };
+    let request_bytes =
+        handler::read_request_body_with_limit(request_body, max_request_body_size_bytes).await?;
 
     // Extract the request input from the request bytes
     let request_input = match serde_json::from_slice(&request_bytes) {

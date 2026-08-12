@@ -30,6 +30,7 @@ pub struct ProverServiceConfig {
     pub enable_federated_jwks: bool,
     pub disable_jwt_time_based_checks: bool,
     pub max_committed_epk_bytes: usize,
+    pub max_request_body_size_bytes: usize,
 }
 
 impl Default for ProverServiceConfig {
@@ -48,6 +49,7 @@ impl Default for ProverServiceConfig {
             enable_federated_jwks: false, // Disable federated JWKs by default
             disable_jwt_time_based_checks: false, // Enable JWT time-based checks by default
             max_committed_epk_bytes: 93, // 3 * BYTES_PACKED_PER_SCALAR (31) = 93
+            max_request_body_size_bytes: 1024 * 1024, // Buffer at most 1 MiB of request body
         }
     }
 }
