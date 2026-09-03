@@ -11,6 +11,8 @@ pub enum ProverServiceError {
     BadRequest(String),
     #[error("Internal service error: {0}")]
     InternalError(String),
+    #[error("Payload too large error: {0}")]
+    PayloadTooLarge(String),
     #[error("Unexpected error: {0}")]
     UnexpectedError(String),
 }

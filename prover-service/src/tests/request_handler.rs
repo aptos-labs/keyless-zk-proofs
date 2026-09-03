@@ -1,5 +1,6 @@
 // Copyright (c) Aptos Foundation
 
+use crate::error::ProverServiceError;
 use crate::external_resources::jwk_types::{FederatedJWKs, JWKCache};
 use crate::external_resources::prover_config::ProverServiceConfig;
 use crate::request_handler::deployment_information::DeploymentInformation;
@@ -278,6 +279,100 @@ async fn test_prove_request_bad_request() {
 
     // Assert that the response is a 400 (bad request, since the body was invalid JSON)
     assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+}
+
+#[tokio::test]
+async fn test_prove_request_body_too_large() {
+    // Create a config with a small maximum request body size
+    let max_request_body_size_bytes = 1024;
+    let prover_service_config = Arc::new(ProverServiceConfig {
+        max_request_body_size_bytes,
+        ..ProverServiceConfig::default()
+    });
+
+    // Send a POST request with a body that is at the maximum allowed size.
+    // The request should be rejected as a bad request (i.e., invalid JSON),
+    // and not as an oversized payload.
+    let body = vec![b'a'; max_request_body_size_bytes];
+    let response = send_request_to_path(
+        Method::POST,
+        PROVE_PATH,
+        Body::from(body),
+        Some(prover_service_config.clone()),
+        None,
+        None,
+        None,
+    )
+    .await;
+    assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+
+    // Send a POST request with a body that exceeds the maximum allowed size
+    let body = vec![b'a'; max_request_body_size_bytes + 1];
+    let response = send_request_to_path(
+        Method::POST,
+        PROVE_PATH,
+        Body::from(body),
+        Some(prover_service_config.clone()),
+        None,
+        None,
+        None,
+    )
+    .await;
+    assert_eq!(response.status(), StatusCode::PAYLOAD_TOO_LARGE);
+
+    // Send a POST request with an oversized body of unknown length (i.e., a
+    // streamed body, as sent by clients using chunked transfer encoding).
+    // Note: the body is only bounded by the limit, and is never fully read.
+    let (mut sender, body) = Body::channel();
+    tokio::spawn(async move {
+        let chunk = vec![b'a'; max_request_body_size_bytes];
+        for _ in 0..100 {
+            if sender.send_data(chunk.clone().into()).await.is_err() {
+                return; // The handler stopped reading the body
+            }
+        }
+    });
+    let response = send_request_to_path(
+        Method::POST,
+        PROVE_PATH,
+        body,
+        Some(prover_service_config),
+        None,
+        None,
+        None,
+    )
+    .await;
+    assert_eq!(response.status(), StatusCode::PAYLOAD_TOO_LARGE);
+}
+
+#[tokio::test]
+async fn test_read_request_body_with_limit() {
+    // Verify that a body at the limit is read in full
+    let body_bytes = vec![b'a'; 100];
+    let read_bytes = handler::read_request_body_with_limit(Body::from(body_bytes.clone()), 100)
+        .await
+        .unwrap();
+    assert_eq!(read_bytes, body_bytes);
+
+    // Verify that a body above the limit is rejected
+    let error = handler::read_request_body_with_limit(Body::from(body_bytes.clone()), 99)
+        .await
+        .unwrap_err();
+    assert!(matches!(error, ProverServiceError::PayloadTooLarge(_)));
+
+    // Verify that an oversized body of unknown length is also rejected
+    let (mut sender, body) = Body::channel();
+    tokio::spawn(async move {
+        for _ in 0..10 {
+            if sender.send_data(vec![b'a'; 100].into()).await.is_err() {
+                return; // The reader stopped reading the body
+            }
+        }
+    });
+    let error = handler::read_request_body_with_limit(body, 150)
+        .await
+        .unwrap_err();
+    assert!(matches!(error, ProverServiceError::PayloadTooLarge(_)));
 }
 
 /// Gets the response body as a string
