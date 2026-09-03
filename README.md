@@ -71,3 +71,12 @@ In a new terminal, make a request to the prover and expect it to finish normally
 ```bash
 curl -X POST -H "Content-Type: application/json" -d @/tmp/prover_request_payload.json http://localhost:8083/v0/prove
 ```
+
+## Terminology (naming update)
+
+- "the pepper": previously referred to as "pepper base"; the long-lived secret known only to the provider.
+- "peppercorn": previously referred to as "pepper"; a one-way derivative of the pepper used by the circuit and APIs.
+
+Notes:
+- Code and circuits continue to use the signal/field name `pepper` and the Rust type `aptos_types::keyless::Pepper` for backward compatibility; these represent the peppercorn.
+- External interfaces are unchanged; this section clarifies naming only.

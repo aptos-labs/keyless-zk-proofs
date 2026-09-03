@@ -29,6 +29,8 @@ pub struct RequestInput {
     pub epk_blinder: EphemeralPublicKeyBlinder,
     pub exp_date_secs: u64,
     pub exp_horizon_secs: u64,
+    // Naming note: This field is the peppercorn (one-way derivative of "the pepper").
+    // The Rust type and JSON name remain `pepper` for backward compatibility.
     pub pepper: Pepper,
     pub uid_key: String,
     pub extra_field: Option<String>,
