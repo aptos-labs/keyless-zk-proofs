@@ -13,7 +13,15 @@ import setups
 
 # "Constants" (i.e., fixed for duration of execution)
 PTAU_PATH=utils.resources_dir_root() / "powersOfTau28_hez_final_21.ptau"
-PTAU_URL="https://storage.googleapis.com/zkevm/ptau/powersOfTau28_hez_final_21.ptau"
+# Tried in order. The Polygon zkEVM bucket we used to depend on revoked anonymous
+# access on 2026-09-02 (as did every other public Hermez mirror), which broke CI
+# outright, so we now serve the file from our own bucket first and keep upstream
+# only as a fallback in case it comes back. The sha256 check below applies
+# regardless of which source the file came from.
+PTAU_URLS=[
+    "https://storage.googleapis.com/aptos-circuit-testing-setups/ptau/powersOfTau28_hez_final_21.ptau",
+    "https://storage.googleapis.com/zkevm/ptau/powersOfTau28_hez_final_21.ptau",
+]
 PTAU_CHECKSUM="cdc7c94a6635bc91466d8c7d96faefe1d17ecc98a3596a748ca1e6c895f8c2b4"
 TESTING_SETUPS_DIR=utils.resources_dir_root() / "testing_setups"
 
@@ -32,7 +40,18 @@ def require_ptau_file():
         eprint("Powers-of-tau file found at " + str(PTAU_PATH) + ", skipping download.")
     else:
         eprint("Downloading powers-of-tau file... (destination: " + str(PTAU_PATH) + ")")
-        utils.download_file(PTAU_URL, PTAU_PATH)
+        downloaded = False
+        for url in PTAU_URLS:
+            eprint("Trying " + url + " ...")
+            try:
+                utils.download_file(url, PTAU_PATH)
+                downloaded = True
+                break
+            except Exception as e:
+                eprint("Failed to download from " + url + ": " + str(e))
+        if not downloaded:
+            eprint("ERROR: could not download the powers-of-tau file from any known source. Aborting.")
+            exit(2)
         eprint("Finished downloading to " + str(PTAU_PATH) + ".")
 
     eprint("Checking sha256sum of ptau file...")
