@@ -14,11 +14,12 @@ use hyper::body::Incoming;
 use hyper::header::CONTENT_TYPE;
 use hyper::service::service_fn;
 use hyper::{Method, StatusCode};
-use hyper_util::rt::{TokioExecutor, TokioIo};
+use hyper_util::rt::{TokioExecutor, TokioIo, TokioTimer};
 use hyper_util::server::conn::auto::Builder as ServerBuilder;
 use once_cell::sync::Lazy;
 use prometheus::proto::MetricFamily;
 use std::convert::Infallible;
+use std::io::ErrorKind;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -212,17 +213,30 @@ pub fn start_metrics_server(prover_service_config: Arc<ProverServiceConfig>) {
             .await
             .unwrap_or_else(|error| panic!("Metrics server bind error! Error: {}", error));
 
+        let mut server_builder = ServerBuilder::new(TokioExecutor::new());
+        server_builder.http1().timer(TokioTimer::new());
+        server_builder.http2().timer(TokioTimer::new());
+
         loop {
             let (stream, _remote_addr) = match listener.accept().await {
                 Ok(conn) => conn,
                 Err(error) => {
                     error!("Metrics server accept error! Error: {}", error);
+                    if !matches!(
+                        error.kind(),
+                        ErrorKind::ConnectionRefused
+                            | ErrorKind::ConnectionAborted
+                            | ErrorKind::ConnectionReset
+                    ) {
+                        tokio::time::sleep(Duration::from_millis(100)).await;
+                    }
                     continue;
                 }
             };
 
+            let server_builder = server_builder.clone();
             tokio::spawn(async move {
-                if let Err(error) = ServerBuilder::new(TokioExecutor::new())
+                if let Err(error) = server_builder
                     .serve_connection(TokioIo::new(stream), service_fn(handle_metrics_request))
                     .await
                 {
@@ -301,4 +315,70 @@ pub fn update_jwt_attribute_metrics(verified_input: &VerifiedInput) {
         update_jwt_attribute_size_metrics(JWT_EMAIL_SIZE, email.len());
     }
     update_jwt_attribute_size_metrics(JWT_AUD_SIZE, jwt_payload.aud.len());
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+    use tokio::net::TcpStream;
+
+    #[tokio::test]
+    async fn test_metrics_server_endpoints_and_header_timeout() {
+        update_request_handling_metrics(
+            "/healthcheck",
+            Method::GET,
+            StatusCode::OK,
+            Instant::now(),
+        );
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let local_addr = listener.local_addr().unwrap();
+
+        let mut server_builder = ServerBuilder::new(TokioExecutor::new());
+        server_builder
+            .http1()
+            .timer(TokioTimer::new())
+            .header_read_timeout(Duration::from_millis(100));
+        server_builder.http2().timer(TokioTimer::new());
+
+        let server_handle = tokio::spawn(async move {
+            while let Ok((stream, _)) = listener.accept().await {
+                let server_builder = server_builder.clone();
+                tokio::spawn(async move {
+                    let _ = server_builder
+                        .serve_connection(TokioIo::new(stream), service_fn(handle_metrics_request))
+                        .await;
+                });
+            }
+        });
+
+        let client = reqwest::Client::new();
+        let metrics_response = client
+            .get(format!("http://{}{}", local_addr, METRICS_ENDPOINT))
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(metrics_response.status(), reqwest::StatusCode::OK);
+        let body = metrics_response.text().await.unwrap();
+        assert!(body.contains("keyless_prover_service_request_handling_seconds"));
+
+        let not_found_response = client
+            .get(format!("http://{}/unknown", local_addr))
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(not_found_response.status(), reqwest::StatusCode::NOT_FOUND);
+
+        // Verify TokioTimer closes stalled connections that send incomplete HTTP/1 headers
+        let mut slow_stream = TcpStream::connect(local_addr).await.unwrap();
+        slow_stream.write_all(b"GET /metrics ").await.unwrap();
+        let mut buf = [0u8; 16];
+        let read_result = tokio::time::timeout(Duration::from_secs(2), slow_stream.read(&mut buf))
+            .await
+            .expect("stalled header read should time out instead of hanging");
+        assert_eq!(read_result.unwrap(), 0);
+
+        server_handle.abort();
+    }
 }
