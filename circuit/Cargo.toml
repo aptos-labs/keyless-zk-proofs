@@ -32,5 +32,5 @@ hex = { workspace = true }
 num-bigint = { workspace = true }
 num-modular = { version = "0.6.1", features = ["num-bigint", "num-integer", "num-traits", "std"] }
 rand_chacha = "0.3.1"
-rsa = { version = "0.9.6", features = ["sha2"] }
+rsa = { version = "0.9.10", features = ["sha2"] }
 tokio = { workspace = true }

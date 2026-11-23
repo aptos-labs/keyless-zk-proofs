@@ -40,8 +40,8 @@ fn invert_binary_array_test() {
                     let test_case = [b0, b1, b2, b3];
                     let output = build_invert_binary_array_output(test_case.to_vec());
                     let config = CircuitConfig::new()
-                        .max_length("in", output.len() as usize)
-                        .max_length("expected_out", output.len() as usize);
+                        .max_length("in", output.len())
+                        .max_length("expected_out", output.len());
                     let circuit_input_signals = CircuitInputSignals::new()
                         .bytes_input(
                             "in",

@@ -52,7 +52,7 @@ fn base64url_lookup_test() {
     let base64_chars = (b'A'..=b'Z')
         .chain(b'a'..=b'z')
         .chain(b'0'..=b'9')
-        .chain([b'-', b'_']);
+        .chain(*b"-_");
 
     for in_b64_char in base64_chars {
         let config = CircuitConfig::new();

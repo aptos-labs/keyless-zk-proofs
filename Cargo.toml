@@ -21,27 +21,28 @@ rust-version = "1.85.0"
 
 [workspace.dependencies]
 anyhow = "1.0.98"
-aptos-build-info = { git = "https://github.com/aptos-labs/aptos-core", rev = "0ce3ac3a3e51c57b7e02ca8ed9010f6eda67d627" }
-aptos-crypto = { git = "https://github.com/aptos-labs/aptos-core", branch = "main" } # TODO: pin to a specific rev
-aptos-crypto-derive = { git = "https://github.com/aptos-labs/aptos-core", rev = "0ce3ac3a3e51c57b7e02ca8ed9010f6eda67d627" }
-aptos-infallible = { git = "https://github.com/aptos-labs/aptos-core", rev = "0ce3ac3a3e51c57b7e02ca8ed9010f6eda67d627" }
+aptos-build-info = { git = "https://github.com/aptos-labs/aptos-core", rev = "19b6b988ef00426c93196388576ad908b5053eb4" }
+aptos-crypto = { git = "https://github.com/aptos-labs/aptos-core", rev = "19b6b988ef00426c93196388576ad908b5053eb4" }
+aptos-crypto-derive = { git = "https://github.com/aptos-labs/aptos-core", rev = "19b6b988ef00426c93196388576ad908b5053eb4" }
+aptos-infallible = { git = "https://github.com/aptos-labs/aptos-core", rev = "19b6b988ef00426c93196388576ad908b5053eb4" }
 aptos-keyless-common = { path = "keyless-common" }
-aptos-logger = { git = "https://github.com/aptos-labs/aptos-core", rev = "0ce3ac3a3e51c57b7e02ca8ed9010f6eda67d627" }
-aptos-metrics-core = { git = "https://github.com/aptos-labs/aptos-core", rev = "0ce3ac3a3e51c57b7e02ca8ed9010f6eda67d627" }
-aptos-time-service = { git = "https://github.com/aptos-labs/aptos-core", rev = "0ce3ac3a3e51c57b7e02ca8ed9010f6eda67d627", features = [
+aptos-logger = { git = "https://github.com/aptos-labs/aptos-core", rev = "19b6b988ef00426c93196388576ad908b5053eb4" }
+aptos-metrics-core = { git = "https://github.com/aptos-labs/aptos-core", rev = "19b6b988ef00426c93196388576ad908b5053eb4" }
+aptos-time-service = { git = "https://github.com/aptos-labs/aptos-core", rev = "19b6b988ef00426c93196388576ad908b5053eb4", features = [
     "async",
 ] }
-aptos-types = { git = "https://github.com/aptos-labs/aptos-core", branch = "main" } # TODO: pin to a specific rev
-ark-bn254 = "0.4.0"
-ark-ff = "0.4.0"
-ark-groth16 = "0.4.0"
-ark-serialize = "0.4.0"
+aptos-types = { git = "https://github.com/aptos-labs/aptos-core", rev = "19b6b988ef00426c93196388576ad908b5053eb4" }
+ark-bn254 = "0.5.0"
+ark-ff = "0.5.0"
+ark-groth16 = "0.5.0"
+ark-serialize = "0.5.0"
 async-trait = "0.1.53"
 base64 = "0.13.0"
 bcs = { git = "https://github.com/aptos-labs/bcs.git", rev = "d31fab9d81748e2594be5cd5cdf845786a30562d" }
 bindgen = "0.69.2"
+bytes = "1.11.1"
 chrono = "0.4.41"
-clap = { version = "4.5.51", features = [
+clap = { version = "4.6.7", features = [
     "derive",
     "env",
     "unstable-styles",
@@ -49,18 +50,20 @@ clap = { version = "4.5.51", features = [
 ] }
 hex = { version = "0.4.3", features = ["serde"] }
 http = "1.0.0"
-hyper = { version = "0.14.18", features = ["full"] }
+http-body-util = "0.1"
+hyper = { version = "1.6", features = ["full"] }
+hyper-util = { version = "0.1", features = ["full"] }
 itertools = "0.13"
-jsonwebtoken = "8.1"
+jsonwebtoken = { version = "10.3.0", features = ["rust_crypto"] }
 maplit2 = "1.0.5"
 num-bigint = "0.4.4"
 num-traits = "0.2.17"
 once_cell = "1.19.0"
-prometheus = "0.13.3"
+prometheus = { version = "0.14.0", default-features = false }
 rand = "0.7.3"
 regex = "1.10.5"
-reqwest = { version = "0.11.24", features = ["json", "stream"] }
-rsa = "0.9.6"
+reqwest = { version = "0.12.28", features = ["json", "stream"] }
+rsa = "0.9.10"
 rust-rapidsnark = { path = "rust-rapidsnark" }
 serde = { version = "1.0.196", features = ["derive"] }
 serde_json = "1.0.113"
@@ -71,14 +74,12 @@ shellexpand = "3.1.0"
 strum_macros = "0.24"
 tempfile = "3.23.0"
 thiserror = "1.0.57"
-tokio = { version = "1.35.1", features = ["full"] }
-tower = "0.4.13"
-tower-http = { version = "0.5.1", features = ["cors"] }
+tokio = { version = "1.50.0", features = ["full"] }
 ureq = { version = "1.5.4", features = [
     "json",
     "native-tls",
 ], default-features = false }
-url = { version = "2.5.4" }
+url = { version = "2.5.9" }
 uuid = { version = "1.17.0", features = ["v4"] }
 
 [profile.release]
@@ -86,5 +87,11 @@ debug = true
 overflow-checks = true
 
 [patch.crates-io]
+ark-ec = { git = "https://github.com/aptos-labs/algebra", branch = "fix-fft-parallelism-cutoff" }
+ark-ff = { git = "https://github.com/aptos-labs/algebra", branch = "fix-fft-parallelism-cutoff" }
+ark-ff-asm = { git = "https://github.com/aptos-labs/algebra", branch = "fix-fft-parallelism-cutoff" }
+ark-ff-macros = { git = "https://github.com/aptos-labs/algebra", branch = "fix-fft-parallelism-cutoff" }
+ark-poly = { git = "https://github.com/aptos-labs/algebra", branch = "fix-fft-parallelism-cutoff" }
+ark-serialize = { git = "https://github.com/aptos-labs/algebra", branch = "fix-fft-parallelism-cutoff" }
+dudect-bencher = { git = "https://github.com/aptos-labs/dudect-bencher", rev = "9515677c83c58884c1a8c764251753269d46fc0e" }
 merlin = { git = "https://github.com/aptos-labs/merlin" }
-x25519-dalek = { git = "https://github.com/aptos-labs/x25519-dalek", branch = "zeroize_v1" }

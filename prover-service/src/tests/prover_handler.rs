@@ -14,7 +14,8 @@ use aptos_crypto::{PrivateKey, Uniform};
 use aptos_infallible::Mutex;
 use aptos_keyless_common::input_processing::encoding::AsFr;
 use aptos_types::jwks::rsa::RSA_JWK;
-use hyper::{body, Body};
+use bytes::Bytes;
+use http_body_util::{BodyExt, Full};
 use rand::prelude::ThreadRng;
 use rand::thread_rng;
 use rust_rapidsnark::FullProver;
@@ -322,7 +323,8 @@ async fn convert_prove_and_verify(testcase: &ProofTestCase) -> Result<(), anyhow
     // Create the prover request
     let prover_request_input = testcase.convert_to_prover_request(&jwk_keypair);
     let serialized_prover_request_input = serde_json::to_string(&prover_request_input).unwrap();
-    let prove_request = hyper::Request::new(Body::from(serialized_prover_request_input));
+    let prove_request =
+        hyper::Request::new(Full::new(Bytes::from(serialized_prover_request_input)));
 
     // Send the prove request to the prover handler
     let result = prover_handler::hande_prove_request(
@@ -335,7 +337,7 @@ async fn convert_prove_and_verify(testcase: &ProofTestCase) -> Result<(), anyhow
     // Parse the prover response
     let prover_service_response = match result {
         Ok(response) => {
-            let response_bytes = body::to_bytes(response.into_body()).await?;
+            let response_bytes = response.into_body().collect().await?.to_bytes();
             let response_body = String::from_utf8(response_bytes.to_vec())?;
             serde_json::from_str::<ProverServiceResponse>(&response_body)?
         }

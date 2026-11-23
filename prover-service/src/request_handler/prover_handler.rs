@@ -21,9 +21,12 @@ use aptos_logger::{error, warn};
 use aptos_types::keyless::Groth16Proof;
 use aptos_types::transaction::authenticator::EphemeralSignature;
 use ark_ff::PrimeField;
-use hyper::{Body, Request, Response, StatusCode};
+use bytes::Bytes;
+use http_body_util::{BodyExt, Full};
+use hyper::{body::Body, Request, Response, StatusCode};
 use maplit2::hashmap;
 use std::convert::Infallible;
+use std::fmt::Display;
 use std::fs;
 use std::process::Command;
 use std::sync::Arc;
@@ -32,11 +35,15 @@ use tempfile::NamedTempFile;
 use uuid::Uuid;
 
 /// Handles a prove request
-pub async fn hande_prove_request(
+pub async fn hande_prove_request<B>(
     origin: String,
-    request: Request<Body>,
+    request: Request<B>,
     prover_service_state: Arc<ProverServiceState>,
-) -> Result<Response<Body>, Infallible> {
+) -> Result<Response<Full<Bytes>>, Infallible>
+where
+    B: Body + Send + 'static,
+    B::Error: Display,
+{
     logging::run_with_empty_logger_context(hande_prove_request_inner(
         origin,
         request,
@@ -45,11 +52,15 @@ pub async fn hande_prove_request(
     .await
 }
 
-async fn hande_prove_request_inner(
+async fn hande_prove_request_inner<B>(
     origin: String,
-    request: Request<Body>,
+    request: Request<B>,
     prover_service_state: Arc<ProverServiceState>,
-) -> Result<Response<Body>, Infallible> {
+) -> Result<Response<Full<Bytes>>, Infallible>
+where
+    B: Body + Send + 'static,
+    B::Error: Display,
+{
     // Extract the prove request input
     let prove_request_input = match extract_prove_request_input(request).await {
         Ok(prove_request_input) => prove_request_input,
@@ -152,16 +163,20 @@ async fn hande_prove_request_inner(
 }
 
 /// Extracts the request input from the given HTTP request
-async fn extract_prove_request_input(
-    request: Request<Body>,
-) -> Result<RequestInput, ProverServiceError> {
+async fn extract_prove_request_input<B>(
+    request: Request<B>,
+) -> Result<RequestInput, ProverServiceError>
+where
+    B: Body + Send + 'static,
+    B::Error: Display,
+{
     // Start the deserialization timer
     let deserialization_timer = Instant::now();
 
     // Get the request body bytes
     let request_body = request.into_body();
-    let request_bytes = match hyper::body::to_bytes(request_body).await {
-        Ok(request_bytes) => request_bytes,
+    let request_bytes = match request_body.collect().await {
+        Ok(collected) => collected.to_bytes(),
         Err(error) => {
             return Err(ProverServiceError::BadRequest(format!(
                 "Failed to read request body bytes! Error: {}",

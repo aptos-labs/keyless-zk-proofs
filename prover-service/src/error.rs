@@ -1,6 +1,5 @@
 // Copyright (c) Aptos Foundation
 
-use aptos_logger::error;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 

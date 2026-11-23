@@ -32,10 +32,13 @@ ark-groth16 = { workspace = true }
 async-trait = { workspace = true }
 base64 = { workspace = true }
 bcs = { workspace = true }
+bytes = { workspace = true }
 clap = { workspace = true }
 hex = { workspace = true }
 http = { workspace = true }
+http-body-util = { workspace = true }
 hyper = { workspace = true }
+hyper-util = { workspace = true }
 jsonwebtoken = { workspace = true }
 maplit2 = { workspace = true }
 num-bigint = { workspace = true }
@@ -49,7 +52,6 @@ rust-rapidsnark = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 serde_yaml = { workspace = true }
-serial_test = { workspace = true }
 shellexpand = { workspace = true }
 tempfile = { workspace = true }
 thiserror = { workspace = true }
@@ -58,3 +60,4 @@ uuid = { workspace = true }
 
 [dev-dependencies]
 aptos-time-service = { workspace = true, features = ["testing"] }
+serial_test = { workspace = true }
