@@ -8,15 +8,21 @@ use aptos_metrics_core::{
     exponential_buckets, register_histogram_vec, register_int_counter_vec, Encoder, HistogramVec,
     IntCounterVec, TextEncoder,
 };
+use bytes::Bytes;
+use http_body_util::Full;
+use hyper::body::Incoming;
 use hyper::header::CONTENT_TYPE;
-use hyper::service::{make_service_fn, service_fn};
-use hyper::{Body, Method, Server, StatusCode};
+use hyper::service::service_fn;
+use hyper::{Method, StatusCode};
+use hyper_util::rt::{TokioExecutor, TokioIo};
+use hyper_util::server::conn::auto::Builder as ServerBuilder;
 use once_cell::sync::Lazy;
 use prometheus::proto::MetricFamily;
 use std::convert::Infallible;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
+use tokio::net::TcpListener;
 
 // Constants for the metrics endpoint and response type
 const METRICS_ENDPOINT: &str = "/metrics";
@@ -123,19 +129,19 @@ static REQUEST_JWT_ATTRIBUTE_SIZES: Lazy<HistogramVec> = Lazy::new(|| {
 
 /// Handles incoming HTTP requests for the metrics server
 async fn handle_metrics_request(
-    request: hyper::Request<Body>,
-) -> Result<hyper::Response<Body>, Infallible> {
+    request: hyper::Request<Incoming>,
+) -> Result<hyper::Response<Full<Bytes>>, Infallible> {
     let response = match (request.method(), request.uri().path()) {
         (&Method::GET, METRICS_ENDPOINT) => {
             let buffer = get_encoded_metrics(TextEncoder::new());
             hyper::Response::builder()
                 .status(StatusCode::OK)
                 .header(CONTENT_TYPE, PLAIN_CONTENT_TYPE)
-                .body(Body::from(buffer))
+                .body(Full::new(Bytes::from(buffer)))
                 .expect("The metric response failed to build!")
         }
         _ => {
-            let mut response = hyper::Response::new(Body::empty());
+            let mut response = hyper::Response::new(Full::new(Bytes::new()));
             *response.status_mut() = StatusCode::NOT_FOUND;
             response
         }
@@ -200,16 +206,29 @@ pub fn start_metrics_server(prover_service_config: Arc<ProverServiceConfig>) {
     let _handle = tokio::spawn(async move {
         info!("Starting metrics server request handler...");
 
-        // Create a service function that handles the metrics requests
-        let make_service = make_service_fn(|_conn| async {
-            Ok::<_, Infallible>(service_fn(handle_metrics_request))
-        });
-
         // Bind the socket address, and start the server
         let socket_addr = SocketAddr::from(([0, 0, 0, 0], prover_service_config.metrics_port));
-        let server = Server::bind(&socket_addr).serve(make_service);
-        if let Err(error) = server.await {
-            panic!("Metrics server error! Error: {}", error);
+        let listener = TcpListener::bind(socket_addr)
+            .await
+            .unwrap_or_else(|error| panic!("Metrics server bind error! Error: {}", error));
+
+        loop {
+            let (stream, _remote_addr) = match listener.accept().await {
+                Ok(conn) => conn,
+                Err(error) => {
+                    error!("Metrics server accept error! Error: {}", error);
+                    continue;
+                }
+            };
+
+            tokio::spawn(async move {
+                if let Err(error) = ServerBuilder::new(TokioExecutor::new())
+                    .serve_connection(TokioIo::new(stream), service_fn(handle_metrics_request))
+                    .await
+                {
+                    error!("Error serving metrics connection: {:?}", error);
+                }
+            });
         }
     });
 }

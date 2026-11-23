@@ -25,7 +25,12 @@
   "devDependencies": {
     "@noble/hashes": "^1.7.1",
     "chai": "^4.3.4",
-    "circom_tester": "0.0.23",
-    "mocha": "^11.1.0"
+    "circom_tester": "^0.0.24",
+    "mocha": "^12.0.3"
+  },
+  "overrides": {
+    "bfj": "^9.1.4",
+    "glob": "^14.0.6",
+    "minimatch": "^11.0.9"
   }
 }

@@ -6,13 +6,16 @@ use crate::request_handler::deployment_information::DeploymentInformation;
 use crate::request_handler::prover_handler;
 use crate::request_handler::prover_state::ProverServiceState;
 use aptos_logger::error;
+use bytes::Bytes;
+use http::response;
+use http_body_util::Full;
 use hyper::header::{ACCESS_CONTROL_ALLOW_CREDENTIALS, ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_TYPE};
-use hyper::http::response;
 use hyper::{
+    body::Body,
     header::{ACCESS_CONTROL_ALLOW_HEADERS, ACCESS_CONTROL_ALLOW_METHODS},
-    Body, Method, Request, Response, StatusCode,
+    Method, Request, Response, StatusCode,
 };
-use std::{convert::Infallible, sync::Arc};
+use std::{convert::Infallible, fmt::Display, sync::Arc};
 
 // The list of endpoints/paths offered by the Prover Service.
 // Note: if you update these paths, please also update the "ALL_PATHS" array below.
@@ -59,7 +62,7 @@ pub fn create_response_builder(origin: String, status_code: StatusCode) -> respo
 fn generate_about_response(
     origin: String,
     deployment_information: &DeploymentInformation,
-) -> Result<Response<Body>, Infallible> {
+) -> Result<Response<Full<Bytes>>, Infallible> {
     // Serialize the deployment information
     let deployment_info_json = match serde_json::to_string_pretty(
         &deployment_information.get_deployment_information_map(),
@@ -82,7 +85,7 @@ fn generate_about_response(
 pub fn generate_bad_request_response(
     origin: String,
     json_error_string: String,
-) -> Result<Response<Body>, Infallible> {
+) -> Result<Response<Full<Bytes>>, Infallible> {
     generate_json_response(origin, StatusCode::BAD_REQUEST, json_error_string)
 }
 
@@ -90,7 +93,7 @@ pub fn generate_bad_request_response(
 fn generate_config_response(
     origin: String,
     prover_service_config: Arc<ProverServiceConfig>,
-) -> Result<Response<Body>, Infallible> {
+) -> Result<Response<Full<Bytes>>, Infallible> {
     // Serialize the configuration information
     let config_json = match serde_json::to_string_pretty(&prover_service_config) {
         Ok(json) => json,
@@ -106,14 +109,14 @@ fn generate_config_response(
 
 /// Generates a 200 response for health check requests. This
 /// is useful for kubernetes liveness and readiness probes.
-fn generate_health_check_response(origin: String) -> Result<Response<Body>, Infallible> {
+fn generate_health_check_response(origin: String) -> Result<Response<Full<Bytes>>, Infallible> {
     generate_text_response(origin, StatusCode::OK, HEALTH_CHECK_OK_MESSAGE.into())
 }
 
 /// Generates a 500 response for unexpected internal server errors
 pub fn generate_internal_server_error_response(
     origin: String,
-) -> Result<Response<Body>, Infallible> {
+) -> Result<Response<Full<Bytes>>, Infallible> {
     generate_text_response(
         origin,
         StatusCode::INTERNAL_SERVER_ERROR,
@@ -126,10 +129,10 @@ pub fn generate_json_response(
     origin: String,
     status_code: StatusCode,
     body_str: String,
-) -> Result<Response<Body>, Infallible> {
+) -> Result<Response<Full<Bytes>>, Infallible> {
     let response = create_response_builder(origin, status_code)
         .header(CONTENT_TYPE, CONTENT_TYPE_JSON)
-        .body(Body::from(body_str))
+        .body(Full::new(Bytes::from(body_str)))
         .expect("Failed to build JSON response!");
     Ok(response)
 }
@@ -138,7 +141,7 @@ pub fn generate_json_response(
 fn generate_jwt_cache_response(
     origin: String,
     jwk_cache: JWKCache,
-) -> Result<Response<Body>, Infallible> {
+) -> Result<Response<Full<Bytes>>, Infallible> {
     let jwk_cache = jwk_cache.lock().clone();
     match serde_json::to_string_pretty(&jwk_cache) {
         Ok(response_body) => generate_json_response(origin, StatusCode::OK, response_body),
@@ -151,7 +154,9 @@ fn generate_jwt_cache_response(
 }
 
 /// Generates a 405 response for invalid methods on known paths
-fn generate_method_not_allowed_response(origin: String) -> Result<Response<Body>, Infallible> {
+fn generate_method_not_allowed_response(
+    origin: String,
+) -> Result<Response<Full<Bytes>>, Infallible> {
     generate_text_response(
         origin,
         StatusCode::METHOD_NOT_ALLOWED,
@@ -164,7 +169,7 @@ fn generate_not_found_response(
     origin: String,
     request_method: &Method,
     request_path: &str,
-) -> Result<Response<Body>, Infallible> {
+) -> Result<Response<Full<Bytes>>, Infallible> {
     let response_message = format!(
         "The request for '{}' with method '{}' was not found!",
         request_path, request_method
@@ -173,11 +178,11 @@ fn generate_not_found_response(
 }
 
 /// Generates a response for options requests
-fn generate_options_response(origin: String) -> Result<Response<Body>, Infallible> {
+fn generate_options_response(origin: String) -> Result<Response<Full<Bytes>>, Infallible> {
     let response = create_response_builder(origin, StatusCode::OK)
         .header(ACCESS_CONTROL_ALLOW_METHODS, "GET, POST, OPTIONS")
         .header(ACCESS_CONTROL_ALLOW_HEADERS, "*")
-        .body(Body::empty())
+        .body(Full::new(Bytes::new()))
         .expect("Failed to build options response!");
     Ok(response)
 }
@@ -187,16 +192,16 @@ pub fn generate_text_response(
     origin: String,
     status_code: StatusCode,
     body_str: String,
-) -> Result<Response<Body>, Infallible> {
+) -> Result<Response<Full<Bytes>>, Infallible> {
     let response = create_response_builder(origin, status_code)
         .header(CONTENT_TYPE, CONTENT_TYPE_TEXT)
-        .body(Body::from(body_str))
+        .body(Full::new(Bytes::from(body_str)))
         .expect("Failed to build text response!");
     Ok(response)
 }
 
 /// Extracts the origin header from the request
-pub fn get_request_origin(request: &Request<Body>) -> String {
+pub fn get_request_origin<B>(request: &Request<B>) -> String {
     request
         .headers()
         .get(ORIGIN_HEADER)
@@ -206,10 +211,14 @@ pub fn get_request_origin(request: &Request<Body>) -> String {
 }
 
 /// Handles the given request and returns a response
-pub async fn handle_request(
-    request: Request<Body>,
+pub async fn handle_request<B>(
+    request: Request<B>,
     prover_service_state: Arc<ProverServiceState>,
-) -> Result<Response<Body>, Infallible> {
+) -> Result<Response<Full<Bytes>>, Infallible>
+where
+    B: Body + Send + 'static,
+    B::Error: Display,
+{
     // Get the request origin
     let origin = get_request_origin(&request);
 

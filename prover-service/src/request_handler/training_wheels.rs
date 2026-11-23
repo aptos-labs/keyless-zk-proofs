@@ -170,7 +170,10 @@ pub fn sign(
 
 /// Validates the signature of the given JWT using the provided JWK
 pub fn validate_jwt_signature(jwk: &RSA_JWK, jwt: &str) -> anyhow::Result<()> {
-    let validation = Validation::new(Algorithm::RS256);
+    let mut validation = Validation::new(Algorithm::RS256);
+    // The prover service serves arbitrary OIDC client audiences (verified in-circuit),
+    // so audience filtering is intentionally disabled here.
+    validation.validate_aud = false;
     let decoding_key = &DecodingKey::from_rsa_components(&jwk.n, &jwk.e)?;
     let _claims = jsonwebtoken::decode::<Claims>(jwt, decoding_key, &validation)?;
 

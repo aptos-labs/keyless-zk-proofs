@@ -10,11 +10,13 @@ use crate::request_handler::handler::{
 use crate::request_handler::prover_state::{ProverServiceState, TrainingWheelsKeyPair};
 use aptos_infallible::Mutex;
 use aptos_types::jwks::rsa::SECURE_TEST_RSA_JWK;
+use bytes::Bytes;
+use http_body_util::{BodyExt, Full};
 use hyper::{
     header::{
         ACCESS_CONTROL_ALLOW_HEADERS, ACCESS_CONTROL_ALLOW_METHODS, ACCESS_CONTROL_ALLOW_ORIGIN,
     },
-    Body, Method, Request, Response, StatusCode,
+    Method, Request, Response, StatusCode,
 };
 use reqwest::header::ACCESS_CONTROL_ALLOW_CREDENTIALS;
 use std::ops::Deref;
@@ -23,8 +25,16 @@ use std::{collections::HashMap, sync::Arc};
 #[tokio::test]
 async fn test_options_request() {
     // Send an options request to the root path
-    let response =
-        send_request_to_path(Method::OPTIONS, "/", Body::empty(), None, None, None, None).await;
+    let response = send_request_to_path(
+        Method::OPTIONS,
+        "/",
+        Full::new(Bytes::new()),
+        None,
+        None,
+        None,
+        None,
+    )
+    .await;
 
     // Assert that the response status is OK
     assert_eq!(response.status(), StatusCode::OK);
@@ -57,7 +67,7 @@ async fn test_get_about_request() {
     let response = send_request_to_path(
         Method::GET,
         ABOUT_PATH,
-        Body::empty(),
+        Full::new(Bytes::new()),
         None,
         None,
         Some(deployment_information),
@@ -95,7 +105,7 @@ async fn test_get_config_request() {
     let response = send_request_to_path(
         Method::GET,
         CONFIG_PATH,
-        Body::empty(),
+        Full::new(Bytes::new()),
         Some(prover_service_config.clone()),
         None,
         None,
@@ -118,7 +128,7 @@ async fn test_health_check_request() {
     let response = send_request_to_path(
         Method::GET,
         HEALTH_CHECK_PATH,
-        Body::empty(),
+        Full::new(Bytes::new()),
         None,
         None,
         None,
@@ -139,7 +149,7 @@ async fn test_get_jwk_request() {
     let response = send_request_to_path(
         Method::GET,
         JWK_PATH,
-        Body::empty(),
+        Full::new(Bytes::new()),
         None,
         None,
         None,
@@ -175,7 +185,7 @@ async fn test_get_jwk_request() {
     let response = send_request_to_path(
         Method::GET,
         JWK_PATH,
-        Body::empty(),
+        Full::new(Bytes::new()),
         None,
         None,
         None,
@@ -211,7 +221,7 @@ async fn test_get_invalid_path_or_method_request() {
     let response = send_request_to_path(
         Method::GET,
         "/invalid_path",
-        Body::empty(),
+        Full::new(Bytes::new()),
         None,
         None,
         None,
@@ -224,7 +234,7 @@ async fn test_get_invalid_path_or_method_request() {
     let response = send_request_to_path(
         Method::GET,
         PROVE_PATH,
-        Body::empty(),
+        Full::new(Bytes::new()),
         None,
         None,
         None,
@@ -237,7 +247,7 @@ async fn test_get_invalid_path_or_method_request() {
     let response = send_request_to_path(
         Method::POST,
         ABOUT_PATH,
-        Body::empty(),
+        Full::new(Bytes::new()),
         None,
         None,
         None,
@@ -253,7 +263,7 @@ async fn test_prove_request_bad_request() {
     let response = send_request_to_path(
         Method::POST,
         PROVE_PATH,
-        Body::empty(),
+        Full::new(Bytes::new()),
         None,
         None,
         None,
@@ -268,7 +278,7 @@ async fn test_prove_request_bad_request() {
     let response = send_request_to_path(
         Method::POST,
         PROVE_PATH,
-        Body::from("invalid_json"),
+        Full::new(Bytes::from("invalid_json")),
         None,
         None,
         None,
@@ -281,8 +291,8 @@ async fn test_prove_request_bad_request() {
 }
 
 /// Gets the response body as a string
-async fn get_response_body_string(response: Response<Body>) -> String {
-    let body_bytes = hyper::body::to_bytes(response.into_body()).await.unwrap();
+async fn get_response_body_string(response: Response<Full<Bytes>>) -> String {
+    let body_bytes = response.into_body().collect().await.unwrap().to_bytes();
     String::from_utf8(body_bytes.to_vec()).unwrap()
 }
 
@@ -290,12 +300,12 @@ async fn get_response_body_string(response: Response<Body>) -> String {
 async fn send_request_to_path(
     method: Method,
     endpoint: &str,
-    body: Body,
+    body: Full<Bytes>,
     prover_service_config: Option<Arc<ProverServiceConfig>>,
     training_wheels_key_pair: Option<TrainingWheelsKeyPair>,
     deployment_information: Option<DeploymentInformation>,
     jwk_cache: Option<JWKCache>,
-) -> Response<Body> {
+) -> Response<Full<Bytes>> {
     // Get or create the prover service config
     let prover_service_config =
         prover_service_config.unwrap_or_else(|| Arc::new(ProverServiceConfig::default()));

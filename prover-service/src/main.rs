@@ -4,16 +4,17 @@ use aptos_crypto::ed25519::Ed25519PrivateKey;
 use aptos_crypto::ValidCryptoMaterialStringExt;
 use aptos_logger::{error, info, warn};
 use clap::Parser;
-use hyper::service::{make_service_fn, service_fn};
-use hyper::Server;
+use hyper::service::service_fn;
+use hyper_util::rt::{TokioExecutor, TokioIo};
+use hyper_util::server::conn::auto::Builder as ServerBuilder;
 use prover_service::external_resources::prover_config::ProverServiceConfig;
 use prover_service::external_resources::{jwk_fetcher, prover_config};
 use prover_service::request_handler::prover_state::{ProverServiceState, TrainingWheelsKeyPair};
 use prover_service::request_handler::{deployment_information, handler};
 use prover_service::*;
-use std::convert::Infallible;
 use std::time::Instant;
 use std::{net::SocketAddr, sync::Arc, time::Duration};
+use tokio::net::TcpListener;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
@@ -121,13 +122,24 @@ async fn start_prover_service(
         prover_service_port
     );
 
-    // Create the service function that handles the endpoint requests
-    let make_service = make_service_fn(move |_conn| {
-        // Clone the required state for the service function
-        let prover_service_state = prover_service_state.clone();
+    // Bind the socket address, and start the server
+    let socket_addr = SocketAddr::from(([0, 0, 0, 0], prover_service_port));
+    let listener = TcpListener::bind(socket_addr)
+        .await
+        .unwrap_or_else(|error| panic!("Prover service bind error! Error: {}", error));
 
-        async move {
-            Ok::<_, Infallible>(service_fn(move |request| {
+    loop {
+        let (stream, _remote_addr) = match listener.accept().await {
+            Ok(conn) => conn,
+            Err(error) => {
+                error!("Prover service accept error! Error: {}", error);
+                continue;
+            }
+        };
+
+        let prover_service_state = prover_service_state.clone();
+        tokio::spawn(async move {
+            let service = service_fn(move |request| {
                 // Start the request timer
                 let request_start_time = Instant::now();
 
@@ -179,14 +191,14 @@ async fn start_prover_service(
 
                     result
                 }
-            }))
-        }
-    });
+            });
 
-    // Bind the socket address, and start the server
-    let socket_addr = SocketAddr::from(([0, 0, 0, 0], prover_service_port));
-    let server = Server::bind(&socket_addr).serve(make_service);
-    if let Err(error) = server.await {
-        panic!("Prover service error! Error: {}", error);
+            if let Err(error) = ServerBuilder::new(TokioExecutor::new())
+                .serve_connection(TokioIo::new(stream), service)
+                .await
+            {
+                error!("Error serving prover service connection: {:?}", error);
+            }
+        });
     }
 }
