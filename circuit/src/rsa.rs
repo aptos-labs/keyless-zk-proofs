@@ -82,7 +82,7 @@ fn common<F: Fn(&mut Vec<u64>, &mut Vec<u64>, &mut Vec<u64>)>(
         let signing_key = SigningKey::<Sha256>::new(private_key);
 
         info!("Generate a random message.");
-        let msg_len: usize = rng.gen_range(0, 9999);
+        let msg_len: usize = rng.gen_range(0..9999);
         let message: Vec<u8> = vec![0; msg_len];
 
         info!("Message generated, msg_hex={}", hex::encode(&message));
@@ -128,7 +128,7 @@ fn common<F: Fn(&mut Vec<u64>, &mut Vec<u64>, &mut Vec<u64>)>(
 
 fn flip_random_bit(limbs: &mut [u64]) {
     let mut rng = thread_rng();
-    let limb_idx = rng.gen_range(0, limbs.len());
-    let bit_idx = rng.gen_range(0, 64);
+    let limb_idx = rng.gen_range(0..limbs.len());
+    let bit_idx = rng.gen_range(0..64);
     *limbs.get_mut(limb_idx).unwrap() ^= 1_u64 << bit_idx;
 }

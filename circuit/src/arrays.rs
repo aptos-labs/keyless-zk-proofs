@@ -70,10 +70,10 @@ fn elementwise_mul_test() {
     let mut rng = rand::thread_rng();
     for _i in 0..25 {
         let test_case_left: Vec<u64> = (0..4)
-            .map(|_| rng.gen_range(0, (u64::MAX as f64).sqrt() as u64))
+            .map(|_| rng.gen_range(0..(u64::MAX as f64).sqrt() as u64))
             .collect();
         let test_case_right: Vec<u64> = (0..4)
-            .map(|_| rng.gen_range(0, (u64::MAX as f64).sqrt() as u64))
+            .map(|_| rng.gen_range(0..(u64::MAX as f64).sqrt() as u64))
             .collect();
         let output: Vec<u64> = test_case_left
             .clone()
@@ -127,8 +127,8 @@ fn array_selector_test_large() {
         let mut rng = thread_rng();
 
         let out_len = 2000;
-        let start = rng.gen_range(0, 2000);
-        let end = rng.gen_range(start + 1, 2001);
+        let start = rng.gen_range(0..2000);
+        let end = rng.gen_range(start + 1..2001);
 
         let output = build_array_selector_output(out_len, start, end);
         let config = CircuitConfig::new().max_length("expected_output", out_len as usize);
@@ -354,7 +354,7 @@ fn left_array_selector_test_large() {
         TestCircuitHandle::new("arrays/left_array_selector_large_test.circom").unwrap();
     let out_len = 2000;
     let mut rng = thread_rng();
-    let index = rng.gen_range(0, 2000);
+    let index = rng.gen_range(0..2000);
     let output = build_left_array_selector_output(out_len, index);
     let config = CircuitConfig::new().max_length("expected_output", out_len as usize);
     let circuit_input_signals = CircuitInputSignals::new()
@@ -434,7 +434,7 @@ fn right_array_selector_test_large() {
         TestCircuitHandle::new("arrays/right_array_selector_large_test.circom").unwrap();
     let out_len = 2000;
     let mut rng = rand::thread_rng();
-    let index = rng.gen_range(0, 2001);
+    let index = rng.gen_range(0..2001);
     let output = build_right_array_selector_output(out_len, index);
     let config = CircuitConfig::new().max_length("expected_output", out_len);
     let circuit_input_signals = CircuitInputSignals::new()
@@ -534,7 +534,7 @@ fn single_one_array_large_test() {
         TestCircuitHandle::new("arrays/single_one_array_large_test.circom").unwrap();
     let out_len = 2000;
     let mut rng = rand::thread_rng();
-    let index = rng.gen_range(0, 2001);
+    let index = rng.gen_range(0..2001);
     let output = build_single_one_array_output(out_len, index);
     let config = CircuitConfig::new().max_length("expected_output", out_len);
     let circuit_input_signals = CircuitInputSignals::new()
@@ -569,7 +569,7 @@ fn single_one_array_small_test() {
 fn select_array_value_test() {
     let circuit_handle = TestCircuitHandle::new("arrays/select_array_value_test.circom").unwrap();
     let mut rng = rand::thread_rng();
-    let array: Vec<u8> = (0..8).map(|_| rng.gen_range(0, 250)).collect();
+    let array: Vec<u8> = (0..8).map(|_| rng.gen_range(0..250)).collect();
 
     let in_len = array.len();
     for index in 0..in_len {
@@ -592,7 +592,7 @@ fn select_array_value_test() {
 fn select_array_value_out_of_bounds_test() {
     let circuit_handle = TestCircuitHandle::new("arrays/select_array_value_test.circom").unwrap();
     let mut rng = rand::thread_rng();
-    let array: Vec<u8> = (0..8).map(|_| rng.gen_range(0, 250)).collect();
+    let array: Vec<u8> = (0..8).map(|_| rng.gen_range(0..250)).collect();
 
     let in_len = array.len();
     let index = 20;
@@ -614,7 +614,7 @@ fn select_array_value_large_test() {
     let circuit_handle =
         TestCircuitHandle::new("arrays/select_array_value_large_test.circom").unwrap();
     let mut rng = rand::thread_rng();
-    let input: Vec<u8> = (0..2000).map(|_| rng.gen_range(0, 250)).collect();
+    let input: Vec<u8> = (0..2000).map(|_| rng.gen_range(0..250)).collect();
 
     let index = 1567;
     let in_len = input.len();
@@ -636,7 +636,7 @@ fn select_array_value_small_test() {
     let circuit_handle =
         TestCircuitHandle::new("arrays/select_array_value_small_test.circom").unwrap();
     let mut rng = rand::thread_rng();
-    let array: Vec<u8> = (0..1).map(|_| rng.gen_range(0, 250)).collect();
+    let array: Vec<u8> = (0..1).map(|_| rng.gen_range(0..250)).collect();
     let index = 0;
     let in_len = array.len();
     let output = array[index];
@@ -659,7 +659,7 @@ fn select_array_value_test_wrong_index() {
     let out_len = 8;
     let index = 8;
     let mut rng = rand::thread_rng();
-    let output: Vec<u8> = (0..8).map(|_| rng.gen_range(0, 250)).collect();
+    let output: Vec<u8> = (0..8).map(|_| rng.gen_range(0..250)).collect();
 
     let config = CircuitConfig::new().max_length("expected_output", out_len as usize);
     let circuit_input_signals = CircuitInputSignals::new()
@@ -724,7 +724,7 @@ fn single_neg_one_array_large_test() {
         TestCircuitHandle::new("arrays/single_neg_one_array_large_test.circom").unwrap();
     let out_len = 2000;
     let mut rng = rand::thread_rng();
-    let index = rng.gen_range(0, 2001);
+    let index = rng.gen_range(0..2001);
     let output = build_single_neg_one_array_output(out_len, index);
     let config = CircuitConfig::new().max_length("expected_output", out_len);
     let circuit_input_signals = CircuitInputSignals::new()
@@ -1367,9 +1367,9 @@ fn assert_is_ascii_digits_test() {
     let max_input_len = 20;
 
     let mut rng = rand::thread_rng();
-    let digits: Vec<u8> = (0..5).map(|_| rng.gen_range(0, 9)).collect();
+    let digits: Vec<u8> = (0..5).map(|_| rng.gen_range(0..9)).collect();
     let mut input_arr = digits_to_ascii_digits(digits.to_vec());
-    let mut not_digits: Vec<u8> = (0..8 - 5).map(|_| rng.gen_range(58, 250)).collect();
+    let mut not_digits: Vec<u8> = (0..8 - 5).map(|_| rng.gen_range(58..250)).collect();
     input_arr.append(&mut not_digits);
 
     let len = 5; // only the first 5 entries should need to be valid digits
@@ -1392,7 +1392,7 @@ fn assert_is_ascii_digits_out_of_bounds_test() {
 
     let mut rng = rand::thread_rng();
     let len = 22;
-    let digits: Vec<u8> = (0..20).map(|_| rng.gen_range(0, 9)).collect();
+    let digits: Vec<u8> = (0..20).map(|_| rng.gen_range(0..9)).collect();
     let input_arr = digits_to_ascii_digits(digits.to_vec());
 
     let config = CircuitConfig::new().max_length("in", max_input_len);
@@ -1412,7 +1412,7 @@ fn assert_is_ascii_digits_max_len_test() {
         TestCircuitHandle::new("arrays/assert_is_ascii_digits_max_len_test.circom").unwrap();
     let max_input_len = 8;
     let mut rng = rand::thread_rng();
-    let digits: Vec<u8> = (0..8).map(|_| rng.gen_range(0, 9)).collect();
+    let digits: Vec<u8> = (0..8).map(|_| rng.gen_range(0..9)).collect();
     let input_arr = digits_to_ascii_digits(digits.to_vec());
     let len = input_arr.len();
     let config = CircuitConfig::new().max_length("in", max_input_len);
@@ -1432,7 +1432,7 @@ fn assert_is_ascii_digits_small_test() {
         TestCircuitHandle::new("arrays/assert_is_ascii_digits_test.circom").unwrap();
     let max_input_len = 20;
     let mut rng = rand::thread_rng();
-    let digits: Vec<u8> = (0..1).map(|_| rng.gen_range(0, 9)).collect();
+    let digits: Vec<u8> = (0..1).map(|_| rng.gen_range(0..9)).collect();
     let input_arr = digits_to_ascii_digits(digits.to_vec());
     let len = 1;
     let config = CircuitConfig::new().max_length("in", max_input_len);
@@ -1452,7 +1452,7 @@ fn assert_is_ascii_digits_large_test() {
         TestCircuitHandle::new("arrays/assert_is_ascii_digits_large_test.circom").unwrap();
     let max_input_len = 2000;
     let mut rng = rand::thread_rng();
-    let digits: Vec<u8> = (0..1523).map(|_| rng.gen_range(0, 9)).collect();
+    let digits: Vec<u8> = (0..1523).map(|_| rng.gen_range(0..9)).collect();
     let input_arr = digits_to_ascii_digits(digits.to_vec());
 
     let len = input_arr.len();

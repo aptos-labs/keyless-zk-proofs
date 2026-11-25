@@ -15,15 +15,10 @@ fn generate_string_bodies_input() -> String {
 
     let len = 13;
 
-    let mut s: Vec<u8> = rng
-        .sample_iter(&Alphanumeric)
-        .take(len)
-        .collect::<String>()
-        .as_bytes()
-        .into();
+    let mut s: Vec<u8> = (0..len).map(|_| rng.sample(Alphanumeric)).collect();
 
-    let num_to_replace = rng.gen_range(0, len);
-    let to_replace: Vec<usize> = (0..num_to_replace).map(|_| rng.gen_range(0, len)).collect();
+    let num_to_replace = rng.gen_range(0..len);
+    let to_replace: Vec<usize> = (0..num_to_replace).map(|_| rng.gen_range(0..len)).collect();
     let replace_with_escaped_quote: Vec<bool> =
         (0..num_to_replace).map(|_| rng.gen_bool(0.5)).collect();
 
