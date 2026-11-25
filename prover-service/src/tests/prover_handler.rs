@@ -10,14 +10,14 @@ use crate::tests::types::{ProofTestCase, TestJWTPayload};
 use crate::tests::utils;
 use anyhow::anyhow;
 use aptos_crypto::ed25519::{Ed25519PrivateKey, Ed25519PublicKey};
-use aptos_crypto::{PrivateKey, Uniform};
+use aptos_crypto::PrivateKey;
 use aptos_infallible::Mutex;
 use aptos_keyless_common::input_processing::encoding::AsFr;
 use aptos_types::jwks::rsa::RSA_JWK;
 use bytes::Bytes;
 use http_body_util::{BodyExt, Full};
 use rand::prelude::ThreadRng;
-use rand::thread_rng;
+use rand::{thread_rng, Rng};
 use rust_rapidsnark::FullProver;
 use serial_test::serial;
 use std::collections::HashMap;
@@ -371,7 +371,8 @@ async fn convert_prove_and_verify(testcase: &ProofTestCase) -> Result<(), anyhow
 fn generate_ed25519_keypair() -> (Ed25519PrivateKey, Ed25519PublicKey) {
     // Generate a new Ed25519 keypair
     let mut rng: ThreadRng = thread_rng();
-    let private_key = Ed25519PrivateKey::generate(&mut rng);
+    let seed: [u8; 32] = rng.gen();
+    let private_key = Ed25519PrivateKey::try_from(seed.as_slice()).unwrap();
     let public_key = private_key.public_key();
 
     (private_key, public_key)

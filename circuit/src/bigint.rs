@@ -17,9 +17,9 @@ fn rand_big<R: Rng>(rng: &mut R, x_bytes_be: &[u8]) -> Vec<u8> {
         .enumerate()
         .filter_map(|(idx, byte)| if byte == 0 { None } else { Some(idx) })
         .collect();
-    let diff_idx = non_zero_idxs[rng.gen_range(0, non_zero_idxs.len())]; // will be the first byte in y that's smaller than the same position in x.
+    let diff_idx = non_zero_idxs[rng.gen_range(0..non_zero_idxs.len())]; // will be the first byte in y that's smaller than the same position in x.
 
-    let y_diff_byte = rng.gen_range(0, x_bytes_be[diff_idx]);
+    let y_diff_byte = rng.gen_range(0..x_bytes_be[diff_idx]);
 
     let mut random_bytes = vec![0; n - (diff_idx + 1)];
     rng.fill_bytes(random_bytes.as_mut_slice());
@@ -49,19 +49,19 @@ fn bytes_le_into_limbs_le(mut bytes: Vec<u8>) -> Vec<u64> {
 /// Some special ranges get higher weight.
 fn sample_big_be<R: Rng>(rng: &mut R) -> Vec<u8> {
     let byte_len: usize = {
-        let sample = rng.gen_range(0.0, 1.0);
+        let sample = rng.gen_range(0.0..1.0);
         if sample < 0.2 {
-            rng.gen_range(1, 9)
+            rng.gen_range(1..9)
         } else if sample < 0.4 {
-            rng.gen_range(248, 257)
+            rng.gen_range(248..257)
         } else {
-            rng.gen_range(1, 33) * 8
+            rng.gen_range(1..33) * 8
         }
     };
     let mut ret: Vec<u8> = vec![0; byte_len];
     rng.fill_bytes(ret.as_mut_slice());
     if let Some(byte) = ret.first_mut() {
-        *byte = rng.gen_range(0, 255) + 1;
+        *byte = rng.gen_range(0..255) + 1;
     }
     ret
 }

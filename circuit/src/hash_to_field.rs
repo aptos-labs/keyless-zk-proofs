@@ -1,12 +1,9 @@
 // Copyright (c) Aptos Foundation
 
 use crate::TestCircuitHandle;
-use aptos_crypto::{
-    poseidon_bn254::{
-        keyless::{pad_and_hash_limbs_with_len, BYTES_PACKED_PER_SCALAR, LIMBS_PACKED_PER_SCALAR},
-        pad_and_hash_bytes_with_len, MAX_NUM_INPUT_SCALARS,
-    },
-    test_utils::random_bytes,
+use aptos_crypto::poseidon_bn254::{
+    keyless::{pad_and_hash_limbs_with_len, BYTES_PACKED_PER_SCALAR, LIMBS_PACKED_PER_SCALAR},
+    pad_and_hash_bytes_with_len, MAX_NUM_INPUT_SCALARS,
 };
 use aptos_keyless_common::input_processing::{
     circuit_config::CircuitConfig, circuit_input_signals::CircuitInputSignals,
@@ -49,16 +46,16 @@ component main = hash_bytes_to_field_with_len_test(__MAX_LEN__);
     for i in 0..num_iterations {
         println!();
         println!("Iteration {} starts.", i);
-        let num_bytes_circuit_capacity: usize = rng.gen_range(1, max_supported_byte_len);
+        let num_bytes_circuit_capacity: usize = rng.gen_range(1..max_supported_byte_len);
         println!("num_bytes_circuit_capacity={}", num_bytes_circuit_capacity);
         let circuit_src = circuit_src_template.replace(
             "__MAX_LEN__",
             num_bytes_circuit_capacity.to_string().as_str(),
         );
         let circuit = TestCircuitHandle::new_from_str(circuit_src.as_str()).unwrap();
-        let input_len = rng.gen_range(0, num_bytes_circuit_capacity + 1);
+        let input_len = rng.gen_range(0..num_bytes_circuit_capacity + 1);
         println!("input_len={}", input_len);
-        let msg = random_bytes(&mut rng, input_len);
+        let msg: Vec<u8> = (0..input_len).map(|_| rng.gen()).collect();
         let expected_output =
             pad_and_hash_bytes_with_len(msg.as_slice(), num_bytes_circuit_capacity).unwrap();
         println!("expected_output={}", expected_output);
@@ -113,14 +110,14 @@ component main = Hash64BitLimbsToFieldWithLenTest(__MAX_LEN__);
     for i in 0..num_iterations {
         println!();
         println!("Iteration {} starts.", i);
-        let num_limbs_circuit_capacity: usize = rng.gen_range(1, max_supported_limb_len);
+        let num_limbs_circuit_capacity: usize = rng.gen_range(1..max_supported_limb_len);
         println!("num_limbs_circuit_capacity={}", num_limbs_circuit_capacity);
         let circuit_src = circuit_src_template.replace(
             "__MAX_LEN__",
             num_limbs_circuit_capacity.to_string().as_str(),
         );
         let circuit = TestCircuitHandle::new_from_str(circuit_src.as_str()).unwrap();
-        let input_len = rng.gen_range(0, num_limbs_circuit_capacity + 1);
+        let input_len = rng.gen_range(0..num_limbs_circuit_capacity + 1);
         println!("input_len={}", input_len);
         let limbs: Vec<u64> = (0..input_len).map(|_| rng.gen()).collect();
         let expected_output =
