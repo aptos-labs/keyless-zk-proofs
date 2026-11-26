@@ -6,6 +6,7 @@ include "../../stdlib/circuits/Sum.circom";
 
 include "circomlib/circuits/sha256/constants.circom";
 include "circomlib/circuits/sha256/sha256compression.circom";
+include "./ZkGolfSha256Compression.circom";
 include "circomlib/circuits/comparators.circom";
 
 // Similar to `sha256_unsafe` in https://github.com/TheFrozenFire/snark-jwt-verify/blob/master/circuits/sha256.circom
@@ -30,7 +31,7 @@ template SHA2_256_Prepadded_Hash(MAX_NUM_BLOCKS) {
 
     for(var i = 0; i < MAX_NUM_BLOCKS; i++) {
 
-        sha256compression[i] = Sha256compression();
+        sha256compression[i] = Sha256compressionZkGolf();
 
         if (i==0) {
             for(var k = 0; k < 32; k++) {
