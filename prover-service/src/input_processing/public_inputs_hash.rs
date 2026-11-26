@@ -19,7 +19,7 @@ fn compute_idc_hash(
     verified_input: &VerifiedInput,
     pepper_fr: Fr,
 ) -> Result<Fr> {
-    // Add the pepper to the hash
+    // Add the peppercorn (previously called "pepper") to the hash
     let mut frs: Vec<Fr> = Vec::new();
     frs.push(pepper_fr);
 

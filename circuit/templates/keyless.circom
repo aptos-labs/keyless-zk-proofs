@@ -473,6 +473,8 @@ template keyless(
     // Compute the identity commitment (IDC)
     //
 
+    // Naming note: This is the peppercorn (one-way derivative of "the pepper").
+    // The signal remains named `pepper` for backward compatibility with tooling.
     signal input pepper;
     signal hashable_private_aud_value[MAX_AUD_VALUE_LEN];
     for (var i = 0; i < MAX_AUD_VALUE_LEN; i++) {

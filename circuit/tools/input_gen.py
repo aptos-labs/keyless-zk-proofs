@@ -591,7 +591,7 @@ print(exp_date)
 print("\nExpiration horizon:")
 print(exp_horizon)
 
-print("\nPepper")
+print("\nPeppercorn")
 print(pepper)
 
 print("\nExtra field")
